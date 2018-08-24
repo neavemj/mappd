@@ -1,0 +1,3 @@
+samples:
+  novel: data/novelVirus.fastq
+  sim: data/simulated_sample.fastq
