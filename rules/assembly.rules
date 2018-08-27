@@ -1,0 +1,16 @@
+"""
+Assembly rules
+
+The inputs are:
+    - trimmed reads in fastq format
+The outputs are:
+    - assembled contigs in fasta format
+"""
+
+rule spades:
+    input:
+        "trim/{sample}.trimmed.fastq"
+    output:
+        "assembly/{sample}"
+    shell:
+        "spades.py -o {output} -s {input}"

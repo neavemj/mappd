@@ -16,8 +16,9 @@ rule trimmomatic:
     log:
         "logs/trimmomatic/{sample}.log"
     params:
-        qual = config["trimmomatic_quality"]
+        qual = config["trimmomatic_quality"],
+        adapters = config["trimmomatic_adapters"]
     shell:
-        "trimmomatic SE {input} {output} ILLUMINACLIP:./data/TruSeq3-PE-2.fa:2:30:10 "
+        "trimmomatic SE {input} {output} ILLUMINACLIP:{params.adapters}:2:30:10 "
         "LEADING:3 TRAILING:3 SLIDINGWINDOW:4:{params.qual} MINLEN:75 2> {log}"
 
