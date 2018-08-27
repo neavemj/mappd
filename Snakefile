@@ -11,4 +11,4 @@ include: "rules/trim_quality.rules"
 
 rule all:
     input:
-        "trim/simulated_sample.1m.trimmed.fastq"
+        expand("trim/{sample}.trimmed.fastq", sample=config["samples"])

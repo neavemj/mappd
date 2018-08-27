@@ -1,8 +1,8 @@
 # -------------- project specific parameters to be changed -------------- #
 
 samples:
-  - "data/simulated_sample.1m"
-  - "data/simulated_sample.l1m"
+  sim1: "data/sim1.fastq"
+  sim2: "data/sim2.fastq"
 
 
 
