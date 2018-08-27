@@ -1,0 +1,23 @@
+"""
+These rules will trim sequencing reads and produce a fastqc output if required
+
+The inputs are:
+    - raw Illumina sequencing reads
+The outputs are:
+    - cleaned Illumina sequencing reads
+    - a fastqc report if requested
+"""
+
+rule trimmomatic:
+    input:
+        "data/{sample}.fastq",
+    output:
+        "trim/{sample}.trimmed.fastq"
+    log:
+        "logs/trimmomatic/{sample}.log"
+    params:
+        qual = config["trimmomatic_quality"]
+    shell:
+        "trimmomatic SE {input} {output} ILLUMINACLIP:./data/TruSeq3-PE-2.fa:2:30:10 "
+        "LEADING:3 TRAILING:3 SLIDINGWINDOW:4:{params.qual} MINLEN:75 2> {log}"
+

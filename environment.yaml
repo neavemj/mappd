@@ -5,3 +5,4 @@ channels:
 dependencies:
   - python=3.6.2
   - snakemake=5.2.2
+  - trimmomatic=0.38

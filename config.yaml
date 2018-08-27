@@ -1,6 +1,16 @@
-samples:
-  novel: data/novelVirus.fastq
-  sim: data/simulated_sample.1m.fastq
-  fasta: data/test.fasta
+# -------------- project specific parameters to be changed -------------- #
 
-kraken_db: "/datastore/nea040/kraken_db/minikraken_20171101_4GB_dustmasked"
+samples:
+  - "data/simulated_sample.1m"
+  - "data/simulated_sample.l1m"
+
+
+
+# -------------- pipeline parameters -------------- #
+
+# Trimmomatic is used for trimming the sequencing reads
+# The program requires an adapter file specific for the sequencing run
+# and a minimum quality score can be given
+
+trimmomatic_adapters: "data/TruSeq3-PE-2.fa"
+trimmomatic_quality: 20
