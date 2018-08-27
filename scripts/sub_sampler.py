@@ -40,6 +40,7 @@ if args.forward_reads is None or \
         parser.print_help(sys.stderr)
         sys.exit(1)
 
+
 # figure out how many total reads are in the file
 
 print("Scanning fastq file and calculating number of reads")
@@ -52,11 +53,14 @@ with open(args.forward_reads) as f:
 
 print("detected {} reads in the forward file".format(total_reads))
 
+if args.nReads > total_reads:
+    print("** warning: only {} reads detected but {} were requested".format(total_reads, args.nReads))
+    print("** warning: subsetting aborted")
+    sys.exit(1)
+
 # create random numbers of reads to sample
 
 reads_to_sample = set(random.sample(range(total_reads + 1), args.nReads))
-
-print(len(reads_to_sample))
 
 # go through forward reads again and write sub-sampled reads to file
 
@@ -65,13 +69,22 @@ forward_ids = set()
 output_forward = open(args.output_prefix + ".subset.R1.fastq", "w")
 
 with open(args.forward_reads) as f:
+    forward_reads_written = 0
     for title, seq, qual in FastqGeneralIterator(f):
         record_number += 1
         if record_number in reads_to_sample:
             forward_ids.add(title)
             output_forward.write("@{}\n{}\n+\n{}\n".format(title, seq, qual))
+            forward_reads_written += 1
 
+print("** wrote {} reads to the forward file".format(forward_reads_written))
 
-
-
-#reverse_handle = open(args.output_prefix + ".R2.fq", "w")
+if args.reverse_reads:
+    output_reverse = open(args.output_prefix + ".subset.R2.fastq", "w")
+    reverse_reads_written = 0
+    with open(args.reverse_reads) as f:
+        for title, seq, qual in FastqGeneralIterator(f):
+            if title in forward_ids:
+                output_reverse.write("@{}\n{}\n+\n{}\n".format(title, seq, qual))
+                reverse_reads_written += 1
+    print("** wrote {} reads to the reverse file".format(reverse_reads_written))
