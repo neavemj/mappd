@@ -14,3 +14,8 @@ samples:
 
 trimmomatic_adapters: "data/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
+trimmomatic_minlen: 50
+
+# how many reads to subsample and use for assembly
+
+subsampled_nReads: 100000

@@ -7,8 +7,9 @@ Includes trimming, assembly and annotation
 
 configfile: "config.yaml"
 
-include: "rules/trim_quality.rules"
+include: "rules/preprocessing.rules"
+include: "rules/assembly.rules"
 
 rule all:
     input:
-        expand("trim/{sample}.trimmed.fastq", sample=config["samples"])
+        expand("spades/{sample}", sample=config["samples"])

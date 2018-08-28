@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-subsample a fastq file to reduce assembly time
+randomly subsample a fastq file to reduce assembly time
 """
 
 import sys
@@ -19,8 +19,11 @@ parser.add_argument('-2', '--reverse_reads', type = str,
         nargs = "?", help = "fastq file containing reverse R2 reads (leave blank if only single-end reads)")
 parser.add_argument('-n', '--nReads', type = int,
         nargs = "?", default=100000, help = "number of reads required")
-parser.add_argument('-o', '--output_prefix', type = str,
-                    nargs = "?", help = "output prefix for the subsetted file")
+parser.add_argument('-o', '--forward_output', type = str,
+                    nargs = "?", help = "output name for the subsetted forward file")
+parser.add_argument('-r', '--reverse_output', type = str,
+                    nargs = "?", help = "output name for the subsetted reverse file (leave blank if only single-end "
+                                        "reads)")
 
 # if no args given, print help and exit
 
@@ -34,12 +37,16 @@ args = parser.parse_args()
 
 if args.forward_reads is None or \
     args.nReads is None or \
-    args.output_prefix is None:
+    args.forward_output is None:
         print("\n** a required input is missing\n"
               "** a reads file, number of reads to subset, and output prefix is required\n")
         parser.print_help(sys.stderr)
         sys.exit(1)
 
+if args.reverse_reads and args.reverse_output is None:
+    print("\n** if reverse reads are given, a reverse file name must be provided\n")
+    parser.print_help(sys.stderr)
+    sys.exit(1)
 
 # figure out how many total reads are in the file
 
@@ -51,7 +58,7 @@ with open(args.forward_reads) as f:
     for title, seq, qual in FastqGeneralIterator(f):
         total_reads += 1
 
-print("detected {} reads in the forward file".format(total_reads))
+print("detected {} reads in {}".format(total_reads, args.forward_reads))
 
 if args.nReads > total_reads:
     print("** warning: only {} reads detected but {} were requested".format(total_reads, args.nReads))
@@ -66,7 +73,7 @@ reads_to_sample = set(random.sample(range(total_reads + 1), args.nReads))
 
 record_number = 0
 forward_ids = set()
-output_forward = open(args.output_prefix + ".subset.R1.fastq", "w")
+output_forward = open(args.forward_output, "w")
 
 with open(args.forward_reads) as f:
     forward_reads_written = 0
@@ -77,14 +84,14 @@ with open(args.forward_reads) as f:
             output_forward.write("@{}\n{}\n+\n{}\n".format(title, seq, qual))
             forward_reads_written += 1
 
-print("** wrote {} reads to the forward file".format(forward_reads_written))
+print("** wrote {} reads to {}".format(forward_reads_written, args.forward_output))
 
 if args.reverse_reads:
-    output_reverse = open(args.output_prefix + ".subset.R2.fastq", "w")
+    output_reverse = open(args.reverse_output, "w")
     reverse_reads_written = 0
     with open(args.reverse_reads) as f:
         for title, seq, qual in FastqGeneralIterator(f):
             if title in forward_ids:
                 output_reverse.write("@{}\n{}\n+\n{}\n".format(title, seq, qual))
                 reverse_reads_written += 1
-    print("** wrote {} reads to the reverse file".format(reverse_reads_written))
+    print("** wrote {} reads to {}".format(reverse_reads_written, args.reverse_output))
