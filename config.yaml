@@ -1,10 +1,22 @@
 # -------------- project specific parameters to be changed -------------- #
 
+data_dir: "/datastore/nea040/PycharmProjects/data"
+
 samples:
-  sim1: "data/sim1.fastq"
-  sim2: "data/sim2.fastq"
+  sim1: "{data_dir}/00_raw/sim1.fastq"
+  sim2: "{data_dir}/00_raw/sim2.fastq"
 
+# -------------- pipline data structure -------------- #
 
+# could think about using accessing this directory structure through dicts
+# this would all the user to change folder names easily
+# however, the input parts of rules would have to be significantly more complicated
+
+subdirs:
+  raw:        "00_raw"
+  trimmed:    "01_trimmed"
+  subsampled: "02_subsampled"
+  assembly:   "03_assembly"
 
 # -------------- pipeline parameters -------------- #
 
@@ -19,3 +31,9 @@ trimmomatic_minlen: 50
 # how many reads to subsample and use for assembly
 
 subsampled_nReads: 100000
+
+# location of reference databases
+
+blast_nt: "/data/bioref/blast/ncbi/nt"
+blast_nr: "/data/bioref/blast/ncbi/nr"
+

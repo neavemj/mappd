@@ -9,10 +9,10 @@ The outputs are:
 
 rule spades:
     input:
-        "subsampled/{sample}.fastq"
+        "02_subsampled/{sample}.fastq"
     output:
-        directory("spades/{sample}")
+        directory("03_spades/{sample}")
     log:
-        "logs/spades/{sample}.log"
+        "logs/03_spades/{sample}.log"
     shell:
         "spades.py -o {output} -s {input} > {log}"

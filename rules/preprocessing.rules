@@ -13,27 +13,30 @@ TODO: insert ifelse statements to process accordingly
 
 rule trimmomatic:
     input:
-        "data/{sample}.fastq",
+        "00_raw/{sample}.fastq"
+        # the below could be used to give explicit directory structure
+        #expand("{data_dir}/{subdir}/{sample}.fastq",
+        #    data_dir=config["data_dir"], subdir=config["subdir"]["raw"], sample=config["samples"])
     output:
-        "trim/{sample}.fastq"
+        "01_trimmed/{sample}.fastq"
     params:
         qual = config["trimmomatic_quality"],
         adapters = config["trimmomatic_adapters"],
         minlen = config["trimmomatic_minlen"]
     log:
-        "logs/trimmomatic/{sample}.log"
+        "logs/01_trimmomatic/{sample}.log"
     shell:
         "trimmomatic SE {input} {output} ILLUMINACLIP:{params.adapters}:2:30:10 "
         "LEADING:3 TRAILING:3 SLIDINGWINDOW:4:{params.qual} MINLEN:{params.minlen} 2> {log}"
 
 rule subsample:
     input:
-        "trim/{sample}.fastq"
+        "01_trimmed/{sample}.fastq"
     output:
-        "subsampled/{sample}.fastq"
+        "02_subsampled/{sample}.fastq"
     params:
         nReads = config["subsampled_nReads"]
     log:
-        "logs/subsampled/{sample}.log"
+        "logs/02_subsampled/{sample}.log"
     run:
         shell("scripts/sub_sampler.py -1 {input} -o {output} --nReads {params.nReads} > {log}")

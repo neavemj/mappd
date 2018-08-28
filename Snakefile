@@ -12,4 +12,4 @@ include: "rules/assembly.rules"
 
 rule all:
     input:
-        expand("spades/{sample}", sample=config["samples"])
+        expand("03_spades/{sample}", sample=config["samples"])
