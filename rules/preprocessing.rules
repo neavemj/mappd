@@ -8,6 +8,8 @@ The outputs are:
     - cleaned sub-sampled Illumina sequencing reads
 """
 
+# for some reason I have put this function here to get wildcards to work
+# it wont work if directly in the rule
 def getFastq(wildcards):
     return config['samples'][wildcards.sample]
 
@@ -24,7 +26,7 @@ rule trimmomatic_PE:
         R2_U = "01_trimmomatic/{sample}_2U.fastq.gz"
     params:
         qual = config["trimmomatic_quality"],
-        adapters = config["trimmomatic_adapters"],
+        adapters = config["program_dir"] + config["trimmomatic_adapters"],
         minlen = config["trimmomatic_minlen"]
     threads: 8
     log:

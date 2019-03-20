@@ -11,7 +11,7 @@ samples:
 # this would all the user to change folder names easily
 # however, the input parts of rules would have to be significantly more complicated
 
-program_dir: "/datastore/nea040/PycharmProjects/MAPPD/"
+program_dir: "/datastore/nea040/PycharmProjects/mappd/"
 
 sub_dir:
   raw:        "00_raw"
@@ -24,7 +24,7 @@ sub_dir:
 # The program requires an adapter file specific for the sequencing run
 # and a minimum quality score can be given
 
-trimmomatic_adapters: "data/TruSeq3-PE-2.fa"
+trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
 trimmomatic_minlen: 50
 
