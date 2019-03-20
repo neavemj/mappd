@@ -42,14 +42,15 @@ rule trimmomatic_PE:
         2> {log}
         """
 
-rule subsample:
+rule summarise_trimmomatic_log:
     input:
-        "01_trimmed/{sample}.fastq"
+        "logs/01_trimmomatic/{sample}.log"
     output:
-        "02_subsampled/{sample}.fastq"
-    params:
-        nReads = config["subsampled_nReads"]
-    log:
-        "logs/02_subsampled/{sample}.log"
-    run:
-        shell("scripts/sub_sampler.py -1 {input} -o {output} --nReads {params.nReads} > {log}")
+        "logs/01_trimmomatic/logs.summary"
+    shell:
+        """
+        {config[program_dir]}/scripts/summarise_trimmomatic.py \
+        -i {input} -o {output}
+        """
+
+

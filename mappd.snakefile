@@ -10,11 +10,11 @@ import os
 configfile: 'config.yaml'
 
 rules_dir = os.path.join(os.path.expanduser(config['program_dir']), 'rules')
-scripts_dir = os.path.join(os.path.expanduser(config['program_dir']), 'scripts')
 
 include: os.path.join(rules_dir, 'preprocessing.rules')
 include: os.path.join(rules_dir, 'assembly.rules')
 
 rule all:
     input:
-        expand("01_trimmomatic/{sample}_1P.fastq.gz", sample=config['samples'])
+        #expand("01_trimmomatic/{sample}_1P.fastq.gz", sample=config['samples'])
+        expand("logs/01_trimmomatic/{sample}.log.summary", sample=config['samples'])
