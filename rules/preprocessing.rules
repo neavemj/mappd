@@ -1,33 +1,44 @@
 """
-These rules will trim sequencing reads and randomly subsample
+These rules will trim sequencing reads
 
 The inputs are:
     - raw Illumina sequencing reads
 The outputs are:
     - cleaned Illumina sequencing reads
     - cleaned sub-sampled Illumina sequencing reads
-
-TODO: currently these don't deal with paired-end data
-TODO: insert ifelse statements to process accordingly
 """
 
-rule trimmomatic:
+def getFastq(wildcards):
+    return config['samples'][wildcards.sample]
+
+rule trimmomatic_PE:
     input:
-        "00_raw/{sample}.fastq"
-        # the below could be used to give explicit directory structure
-        #expand("{data_dir}/{subdir}/{sample}.fastq",
-        #    data_dir=config["data_dir"], subdir=config["subdir"]["raw"], sample=config["samples"])
+        #R1 = "data/{sample}_1.fastq.gz",
+        #R2 = "data/{sample}_2.fastq.gz"
+        #config['samples'][wildcards.samples]
+        getFastq
     output:
-        "01_trimmed/{sample}.fastq"
+        R1_P = "01_trimmomatic/{sample}_1P.fastq.gz",
+        R1_U = "01_trimmomatic/{sample}_1U.fastq.gz",
+        R2_P = "01_trimmomatic/{sample}_2P.fastq.gz",
+        R2_U = "01_trimmomatic/{sample}_2U.fastq.gz"
     params:
         qual = config["trimmomatic_quality"],
         adapters = config["trimmomatic_adapters"],
         minlen = config["trimmomatic_minlen"]
+    threads: 8
     log:
         "logs/01_trimmomatic/{sample}.log"
+    benchmark:
+        "benchmarks/01_trimmomatic/{sample}.txt"
     shell:
-        "trimmomatic SE {input} {output} ILLUMINACLIP:{params.adapters}:2:30:10 "
-        "LEADING:3 TRAILING:3 SLIDINGWINDOW:4:{params.qual} MINLEN:{params.minlen} 2> {log}"
+        """
+        trimmomatic PE -threads {threads} \
+        {input} {output.R1_P} {output.R1_U} {output.R2_P} {output.R2_U} \
+        ILLUMINACLIP:{params.adapters}:2:30:10 \
+        LEADING:3 TRAILING:3 SLIDINGWINDOW:4:{params.qual} MINLEN:{params.minlen} \
+        2> {log}
+        """
 
 rule subsample:
     input:

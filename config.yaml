@@ -1,10 +1,9 @@
 # -------------- project specific parameters to be changed -------------- #
 
-data_dir: "/datastore/nea040/PycharmProjects/data"
-
 samples:
-  sim1: "{data_dir}/00_raw/sim1.fastq"
-  sim2: "{data_dir}/00_raw/sim2.fastq"
+  prawn1:
+    - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz
+    - 18-2595-01-Prawn1_S6_L001_R2_001.fastq.gz
 
 # -------------- pipline data structure -------------- #
 
@@ -12,11 +11,12 @@ samples:
 # this would all the user to change folder names easily
 # however, the input parts of rules would have to be significantly more complicated
 
-subdirs:
+program_dir: "/datastore/nea040/PycharmProjects/MAPPD/"
+
+sub_dir:
   raw:        "00_raw"
   trimmed:    "01_trimmed"
-  subsampled: "02_subsampled"
-  assembly:   "03_assembly"
+  assembly:   "02_assembly"
 
 # -------------- pipeline parameters -------------- #
 
@@ -36,4 +36,5 @@ subsampled_nReads: 100000
 
 blast_nt: "/data/bioref/blast/ncbi/nt"
 blast_nr: "/data/bioref/blast/ncbi/nr"
+diamond_nr: "/data/bioref/diamond_db/nr"
 
