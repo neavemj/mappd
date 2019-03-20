@@ -17,4 +17,4 @@ include: os.path.join(rules_dir, 'assembly.rules')
 rule all:
     input:
         #expand("01_trimmomatic/{sample}_1P.fastq.gz", sample=config['samples'])
-        expand("logs/01_trimmomatic/{sample}.log.summary", sample=config['samples'])
+        expand("logs/01_trimmomatic/logs.summary", sample=config['samples'])

@@ -44,7 +44,7 @@ rule trimmomatic_PE:
 
 rule summarise_trimmomatic_log:
     input:
-        "logs/01_trimmomatic/{sample}.log"
+        expand("logs/01_trimmomatic/{sample}.log", sample=config["samples"])
     output:
         "logs/01_trimmomatic/logs.summary"
     shell:
