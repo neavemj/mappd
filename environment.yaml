@@ -9,8 +9,11 @@ dependencies:
   - python>=3.5.1
   - r>=3.4.1
 
-# preprocessing.rules
+# preprocessing.snk
   - trimmomatic>=0.36
   - r-ggplot2>=3.1.0
   - r-tidyr
   - r-scales
+
+# assembly.snk
+  - spades>=3.13.0
