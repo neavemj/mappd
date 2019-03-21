@@ -8,14 +8,6 @@ require(scales)
 
 plot_trim <- function(trim_summary, pdf_file, png_file) {
   
-  #if (makePDF) {
-    #CREATE pdf as output file
-  #  pdf(file = pdf_file)
-  #} else {
-    #CREATE png as output file
-  #  png(file=png_file, width = 8, height = 8, unit="in",res=300)
-  #}
-  
   summary_df = read.table(trim_summary, sep="\t", header=T)
 
   summary_long = gather(summary_df, type, pairs, both_surviving, forward_only, reverse_only, dropped)
@@ -24,16 +16,20 @@ plot_trim <- function(trim_summary, pdf_file, png_file) {
 
   cols <- c("both_surviving" = "#7CAE00", "forward_only" = "#C77CFF", "reverse_only" = "#00BFC4", "dropped" = "#F8766D")
   
-  ggplot(summary_long, aes(x=sample, y=pairs, fill=type)) +
+  p <- ggplot(summary_long, aes(x=sample, y=pairs, fill=type)) +
     geom_bar(stat='identity') +
     scale_y_continuous(labels = comma) +
     scale_fill_manual(values=cols) +
     theme(axis.text.x = element_text(angle=45, hjust=1))
   
-  ggsave(pdf_file, width=4, height=4)
-  ggsave(png_file, width=4, height=4, dpi=300)
+  # make the figure width adjust dynamically with the number of samples
+  # add 1/3 of an inch for each additional samples
+  # TODO: test with say 10 or 20 samples
+  fig_width = 4 + (length(unique(summary_long$sample)) / 3)
+   
+  ggsave(pdf_file, p, width=fig_width, height=4)
+  #ggsave(png_file, width=fig_width, height=4, dpi=300)
 
-  
 }
 
 args <- commandArgs(trailingOnly = TRUE)

@@ -2,7 +2,7 @@ channels:
   - defaults
   - conda-forge
   - bioconda
-  
+
 dependencies:
 # general
   - snakemake>=5.2.1
@@ -11,6 +11,6 @@ dependencies:
 
 # preprocessing.rules
   - trimmomatic>=0.36
-  - r-ggplot2
+  - r-ggplot2>=3.1.0
   - r-tidyr
   - r-scales
