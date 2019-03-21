@@ -11,8 +11,8 @@ configfile: 'config.yaml'
 
 rules_dir = os.path.join(os.path.expanduser(config['program_dir']), 'rules')
 
-include: os.path.join(rules_dir, 'preprocessing.rules')
-include: os.path.join(rules_dir, 'assembly.rules')
+include: os.path.join(rules_dir, 'preprocessing.smk')
+include: os.path.join(rules_dir, 'assembly.smk')
 
 rule all:
     input:

@@ -11,7 +11,7 @@ samples:
 # this would all the user to change folder names easily
 # however, the input parts of rules would have to be significantly more complicated
 
-program_dir: "/datastore/nea040/PycharmProjects/mappd/"
+program_dir: "/mnt/c/Users/nea040/Desktop/"
 
 sub_dir:
   raw:        "00_raw"
