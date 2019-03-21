@@ -4,19 +4,16 @@ samples:
   prawn1:
     - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz
     - 18-2595-01-Prawn1_S6_L001_R2_001.fastq.gz
+  prawn2:
+    - 18-2595-02-Prawn2_S7_L001_R1_001.fastq.gz
+    - 18-2595-02-Prawn2_S7_L001_R2_001.fastq.gz
+  prawn3:
+    - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
+    - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
 
-# -------------- pipline data structure -------------- #
+# change the below to "RNA" for RNA-Seq or "DNA" for DNA-Seq
 
-# could think about using accessing this directory structure through dicts
-# this would all the user to change folder names easily
-# however, the input parts of rules would have to be significantly more complicated
-
-program_dir: "/mnt/c/Users/nea040/Desktop/"
-
-sub_dir:
-  raw:        "00_raw"
-  trimmed:    "01_trimmed"
-  assembly:   "02_assembly"
+data_type: RNA
 
 # -------------- pipeline parameters -------------- #
 
@@ -28,13 +25,17 @@ trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
 trimmomatic_minlen: 50
 
-# how many reads to subsample and use for assembly
-
-subsampled_nReads: 100000
-
 # location of reference databases
 
 blast_nt: "/data/bioref/blast/ncbi/nt"
 blast_nr: "/data/bioref/blast/ncbi/nr"
 diamond_nr: "/data/bioref/diamond_db/nr"
 
+
+# -------------- pipline data structure -------------- #
+
+# could think about using accessing this directory structure through dicts
+# this would all the user to change folder names easily
+# however, the input parts of rules would have to be significantly more complicated
+
+program_dir: "/mnt/c/Users/nea040/Desktop/mappd_master/mappd/"
