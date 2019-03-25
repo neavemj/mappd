@@ -59,7 +59,7 @@ output.write("\t".join(["process", "sample", "s", "h:m:s", "max_rss", "max_vms",
 
 for walk in os.walk(args.benchmark_directory):
     # will ignore the current directory (with no files)
-    if not walk[2]:
+    if walk[0] == args.benchmark_directory:
         continue
     # ok, now process each benchmark file
     for bench_fl in walk[2]:
