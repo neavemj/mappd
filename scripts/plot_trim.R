@@ -30,7 +30,7 @@ plot_trim <- function(trim_summary, pdf_file, png_file) {
   fig_width = 4 + (length(unique(summary_long$sample)) / 3)
    
   ggsave(pdf_file, p, width=fig_width, height=4)
-  #ggsave(png_file, width=fig_width, height=4, dpi=300)
+  ggsave(png_file, width=fig_width, height=4, dpi=300)
 
 }
 

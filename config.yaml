@@ -15,6 +15,10 @@ samples:
 
 data_type: RNA
 
+# single end (SE) or paired end (PE) reads?
+
+endedness: PE
+
 # -------------- pipeline parameters -------------- #
 
 # Trimmomatic is used for trimming the sequencing reads
@@ -38,4 +42,4 @@ diamond_nr: "/data/bioref/diamond_db/nr"
 # this would all the user to change folder names easily
 # however, the input parts of rules would have to be significantly more complicated
 
-program_dir: "/mnt/c/Users/nea040/Desktop/mappd_master/mappd/"
+program_dir: "/datastore/nea040/PycharmProjects/mappd/"
