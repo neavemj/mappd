@@ -15,13 +15,24 @@ rule summarise_benchmarks:
             -o {output}
         """
 
-rule plot_benchmarks:
+rule plot_bench_time:
     input:
         "benchmarks/benchmarks.summary"
     output:
-        "benchmarks/bench_summary.pdf"
+        "benchmarks/bench_time.pdf"
     shell:
          """
-         Rscript {config[program_dir]}/scripts/plot_benchmarks.R \
-         {input} {output} benchmarks/bench_summary.png
+         Rscript {config[program_dir]}/scripts/plot_benchmarks_time.R \
+         {input} {output} benchmarks/bench_time.png
+         """
+
+rule plot_bench_mem:
+    input:
+         "benchmarks/benchmarks.summary"
+    output:
+          "benchmarks/bench_mem.pdf"
+    shell:
+         """
+         Rscript {config[program_dir]}/scripts/plot_benchmarks_mem.R \
+         {input} {output} benchmarks/bench_mem.png
          """

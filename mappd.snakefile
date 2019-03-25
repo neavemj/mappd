@@ -19,4 +19,5 @@ rule all:
     input:
         #expand("01_trimmomatic/{sample}_1P.fastq.gz", sample=config['samples'])
         #expand("02_spades/{sample}", sample=config["samples"])
-        "benchmarks/bench_summary.pdf"
+        "benchmarks/bench_time.pdf",
+        "benchmarks/bench_mem.pdf"
