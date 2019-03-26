@@ -25,7 +25,7 @@ endedness: PE
 # SDN = spades assembly followed by diamond and blastn annotation
 # TD = trinity assembly followed by diamond annotation
 
-pipeline: [full, trinity_diamond]
+pipeline: [full]
 
 # -------------- pipeline parameters -------------- #
 
