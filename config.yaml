@@ -19,6 +19,14 @@ data_type: RNA
 
 endedness: PE
 
+# pipeline options
+# FULL = all assembly and annotation options
+# SD = spades assembly followed by diamond annotation
+# SDN = spades assembly followed by diamond and blastn annotation
+# TD = trinity assembly followed by diamond annotation
+
+pipeline: [full, trinity_diamond]
+
 # -------------- pipeline parameters -------------- #
 
 # Trimmomatic is used for trimming the sequencing reads

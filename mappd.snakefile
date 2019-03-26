@@ -14,10 +14,9 @@ rules_dir = os.path.join(os.path.expanduser(config['program_dir']), 'rules')
 include: os.path.join(rules_dir, 'preprocessing.smk')
 include: os.path.join(rules_dir, 'assembly.smk')
 include: os.path.join(rules_dir, 'benchmark.smk')
+include: os.path.join(rules_dir, 'report.smk')
+
 
 rule all:
     input:
-        #expand("01_trimmomatic/{sample}_1P.fastq.gz", sample=config['samples'])
-        #expand("02_spades/{sample}", sample=config["samples"])
-        "benchmarks/bench_time.pdf",
-        "benchmarks/bench_mem.pdf"
+        expand("{pipe}_report.html", pipe=config["pipeline"])
