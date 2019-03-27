@@ -5,7 +5,7 @@ channels:
 
 dependencies:
 # general
-  - snakemake>=5.2.1
+  - snakemake>=5.4.4
   - python>=3.5.1
   - r>=3.4.1
 
@@ -13,7 +13,10 @@ dependencies:
   - trimmomatic>=0.36
   - r-ggplot2>=3.1.0
   - r-tidyr
+  - r-readr
   - r-scales
 
 # assembly.snk
   - spades>=3.13.0
+  - trinity>=2.8.4
+  - bandage

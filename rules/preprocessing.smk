@@ -18,19 +18,19 @@ rule trimmomatic_PE:
     input:
         getFastq
     output:
-        R1_P = "01_trimmomatic/{sample}_1P.fastq.gz",
-        R1_U = "01_trimmomatic/{sample}_1U.fastq.gz",
-        R2_P = "01_trimmomatic/{sample}_2P.fastq.gz",
-        R2_U = "01_trimmomatic/{sample}_2U.fastq.gz"
+        R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
+        R1_U = config["sub_dirs"]["trim_dir"] + "/{sample}_1U.fastq.gz",
+        R2_P = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz",
+        R2_U = config["sub_dirs"]["trim_dir"] + "/{sample}_2U.fastq.gz"
     params:
         qual = config["trimmomatic_quality"],
         adapters = config["program_dir"] + config["trimmomatic_adapters"],
         minlen = config["trimmomatic_minlen"]
     threads: 8
     log:
-        "logs/01_trimmomatic/{sample}.log"
+        "logs/" + config["sub_dirs"]["trim_dir"] + "/{sample}.log"
     benchmark:
-        "benchmarks/01_trimmomatic/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["trim_dir"] + "/{sample}.log"
     shell:
         """
         trimmomatic PE \
@@ -43,9 +43,10 @@ rule trimmomatic_PE:
 
 rule summarise_trimmomatic_log:
     input:
-        expand("logs/01_trimmomatic/{sample}.log", sample=config["samples"])
+        expand("logs/" + config["sub_dirs"]["trim_dir"] + "/{sample}.log",
+            sample=config["samples"])
     output:
-        "logs/01_trimmomatic/logs.summary"
+        "logs/" + config["sub_dirs"]["trim_dir"] + "/logs.summary"
     shell:
         """
         {config[program_dir]}/scripts/summarise_trimmomatic.py \
@@ -54,11 +55,12 @@ rule summarise_trimmomatic_log:
 
 rule plot_trimmomatic_results:
     input:
-        "logs/01_trimmomatic/logs.summary"
+        "logs/" + config["sub_dirs"]["trim_dir"] + "/logs.summary"
     output:
-        "logs/01_trimmomatic/trim_summary.pdf"
+        pdf = "logs/" + config["sub_dirs"]["trim_dir"] + "/trim_summary.pdf",
+        png = "logs/" + config["sub_dirs"]["trim_dir"] + "/trim_summary.png"
     shell:
         """
         Rscript {config[program_dir]}/scripts/plot_trim.R \
-        {input} {output} logs/01_trimmomatic/trim_summary.png
+        {input} {output.pdf} {output.png}
         """

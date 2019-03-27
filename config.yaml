@@ -11,6 +11,15 @@ samples:
     - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
     - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
 
+# pipeline options
+# FULL = all assembly and annotation options
+# SD = spades assembly followed by diamond annotation
+# SDN = spades assembly followed by diamond and blastn annotation
+# TD = trinity assembly followed by diamond annotation
+# HSDN = host removal, spades assembly followed by diamond and blastn annotation
+
+pipeline: [full]
+
 # change the below to "RNA" for RNA-Seq or "DNA" for DNA-Seq
 
 data_type: RNA
@@ -18,14 +27,6 @@ data_type: RNA
 # single end (SE) or paired end (PE) reads?
 
 endedness: PE
-
-# pipeline options
-# FULL = all assembly and annotation options
-# SD = spades assembly followed by diamond annotation
-# SDN = spades assembly followed by diamond and blastn annotation
-# TD = trinity assembly followed by diamond annotation
-
-pipeline: [full]
 
 # -------------- pipeline parameters -------------- #
 
@@ -36,6 +37,10 @@ pipeline: [full]
 trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
 trimmomatic_minlen: 50
+
+# Assembly parameters
+
+draw_bandage: "True"
 
 # location of reference databases
 
@@ -51,3 +56,9 @@ diamond_nr: "/data/bioref/diamond_db/nr"
 # however, the input parts of rules would have to be significantly more complicated
 
 program_dir: "/datastore/nea040/PycharmProjects/mappd/"
+
+sub_dirs:
+  trim_dir: "01_trimmomatic"
+  depletion_dir: "02_depletion"
+  assembly_dir: "03_assembly"
+  annot_dir: "04_annotation"
