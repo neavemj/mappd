@@ -25,6 +25,11 @@ rule spades:
         out_dir = directory(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly"),
         out_trans = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}/transcripts.fasta",
         out_gfa = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}/assembly_graph_with_scaffolds.gfa"
+    # have to do a params because spades --rna puts the graph file in the k-mer directory
+    # however, normal spades puts it in the top level directory
+    # I'll point to the file here so that for an --rna run, I can mv the file up a directory
+    params:
+        graph_fl = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}/K73/assembly_graph_with_scaffolds.gfa"
     log:
         "logs/spades/{sample}.log"
     benchmark:
@@ -52,7 +57,7 @@ rule spades:
                 -m 8 \
                 --rna \
                 -o {output.out_dir} > {log} &&
-                mv {config["sub_dirs"]["assembly_dir"]} + "/spades/{wildcards.sample}/K73/assembly_graph_with_scaffolds.gfa" ..
+                mv {params.graph_fl} ..
             """)
 
 
