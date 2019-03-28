@@ -24,9 +24,11 @@ rule full_run_report:
         bench_time = "benchmarks/bench_time.png",
         bench_mem = "benchmarks/bench_mem.png",
         trim_summary = "logs/" + config["sub_dirs"]["trim_dir"] + "/trim_summary.png",
-        spades_assembly = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}", sample=config["samples"]),
-        spades_bandage = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}/assembly_graph_10x.png",
-                         sample=config["samples"])
+        spades_assembly = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}/transcripts.fasta",
+        sample=config["samples"]),
+        spades_bandage = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}/assembly_graph_10x.gfa",
+            sample=config["samples"])
+
     output:
         "full_report.html"
     run:

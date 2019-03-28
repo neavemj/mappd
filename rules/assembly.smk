@@ -22,7 +22,9 @@ rule spades:
         R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
         R2_P = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz",
     output:
-        directory(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}")
+        out_dir = directory(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly"),
+        out_trans = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}/transcripts.fasta",
+        out_gfa = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}/assembly_graph_with_scaffolds.gfa"
     log:
         "logs/spades/{sample}.log"
     benchmark:
@@ -37,7 +39,7 @@ rule spades:
                 -2 {input.R2_P} \
                 -t {threads} \
                 -m 8 \
-                -o {output} > {log}
+                -o {output.out_dir} > {log}
             """)
         elif config["data_type"] == "RNA":
             shell(
@@ -46,10 +48,11 @@ rule spades:
                 -1 {input.R1_P} \
                 -2 {input.R2_P} \
                 -t {threads} \
+                -k 73 \
                 -m 8 \
                 --rna \
-                -o {output} > {log}
-            mv {output}/K73/assembly_graph_with_scaffolds.gfa {output}
+                -o {output.out_dir} > {log} &&
+                mv {config["sub_dirs"]["assembly_dir"]} + "/spades/{wildcards.sample}/K73/assembly_graph_with_scaffolds.gfa" ..
             """)
 
 

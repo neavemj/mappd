@@ -10,6 +10,7 @@ The outputs are:
 # for some reason I have put this function here to get wildcards to work
 # it wont work if directly in the rule
 def getFastq(wildcards):
+    print(wildcards)
     return config['samples'][wildcards.sample]
 
 
