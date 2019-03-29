@@ -36,7 +36,8 @@ endedness: PE
 
 trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
-trimmomatic_minlen: 50
+trimmomatic_minlen: 5
+
 
 # Assembly parameters
 

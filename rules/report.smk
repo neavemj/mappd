@@ -21,18 +21,25 @@ from mappd_report import generate_report
 
 rule full_run_report:
     input:
+        dag_graph = "benchmarks/dag.png",
         bench_time = "benchmarks/bench_time.png",
         bench_mem = "benchmarks/bench_mem.png",
         trim_summary = "logs/" + config["sub_dirs"]["trim_dir"] + "/trim_summary.png",
-        spades_assembly = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}/transcripts.fasta",
+        # NOTE: the below parameters are received as a 'named list' due to wildcard expansion
+        spades_assembly = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
         sample=config["samples"]),
-        spades_bandage = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}/assembly_graph_10x.gfa",
-            sample=config["samples"])
+        spades_bandage = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_10x.png",
+            sample=config["samples"]),
+        trinity_bandage = expand(config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{" \
+            "sample}_trinity.Trinity.10x.png", sample=config["samples"])
 
     output:
         "full_report.html"
     run:
-        sphinx_str = generate_report(config_file=config, bench_mem=input.bench_mem, bench_time=input.bench_time,
-                                     trim_summary=input.trim_summary, spades_bandage=input.spades_bandage)
-        report(sphinx_str, output[0])
+        sphinx_str = generate_report(config_file=config, dag_graph=input.dag_graph,
+                                     bench_mem=input.bench_mem, bench_time=input.bench_time,
+                                     trim_summary=input.trim_summary,
+                                     spades_bandage=input.spades_bandage,
+                                     trinity_bandage=input.trinity_bandage)
+        report(sphinx_str, output[0], metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
 

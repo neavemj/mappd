@@ -42,3 +42,11 @@ rule plot_bench_mem:
         Rscript {config[program_dir]}/scripts/plot_benchmarks_mem.R \
         {input} {output.pdf} {output.png}
         """
+
+rule draw_dag:
+    input:
+        "mappd.snakefile"
+    output:
+        "benchmarks/dag.png"
+    shell:
+        "snakemake -s {input} --rulegraph 2> /dev/null | dot -T png > {output}"
