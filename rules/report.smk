@@ -31,7 +31,7 @@ rule full_run_report:
         spades_bandage = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_10x.png",
             sample=config["samples"]),
         trinity_bandage = expand(config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{" \
-            "sample}_trinity.Trinity.10x.png", sample=config["samples"])
+            "sample}_trinity.Trinity.png", sample=config["samples"])
 
     output:
         "full_report.html"

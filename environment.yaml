@@ -19,4 +19,5 @@ dependencies:
 # assembly.snk
   - spades>=3.13.0
   - trinity>=2.8.4
+  - bowtie2=2.3.0
   - bandage

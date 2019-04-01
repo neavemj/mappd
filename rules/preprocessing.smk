@@ -30,7 +30,7 @@ rule trimmomatic_PE:
     log:
         "logs/" + config["sub_dirs"]["trim_dir"] + "/{sample}.log"
     benchmark:
-        "benchmarks/" + config["sub_dirs"]["trim_dir"] + "/{sample}.log"
+        "benchmarks/" + config["sub_dirs"]["trim_dir"] + "/{sample}.txt"
     shell:
         """
         trimmomatic PE \

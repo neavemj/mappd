@@ -20,17 +20,17 @@ rule spades:
         """
     input:
         R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
-        R2_P = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz"
+        R2_P = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz",
     output:
         out_trans = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
-        out_gfa = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/K73/assembly_graph_with_scaffolds.gfa"
+        out_gfa = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_with_scaffolds.gfa"
     # have to do a params because spades --rna puts the graph file in the k-mer directory
     # however, normal spades puts it in the top level directory
     # I'll point to the file here so that for an --rna run, I can mv the file up a directory
-    # NOTE: the out dir has to go here as a param to avoid snakemake ChildIO exception
     params:
-        graph_fl = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/K73/assembly_graph_with_scaffolds.gfa",
-        out_dir = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly"
+        graph_fl = config["sub_dirs"]["assembly_dir"] + "/spades/{"
+            "sample}_assembly/K73/assembly_graph_with_scaffolds.gfa",
+        out_dir = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly",
     log:
         "logs/spades/{sample}.log"
     benchmark:
@@ -57,7 +57,8 @@ rule spades:
                 -k 73 \
                 -m 8 \
                 --rna \
-                -o {params.out_dir} > {log}
+                -o {params.out_dir} > {log} &&
+                mv {params.graph_fl} ..
             """)
 
 
@@ -76,7 +77,7 @@ rule trinity:
     benchmark:
         "benchmarks/trinity/{sample}.txt"
     params:
-        out_dir = config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity",
+        out_dir = config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity",
         max_memory = "16G"
     threads: 16
     shell:
@@ -91,10 +92,9 @@ rule trinity:
             --output {params.out_dir} > {log}
         """
 
-
 rule subset_spades_bandage:
     input:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/K73/assembly_graph_with_scaffolds.gfa"
+        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_with_scaffolds.gfa"
     output:
         config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_10x.gfa"
     shell:
@@ -105,7 +105,7 @@ rule subset_spades_bandage:
             --scope depthrange \
             --mindepth 10 \
             --maxdepth 1000000
-         """
+        """
 
 rule draw_spades_bandage:
     input:
@@ -119,26 +119,11 @@ rule draw_spades_bandage:
             {output}
         """
 
-rule subset_trinity_bandage:
+rule draw_trinity_bandage:
     input:
         config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.fasta"
     output:
-        config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.10x.fasta"
-    shell:
-        """
-        Bandage reduce \
-            {input} \
-            {output} \
-            --scope depthrange \
-            --mindepth 10 \
-            --maxdepth 1000000
-        """
-
-rule draw_trinity_bandage:
-    input:
-        config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.10x.fasta"
-    output:
-        config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.10x.png"
+        config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.png"
     shell:
         """
         Bandage image \
