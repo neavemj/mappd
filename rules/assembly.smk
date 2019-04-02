@@ -7,7 +7,7 @@ The outputs are:
     - assembled contigs in fasta format
 
 Current assemblers include:
-    - SPAdes in both RNA and DNA mode
+    - SPAdes in RNA mode
     - Trinity for RNA-Seq only
 """
 
@@ -15,8 +15,7 @@ rule spades:
     message:
         """
         Assembling trimmed reads with spades PE mode
-        Using spades {config[data_type]} assembly
-        This can be changed in the config file
+        Using spades RNA mode
         """
     input:
         R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
@@ -36,30 +35,18 @@ rule spades:
     benchmark:
         "benchmarks/spades/{sample}.txt"
     threads: 16
-    run:
-        if config["data_type"] == "DNA":
-            shell(
-            """
-            spades.py \
-                -1 {input.R1_P} \
-                -2 {input.R2_P} \
-                -t {threads} \
-                -m 8 \
-                -o {params.out_dir} > {log}
-            """)
-        elif config["data_type"] == "RNA":
-            shell(
-            """
-            spades.py \
-                -1 {input.R1_P} \
-                -2 {input.R2_P} \
-                -t {threads} \
-                -k 73 \
-                -m 8 \
-                --rna \
-                -o {params.out_dir} > {log} &&
-                mv {params.graph_fl} {params.out_dir}
-            """)
+    shell:
+        """
+        spades.py \
+            -1 {input.R1_P} \
+            -2 {input.R2_P} \
+            -t {threads} \
+            -k 73 \
+            -m 8 \
+            --rna \
+            -o {params.out_dir} > {log} &&
+            mv {params.graph_fl} {params.out_dir}
+        """
 
 
 rule trinity:

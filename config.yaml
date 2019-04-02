@@ -20,10 +20,6 @@ samples:
 
 pipeline: [full]
 
-# change the below to "RNA" for RNA-Seq or "DNA" for DNA-Seq
-
-data_type: RNA
-
 # single end (SE) or paired end (PE) reads?
 
 endedness: PE
@@ -48,6 +44,8 @@ draw_bandage: "True"
 blast_nt: "/data/bioref/blast/ncbi/nt"
 blast_nr: "/data/bioref/blast/ncbi/nr"
 diamond_nr: "/data/bioref/diamond_db/nr"
+
+silva_db: "/datastore/nea040/silva_rRNA_db/SILVA_132_LSUParc_tax_silva.fasta"
 
 
 # -------------- pipline data structure -------------- #
