@@ -58,7 +58,7 @@ rule spades:
                 -m 8 \
                 --rna \
                 -o {params.out_dir} > {log} &&
-                mv {params.graph_fl} ..
+                mv {params.graph_fl} {params.out_dir}
             """)
 
 
