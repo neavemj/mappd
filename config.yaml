@@ -54,7 +54,7 @@ silva_db: "/datastore/nea040/silva_rRNA_db/SILVA_132_LSUParc_tax_silva.fasta"
 # this would all the user to change folder names easily
 # however, the input parts of rules would have to be significantly more complicated
 
-program_dir: "/datastore/nea040/PycharmProjects/mappd/"
+program_dir: "/flush3/nea040/mappd_master/mappd/"
 
 sub_dirs:
   trim_dir: "01_trimmomatic"

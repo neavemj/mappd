@@ -15,7 +15,7 @@ rule bowtie_to_rRNA:
         R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
         R2_P = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz"
     output:
-        sam_fl = config["subdirs"]["depletion_dir"] + "/{sample}.rRNA.sam"
+        sam_fl = config["sub_dirs"]["depletion_dir"] + "/{sample}.rRNA.sam"
     params:
         silva_db = config['silva_db'],
         # in bowtie the % symbol will be replaced with 1 or 2 depending on the pair
