@@ -32,9 +32,9 @@ rule trimmomatic_PE:
         minlen = config["trimmomatic_minlen"]
     threads: 8
     log:
-        "logs/" + config["sub_dirs"]["trim_dir"] + "/{sample}.log"
+        "logs/trimmomatic_PE/{sample}.log"
     benchmark:
-        "benchmarks/" + config["sub_dirs"]["trim_dir"] + "/{sample}.txt"
+        "benchmarks/trimmomatic_PE/{sample}.txt"
     shell:
         """
         trimmomatic PE \
