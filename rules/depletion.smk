@@ -32,9 +32,9 @@ rule bowtie_to_rRNA:
             -x {params.silva_db} \
             -1 {input.R1_P} \
             -2 {input.R2_P} \
-            -t {threads} \
+            -p {threads} \
             # write paired-end reads that fail to align concordantly (presumably not rRNA)
-            --un-conc {params.mRNA_pairs} \
+            --un-conc-gz {params.mRNA_pairs} \
             # suppress SAM records for unaligned reads to save space?
             --no-unal \
             -S {output.sam_fl}
