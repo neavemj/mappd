@@ -15,6 +15,10 @@ def getFastq(wildcards):
 
 # TODO: might need a trimmomatic SE mode
 rule trimmomatic_PE:
+    message:
+        """
+        Trimming for quality and Illumina adapters using Trimmomatic
+        """
     input:
         getFastq
     output:

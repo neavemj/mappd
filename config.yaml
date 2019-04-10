@@ -4,12 +4,6 @@ samples:
   prawn1:
     - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz
     - 18-2595-01-Prawn1_S6_L001_R2_001.fastq.gz
-  prawn2:
-    - 18-2595-02-Prawn2_S7_L001_R1_001.fastq.gz
-    - 18-2595-02-Prawn2_S7_L001_R2_001.fastq.gz
-  prawn3:
-    - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
-    - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
 
 # pipeline options
 # FULL = all assembly and annotation options
@@ -45,7 +39,8 @@ blast_nt: "/data/bioref/blast/ncbi/nt"
 blast_nr: "/data/bioref/blast/ncbi/nr"
 diamond_nr: "/data/bioref/diamond_db/nr"
 
-silva_db: "/datastore/nea040/silva_rRNA_db/SILVA_132_LSUParc_tax_silva.fasta"
+silva_LSU_db: "/data/nea040/db/silva_rRNA_db/SILVA_132_LSUParc_tax_silva.DNA.fasta"
+silva_SSU_db: "/data/nea040/db/silva_rRNA_db/SILVA_132_SSUParc_tax_silva.DNA.fasta"
 
 
 # -------------- pipline data structure -------------- #
