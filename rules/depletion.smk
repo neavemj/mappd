@@ -64,6 +64,8 @@ rule LSU_stats:
         sorted_bam = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.sorted.bam",
         stats = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.idxstats"
     shell:
+        # this will sort > index > idxstats >
+        # sort by number of mapped reads > only output contigs with at least 1 read mapped
         """
         samtools sort \
             {input} > {output.sorted_bam} && \
@@ -71,7 +73,8 @@ rule LSU_stats:
             {output.sorted_bam} && \
         samtools idxstats \
             {output.sorted_bam} | \
-            sort -nrk 3 > {output.stats}
+            sort -nrk 3 | \
+            awk '$3 > 0' > {output.stats}
         """
 
 rule LSU_get_unmapped:
@@ -171,6 +174,8 @@ rule SSU_stats:
         sorted_bam = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.sorted.bam",
         stats = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.idxstats"
     shell:
+        # this will sort > index > idxstats >
+        # sort by number of mapped reads > only output contigs with at least 1 read mapped
         """
         samtools sort \
             {input} > {output.sorted_bam} && \
@@ -178,7 +183,8 @@ rule SSU_stats:
             {output.sorted_bam} && \
         samtools idxstats \
             {output.sorted_bam} | \
-            sort -nrk 3 > {output.stats}
+            sort -nrk 3 | \
+            awk '$3 > 0' > {output.stats}
         """
 
 rule SSU_get_unmapped:
