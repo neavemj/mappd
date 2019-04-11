@@ -15,13 +15,9 @@ rule bowtie_to_LSU:
         R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
         R2_P = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz"
     output:
-        sam_fl = config["sub_dirs"]["depletion_dir"] + "/{sample}.LSU.sam"
+        sam_fl = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.sam"
     params:
-        silva_LSU_db = config['silva_LSU_db'],
-        # in bowtie the % symbol will be replaced with 1 or 2 depending on the pair
-        # have to put the output files here because snakemake doesn't recognise the % symbol
-        # this will be expanded in bowtie
-        LSU_depleted_pairs = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_%P.fastq.gz"
+        silva_LSU_db = config['silva_LSU_db']
     log:
         "logs/bowtie_LSU/{sample}.log"
     benchmark:
@@ -29,8 +25,6 @@ rule bowtie_to_LSU:
     threads:
         16
     shell:
-        # --un-conc-gz: write paired-end reads that fail to align concordantly (presumably not rRNA)
-        # --no-unal: suppress SAM records for unaligned reads to save space
         # NOTE: need to use 2> because bowtie outputs to stderr
         """
         bowtie2 \
@@ -38,30 +32,62 @@ rule bowtie_to_LSU:
             -1 {input.R1_P} \
             -2 {input.R2_P} \
             -p {threads} \
-            --un-conc-gz {params.LSU_depleted_pairs} \
-            --no-unal \
             -S {output.sam_fl} 2> {log}
+        """
+
+rule LSU_get_unmapped:
+    message:
+        """
+        Collecting reads that did not map to the LSU database
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.sam"
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted.sam"
+    shell:
+        # -f 13 should get reads where neither pair mapped (UNMAP & MUNMAP)
+        """
+        samtools view \
+            -f 13 \
+            {input} > {output}
+        """
+
+rule LSU_sam_to_fastq:
+    message:
+        """
+        Converting LSU depleted sam file to fastq files
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted.sam"
+    output:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_2P.fastq"
+    shell:
+    # the dev null bits put discard unpaired reads
+    # the -F bit ensures the mates are paired
+        """
+        samtools fastq \
+            -1 {output.R1} \
+            -2 {output.R2} \
+            -0 /dev/null \
+            -s /dev/null \
+            -n \
+            -F 0x900 \
+            {input} > /dev/null
         """
 
 rule bowtie_to_SSU:
     message:
         """
-        Mapping cleaned reads to the SILVA SSU rRNA database
+        Mapping LSU-depleted reads to the SILVA SSU rRNA database
         """
     input:
-        # not really using this sam file but need to trick snakmake into running the LSU rule
-        # can't use the actual fastq files as input because of the % symbol discussed above
-        config["sub_dirs"]["depletion_dir"] + "/{sample}.LSU.sam",
+        R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_2P.fastq"
     output:
-        sam_fl = config["sub_dirs"]["depletion_dir"] + "/{sample}.SSU.sam",
+        sam_fl = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.sam"
     params:
         silva_SSU_db = config['silva_SSU_db'],
-        # in bowtie the % symbol will be replaced with 1 or 2 depending on the pair
-        # have to put the output files here because snakemake doesn't recognise the % symbol
-        # this will be expanded in bowtie
-        LSU_R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_1P.fastq.gz",
-        LSU_R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_2P.fastq.gz",
-        mRNA_pairs = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_%P.fastq.gz"
     log:
         "logs/bowtie_SSU/{sample}.log"
     benchmark:
@@ -69,15 +95,52 @@ rule bowtie_to_SSU:
     threads:
         16
     shell:
-        # --un-conc-gz: write paired-end reads that fail to align concordantly (presumably not rRNA)
-        # --no-unal: suppress SAM records for unaligned reads to save space
         """
         bowtie2 \
             -x {params.silva_SSU_db} \
-            -1 {params.LSU_R1} \
-            -2 {params.LSU_R2} \
+            -1 {input.R1} \
+            -2 {input.R2} \
             -p {threads} \
-            --un-conc-gz {params.mRNA_pairs} \
-            --no-unal \
             -S {output.sam_fl} 2> {log}
+        """
+
+rule SSU_get_unmapped:
+    message:
+        """
+        Collecting reads that did not map to either the LSU or SSU database
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.sam"
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/{sample}_rRNA_depleted.sam"
+    shell:
+        # -f 13 should get reads where neither pair mapped (UNMAP & MUNMAP)
+        """
+        samtools view \
+            -f 13 \
+            {input} > {output}
+        """
+
+rule mRNA_sam_to_fastq:
+    message:
+        """
+        Converting rRNA depleted sam file to mRNA fastq files
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/{sample}_rRNA_depleted.sam"
+    output:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_2P.fastq"
+    shell:
+    # the dev null bits put discard unpaired reads
+    # the -F bit ensures the mates are paired
+        """
+        samtools fastq \
+            -1 {output.R1} \
+            -2 {output.R2} \
+            -0 /dev/null \
+            -s /dev/null \
+            -n \
+            -F 0x900 \
+            {input} > /dev/null
         """

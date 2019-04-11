@@ -18,8 +18,8 @@ rule spades:
         Using spades RNA mode
         """
     input:
-        R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
-        R2_P = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz",
+        R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_2P.fastq"
     output:
         out_trans = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
         out_gfa = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_with_scaffolds.gfa"
@@ -38,8 +38,8 @@ rule spades:
     shell:
         """
         spades.py \
-            -1 {input.R1_P} \
-            -2 {input.R2_P} \
+            -1 {input.R1} \
+            -2 {input.R2} \
             -t {threads} \
             -k 73 \
             -m 8 \
@@ -55,8 +55,8 @@ rule trinity:
         Assembling RNA-Seq reads with Trinity
         """
     input:
-        R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
-        R2_P = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz",
+        R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_2P.fastq"
     output:
         config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.fasta"
     log:
@@ -74,8 +74,8 @@ rule trinity:
             --CPU {threads} \
             --max_memory {params.max_memory} \
             --full_cleanup \
-            --left {input.R1_P} \
-            --right {input.R2_P} \
+            --left {input.R1} \
+            --right {input.R2} \
             --output {params.out_dir} > {log}
         """
 
