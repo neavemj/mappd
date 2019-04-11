@@ -24,7 +24,7 @@ rule full_run_report:
         dag_graph = "benchmarks/dag.png",
         bench_time = "benchmarks/bench_time.png",
         bench_mem = "benchmarks/bench_mem.png",
-        trim_summary = "logs/" + config["sub_dirs"]["trim_dir"] + "/trim_summary.png",
+        trim_summary = "logs/trimmomatic_PE/trim_summary.png",
         # NOTE: the below parameters are received as a 'named list' due to wildcard expansion
         spades_assembly = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
         sample=config["samples"]),

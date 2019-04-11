@@ -47,10 +47,9 @@ rule trimmomatic_PE:
 
 rule summarise_trimmomatic_log:
     input:
-        expand("logs/" + config["sub_dirs"]["trim_dir"] + "/{sample}.log",
-            sample=config["samples"])
+        expand("logs/trimmomatic_PE/{sample}.log", sample=config["samples"])
     output:
-        "logs/" + config["sub_dirs"]["trim_dir"] + "/logs.summary"
+        "logs/trimmomatic_PE/{sample}.logs.summary"
     shell:
         """
         {config[program_dir]}/scripts/summarise_trimmomatic.py \
@@ -59,10 +58,10 @@ rule summarise_trimmomatic_log:
 
 rule plot_trimmomatic_results:
     input:
-        "logs/" + config["sub_dirs"]["trim_dir"] + "/logs.summary"
+        expand("logs/trimmomatic_PE/{sample}.logs.summary", sample=config["samples"])
     output:
-        pdf = "logs/" + config["sub_dirs"]["trim_dir"] + "/trim_summary.pdf",
-        png = "logs/" + config["sub_dirs"]["trim_dir"] + "/trim_summary.png"
+        pdf = "logs/trimmomatic_PE/trim_summary.pdf",
+        png = "logs/trimmomatic_PE/trim_summary.png"
     shell:
         """
         Rscript {config[program_dir]}/scripts/plot_trim.R \

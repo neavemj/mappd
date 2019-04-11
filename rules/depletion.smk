@@ -15,6 +15,8 @@ rule bowtie_to_LSU:
         R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
         R2_P = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz"
     output:
+        # can mark these large sam files with temp() and they will be
+        # deleted when no other rules need them anymore
         sam_fl = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.sam"
     params:
         silva_LSU_db = config['silva_LSU_db']
@@ -63,7 +65,7 @@ rule LSU_sam_to_fastq:
         R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_1P.fastq",
         R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_2P.fastq"
     shell:
-    # the dev null bits put discard unpaired reads
+    # the dev null bit discards unpaired reads
     # the -F bit ensures the mates are paired
         """
         samtools fastq \
@@ -132,7 +134,7 @@ rule mRNA_sam_to_fastq:
         R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_1P.fastq",
         R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_2P.fastq"
     shell:
-    # the dev null bits put discard unpaired reads
+    # the dev null bit discards unpaired reads
     # the -F bit ensures the mates are paired
         """
         samtools fastq \
