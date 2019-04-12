@@ -261,6 +261,30 @@ rule associate_genbank_to_taxids:
             > {output}
         """
 
+rule summarise_rRNA_idxstats:
+    message:
+        """
+        Summarising the count numbers for LSU and SSU rRNA databases
+        """
+    input:
+        l = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.idxstats",
+        t = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.idxstats.taxid",
+        s = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.idxstats",
+        r = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.idxstats.taxid"
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/{sample}.idxstats.summary"
+    log:
+        "logs/summarise_rRNAstats/{sample}.log"
+    shell:
+        """
+        {config[program_dir]}/scripts/summarise_rRNAstats.py \
+            -l {input.l} \
+            -t {input.t} \
+            -s {input.s} \
+            -r {input.r} \
+            -o {output} > {log}
+        """
+
 
 
 

@@ -119,6 +119,7 @@ with open(args.SSU_idxstats) as fl:
 # now write this information for plotting ggplot
 
 output = open(args.output, "w")
+output.write("\t".join(["rRNA", "taxid", "mapped_reads", "phylum", "family", "species"]) + "\n")
 
 for taxid in LSU_counts_dict:
     try:
