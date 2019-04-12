@@ -41,6 +41,7 @@ diamond_nr: "/data/bioref/diamond_db/nr"
 
 silva_LSU_db: "/data/nea040/db/silva_rRNA_db/SILVA_132_LSUParc_tax_silva.DNA.fasta"
 silva_SSU_db: "/data/nea040/db/silva_rRNA_db/SILVA_132_SSUParc_tax_silva.DNA.fasta"
+acc_to_taxids: "/data/nea040/db/ncbi_conversions/nucl_gb_wgs.accession2taxid"
 
 
 # -------------- pipline data structure -------------- #

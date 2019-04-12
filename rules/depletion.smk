@@ -65,7 +65,8 @@ rule LSU_stats:
         stats = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.idxstats"
     shell:
         # this will sort > index > idxstats >
-        # sort by number of mapped reads > only output contigs with at least 1 read mapped
+        # sort by number of mapped reads > only output contigs with at least 3 read mapped
+        # i.e. more than a singleton pair
         """
         samtools sort \
             {input} > {output.sorted_bam} && \
@@ -74,7 +75,7 @@ rule LSU_stats:
         samtools idxstats \
             {output.sorted_bam} | \
             sort -nrk 3 | \
-            awk '$3 > 0' > {output.stats}
+            awk '$3 > 2' > {output.stats}
         """
 
 rule LSU_get_unmapped:
@@ -175,7 +176,8 @@ rule SSU_stats:
         stats = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.idxstats"
     shell:
         # this will sort > index > idxstats >
-        # sort by number of mapped reads > only output contigs with at least 1 read mapped
+        # sort by number of mapped reads > only output contigs with at least 3 read mapped
+        # i.e. more than a singleton pair
         """
         samtools sort \
             {input} > {output.sorted_bam} && \
@@ -184,7 +186,7 @@ rule SSU_stats:
         samtools idxstats \
             {output.sorted_bam} | \
             sort -nrk 3 | \
-            awk '$3 > 0' > {output.stats}
+            awk '$3 > 2' > {output.stats}
         """
 
 rule SSU_get_unmapped:
@@ -227,3 +229,41 @@ rule mRNA_sam_to_fastq:
             -F 0x900 \
             {input} 2> /dev/null
         """
+
+rRNA_type = ["LSU", "SSU"]
+
+rule associate_genbank_to_taxids:
+    message:
+        """
+        Associating genbank accessions from the SILVA database to NCBI taxids
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats"
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxid"
+    params:
+        # for some reason, I have to define the sed pattern here, then pass it in
+        # otherwise it is weirdly expanded in the actual shell command
+        sed_pat = r"s/\(.*\)/^\1\t/g",
+        acc_to_taxids = config["acc_to_taxids"]
+    benchmark:
+        "benchmarks/grep_taxids/{sample}_{rRNA_type}.txt"
+    shell:
+        # takes the idxstats output, cuts the first column (genbank ID)
+        # ensures only uniq entries, then adds '^' to the start of the pattern,
+        # and \t to the end. This ensures a complete match.
+        # then greps for this pattern in the acc_to_taxids file
+        # -f <(cut -f 1 -d "." {input} | sort | uniq | sed "s/\(.*\)/^\1\t/g") \
+        """
+        grep \
+            -f <(cut -f 1 -d "." {input} | sort | uniq | sed "{params.sed_pat}") \
+            {params.acc_to_taxids} \
+            > {output}
+        """
+
+
+
+
+
+
+

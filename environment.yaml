@@ -21,3 +21,6 @@ dependencies:
   - trinity>=2.8.4
   - bowtie2>=2.3.2
   - bandage
+
+# depletion.smk
+  - ete3
