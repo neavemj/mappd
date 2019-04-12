@@ -24,8 +24,10 @@ parser.add_argument('-t', '--LSU_taxids', type = str,
 parser.add_argument('-r', '--SSU_taxids', type = str,
                     help = "SSU.idxstats.taxid file")
 
-parser.add_argument('-o', '--output', type = str,
-                    help = "combined summary of trim logs")
+parser.add_argument('-o', '--LSU_output', type = str,
+                    help = "summary of LSU mapping")
+parser.add_argument('-z', '--SSU_output', type = str,
+                    help = "summary of SSU mapping")
 
 # if no args given, print help and exit
 
@@ -118,8 +120,8 @@ with open(args.SSU_idxstats) as fl:
 
 # now write this information for plotting ggplot
 
-output = open(args.output, "w")
-output.write("\t".join(["rRNA", "taxid", "mapped_reads", "phylum", "family", "species"]) + "\n")
+lsu_output = open(args.LSU_output, "w")
+lsu_output.write("\t".join(["rRNA", "taxid", "mapped_reads", "phylum", "family", "species"]) + "\n")
 
 for taxid in LSU_counts_dict:
     try:
@@ -128,7 +130,10 @@ for taxid in LSU_counts_dict:
         species = get_desired_rank(taxid, "species")
     except:
         print("Couldn't find taxonomy string for taxid: {}".format(taxid))
-    output.write("\t".join(["LSU", taxid, str(LSU_counts_dict[taxid]), phylum, family, species]) + "\n")
+    lsu_output.write("\t".join(["LSU", taxid, str(LSU_counts_dict[taxid]), phylum, family, species]) + "\n")
+
+ssu_output = open(args.SSU_output, "w")
+ssu_output.write("\t".join(["rRNA", "taxid", "mapped_reads", "phylum", "family", "species"]) + "\n")
 
 for taxid in SSU_counts_dict:
     try:
@@ -137,7 +142,7 @@ for taxid in SSU_counts_dict:
         species = get_desired_rank(taxid, "species")
     except:
         print("Couldn't find taxonomy string for taxid: {}".format(taxid))
-    output.write("\t".join(["SSU", taxid, str(SSU_counts_dict[taxid]), phylum, family, species]) + "\n")
+    ssu_output.write("\t".join(["SSU", taxid, str(SSU_counts_dict[taxid]), phylum, family, species]) + "\n")
 
 
 

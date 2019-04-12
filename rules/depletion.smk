@@ -272,7 +272,8 @@ rule summarise_rRNA_idxstats:
         s = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.idxstats",
         r = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.idxstats.taxid"
     output:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}.idxstats.summary"
+        lsu = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.idxstats.summary",
+        ssu = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.idxstats.summary"
     log:
         "logs/summarise_rRNAstats/{sample}.log"
     shell:
@@ -282,12 +283,21 @@ rule summarise_rRNA_idxstats:
             -t {input.t} \
             -s {input.s} \
             -r {input.r} \
-            -o {output} > {log}
+            -o {output.lsu} \
+            -z {output.ssu}> {log}
         """
 
-
-
-
+rule plot_idxstats:
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary"
+    output:
+        pdf = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary.pdf",
+        png = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary.png"
+    shell:
+        """
+        Rscript {config[program_dir]}/scripts/plot_rRNA_idxstats.R \
+        {input} {output.pdf} {output.png}
+        """
 
 
 
