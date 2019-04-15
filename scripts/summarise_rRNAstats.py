@@ -2,9 +2,10 @@
 
 """
 Add taxonomy string from SILVA to the idxstats files
+This will summarise sample results into a single file
 """
 
-import sys
+import sys, os
 import argparse
 
 # use argparse to grab command line arguments
@@ -12,9 +13,9 @@ import argparse
 parser = argparse.ArgumentParser("summarise rRNA idxstats files for plotting")
 
 parser.add_argument('-i', '--idxstats', type = str,
-                    help = ".idxstats file")
+                    nargs = "*", help = ".idxstats files")
 parser.add_argument('-t', '--taxstring', type = str,
-                    help = ".idxstats.taxstring file")
+                    nargs = "*", help = ".idxstats.taxstring files")
 parser.add_argument('-o', '--output', type = str,
                     help = "summary of rRNA mapping")
 
@@ -39,27 +40,31 @@ if args.idxstats is None or \
 
 acc_to_taxstring = {}
 
-with open(args.taxstring) as fl:
-    for line in fl:
-        line = line.strip()
-        acc = line.split(" ")[0].lstrip(">")
-        taxstring = " ".join(line.split(" ")[1:])
-        acc_to_taxstring[acc] = taxstring
+for taxstring_fls in args.taxstring:
+    with open(taxstring_fls) as fl:
+        for line in fl:
+            line = line.strip()
+            acc = line.split(" ")[0].lstrip(">")
+            taxstring = " ".join(line.split(" ")[1:])
+            acc_to_taxstring[acc] = taxstring
 
-# now read through taxids file and output taxonomy info
+# now read through idxstats files and output taxonomy info
 
 output = open(args.output, "w")
-output.write("\t".join(["accession", "mapped_reads", "taxstring", "species"]) + "\n")
+output.write("\t".join(["Sample", "Accession", "rRNA_Type", "Mapped_Reads", "Taxonomy_String", "Species"]) + "\n")
 
-with open(args.idxstats) as fl:
-    for line in fl:
-        line = line.strip()
-        cols = line.split("\t")
-        acc = cols[0]
-        taxstring = acc_to_taxstring[acc]
-        species = taxstring.split(";")[-1]
-        mapped_reads = int(cols[2])
-        output.write("\t".join([acc, str(mapped_reads), taxstring, species]) + "\n")
+for idxstats_fls in args.idxstats:
+    with open(idxstats_fls) as fl:
+        for line in fl:
+            line = line.strip()
+            cols = line.split("\t")
+            acc = cols[0]
+            taxstring = acc_to_taxstring[acc]
+            species = taxstring.split(";")[-1]
+            mapped_reads = int(cols[2])
+            sample = os.path.basename(idxstats_fls).split("_")[0]
+            rRNA = os.path.basename(idxstats_fls).split("_")[1].split(".")[0]
+            output.write("\t".join([sample, acc, rRNA, str(mapped_reads), taxstring, species]) + "\n")
 
 
 

@@ -87,7 +87,7 @@ Ribosomal RNA removal
 """
         LSU_string = maketable.make_table_from_csv(LSU_table[0], sep="\t").replace(";", " ")
         report += LSU_string + "\n"
-        report += "\t.. image:: " + data_uri_from_file(LSU_figure[0])[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(LSU_figure)[0] + "\n"
 
         report += """
 *SSU mapping*
@@ -97,7 +97,7 @@ Ribosomal RNA removal
 """
         SSU_string = maketable.make_table_from_csv(SSU_table[0], sep="\t").replace(";", " ")
         report += SSU_string + "\n"
-        report += "\t.. image:: " + data_uri_from_file(SSU_figure[0])[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(SSU_figure)[0] + "\n"
 
     if spades_bandage:
         report += """

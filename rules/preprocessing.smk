@@ -49,7 +49,7 @@ rule summarise_trimmomatic_log:
     input:
         expand("logs/trimmomatic_PE/{sample}.log", sample=config["samples"])
     output:
-        "logs/trimmomatic_PE/{sample}.logs.summary"
+        "logs/trimmomatic_PE/trim_logs.summary"
     shell:
         """
         {config[program_dir]}/scripts/summarise_trimmomatic.py \
@@ -58,7 +58,7 @@ rule summarise_trimmomatic_log:
 
 rule plot_trimmomatic_results:
     input:
-        expand("logs/trimmomatic_PE/{sample}.logs.summary", sample=config["samples"])
+        "logs/trimmomatic_PE/trim_logs.summary"
     output:
         pdf = "logs/trimmomatic_PE/trim_summary.pdf",
         png = "logs/trimmomatic_PE/trim_summary.png"

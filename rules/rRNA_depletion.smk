@@ -310,11 +310,13 @@ rule summarise_rRNA_idxstats:
         Adding SILVA taxonomy string to the idxstats file
         """
     input:
-        idxstats = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats",
-        taxstring = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxstring",
+        idxstats = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats", sample=config["samples"],
+            rRNA_type=rRNA_type),
+        taxstring = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxstring", sample=config["samples"],
+            rRNA_type=rRNA_type)
     output:
-        full_table = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary",
-        head_table = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary.head",
+        full_table = config["sub_dirs"]["depletion_dir"] + "/idxstats.summary",
+        head_table = config["sub_dirs"]["depletion_dir"] + "/idxstats.summary.head",
     shell:
         """
         {config[program_dir]}/scripts/summarise_rRNAstats.py \
@@ -326,10 +328,10 @@ rule summarise_rRNA_idxstats:
 
 rule plot_idxstats:
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary"
+        full_table = config["sub_dirs"]["depletion_dir"] + "/idxstats.summary",
     output:
-        pdf = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary.pdf",
-        png = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary.png"
+        pdf = config["sub_dirs"]["depletion_dir"] + "/{rRNA_type}.idxstats.summary.pdf",
+        png = config["sub_dirs"]["depletion_dir"] + "/{rRNA_type}.idxstats.summary.png"
     shell:
         """
         Rscript {config[program_dir]}/scripts/plot_rRNA_idxstats.R \
