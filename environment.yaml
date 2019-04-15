@@ -8,11 +8,13 @@ dependencies:
   - snakemake>=5.4.4
   - python>=3.5.1
   - r>=3.4.1
+  - pandas
 
 # preprocessing.snk
   - trimmomatic>=0.36
   - r-ggplot2>=3.1.0
   - r-tidyr
+  - r-dplyr
   - r-readr
   - r-scales
 

@@ -14,7 +14,7 @@ configfile: "config.yaml"
 rules_dir = os.path.join(os.path.expanduser(config["program_dir"]), "rules")
 
 include: os.path.join(rules_dir, "preprocessing.smk")
-include: os.path.join(rules_dir, "depletion.smk")
+include: os.path.join(rules_dir, "rRNA_depletion.smk")
 include: os.path.join(rules_dir, "assembly.smk")
 include: os.path.join(rules_dir, "benchmark.smk")
 include: os.path.join(rules_dir, "report.smk")
