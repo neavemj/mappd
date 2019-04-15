@@ -4,15 +4,14 @@
 library(ggplot2)
 library(dplyr)
 library(scales)
-library(stringr)
 
 
 plot_idxstats <- function(idxstats_summary, pdf_file, png_file) {
-  
+
   idxstats_summary <- "/flush3/nea040/mappd_master/freshwater_prawn_mappd/02_depletion/prawn1_LSU.idxstats.summary"
-  
+
   summary_df = read.csv(idxstats_summary, sep="\t", header=T)
-  
+
   species_summary <- summary_df %>%
     group_by(species) %>%
     summarise(sum_mapped = sum(mapped_reads)) %>%
@@ -26,7 +25,7 @@ plot_idxstats <- function(idxstats_summary, pdf_file, png_file) {
     ylab("Reads mapped") +
     xlab("Species") +
     theme(legend.position = "none")
-   
+
   ggsave(pdf_file, p, width=8, height=5)
   ggsave(png_file, width=8, height=5, dpi=300)
 
