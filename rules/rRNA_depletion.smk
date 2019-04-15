@@ -313,13 +313,15 @@ rule summarise_rRNA_idxstats:
         idxstats = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats",
         taxstring = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxstring",
     output:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary",
+        full_table = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary",
+        head_table = config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.summary.head",
     shell:
         """
         {config[program_dir]}/scripts/summarise_rRNAstats.py \
             -i {input.idxstats} \
             -t {input.taxstring} \
-            -o {output}
+            -o {output.full_table} &&
+        head -n 11 {output.full_table} > {output.head_table}
         """
 
 rule plot_idxstats:
