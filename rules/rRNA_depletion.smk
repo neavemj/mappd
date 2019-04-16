@@ -315,27 +315,30 @@ rule summarise_rRNA_idxstats:
         taxstring = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxstring", sample=config["samples"],
             rRNA_type=rRNA_type)
     output:
-        full_table = config["sub_dirs"]["depletion_dir"] + "/idxstats.summary",
-        head_table = config["sub_dirs"]["depletion_dir"] + "/idxstats.summary.head",
+        full_table = config["sub_dirs"]["depletion_dir"] + "/idxstats.summary"
     shell:
         """
         {config[program_dir]}/scripts/summarise_rRNAstats.py \
             -i {input.idxstats} \
             -t {input.taxstring} \
-            -o {output.full_table} &&
-        head -n 11 {output.full_table} > {output.head_table}
+            -o {output.full_table}
         """
 
 rule plot_idxstats:
+    # decided to just plot and output tables for the SSU results in the report
+    # most people sequence the 18S gene so this should be more accurate
+    # the LSU reads will still be removed, just not plotted
+    # this could be easily changed in the below R script
     input:
         full_table = config["sub_dirs"]["depletion_dir"] + "/idxstats.summary",
     output:
-        pdf = config["sub_dirs"]["depletion_dir"] + "/{rRNA_type}.idxstats.summary.pdf",
-        png = config["sub_dirs"]["depletion_dir"] + "/{rRNA_type}.idxstats.summary.png"
+        pdf = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.pdf",
+        png = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.png",
+        tsv = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.tsv"
     shell:
         """
         Rscript {config[program_dir]}/scripts/plot_rRNA_idxstats.R \
-        {input} {output.pdf} {output.png}
+        {input} {output.pdf} {output.png} {output.tsv}
         """
 
 

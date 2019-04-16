@@ -54,17 +54,13 @@ rule test_report:
     input:
         dag_graph = "benchmarks/dag.png",
         trim_summary = "logs/trimmomatic_PE/trim_summary.png",
-        LSU_table = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.idxstats.summary.head", sample=config["samples"]),
-        LSU_figure = config["sub_dirs"]["depletion_dir"] + "/LSU.idxstats.summary.png",
-        SSU_table = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.idxstats.summary.head", sample=config["samples"]),
         SSU_figure = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.png",
+        SSU_table = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.tsv"
     output:
         "test_report.html"
     run:
         sphinx_str = generate_report(config_file="", dag_graph=input.dag_graph,
                                      trim_summary=input.trim_summary,
-                                     LSU_table=input.LSU_table,
-                                     LSU_figure=input.LSU_figure,
                                      SSU_table=input.SSU_table,
                                      SSU_figure=input.SSU_figure)
         report(sphinx_str, output[0], metadata="Author: Matthew Neave (matthew.neave@csiro.au)")

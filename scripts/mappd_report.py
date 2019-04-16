@@ -71,7 +71,7 @@ Trimming
 """
         report += "\t.. image:: " + data_uri_from_file(trim_summary)[0] + "\n"
 
-    if LSU_table:
+    if SSU_table:
         report += """
 Ribosomal RNA removal
 ======================
@@ -80,22 +80,12 @@ Ribosomal RNA removal
     Matching reads were used to identify the host species for the host depletion step
     and were then removed from further analysis.
 
-*LSU mapping*
----------------
-    The top 10 organisms with the most hits to the LSU database are summarised below
-
-"""
-        LSU_string = maketable.make_table_from_csv(LSU_table[0], sep="\t").replace(";", " ")
-        report += LSU_string + "\n"
-        report += "\t.. image:: " + data_uri_from_file(LSU_figure)[0] + "\n"
-
-        report += """
 *SSU mapping*
 ---------------
     The top 10 organisms with the most hits to the SSU database are summarised below
 
 """
-        SSU_string = maketable.make_table_from_csv(SSU_table[0], sep="\t").replace(";", " ")
+        SSU_string = maketable.make_table_from_csv(SSU_table, sep="\t")
         report += SSU_string + "\n"
         report += "\t.. image:: " + data_uri_from_file(SSU_figure)[0] + "\n"
 
