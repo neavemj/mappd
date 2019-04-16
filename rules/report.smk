@@ -28,8 +28,8 @@ rule full_run_report:
         trim_summary = "logs/trimmomatic_PE/trim_summary.png",
         # NOTE: the below parameters are received as a 'named list' due to wildcard expansion
         # could this crash my report when multiple samples?
-        LSU_table = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.idxstats.summary.head", sample=config["samples"]),
-        SSU_table = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.idxstats.summary.head", sample=config["samples"]),
+        SSU_figure = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.png",
+        SSU_table = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.tsv",
         spades_assembly = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
         sample=config["samples"]),
         spades_bandage = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_10x.png",
@@ -54,8 +54,8 @@ rule test_report:
     input:
         dag_graph = "benchmarks/dag.png",
         trim_summary = "logs/trimmomatic_PE/trim_summary.png",
-        SSU_figure = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.png",
-        SSU_table = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.tsv"
+        SSU_figure = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.png",
+        SSU_table = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.tsv"
     output:
         "test_report.html"
     run:

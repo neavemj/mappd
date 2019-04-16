@@ -1,8 +1,9 @@
 """
-Depletion rules
+Ribosomal RNA depletion rules
 
 These rules will map reads to the SILVA LSU and SSU rRNA databases
 and split the reads into those that match and those that don't
+It will also guess the host species based on rRNA matches
 
 """
 
@@ -17,7 +18,7 @@ rule bowtie_to_LSU:
     output:
         # can mark these large sam files with temp() and they will be
         # deleted when no other rules need them anymore
-        sam_fl = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.sam"
+        sam_fl = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.sam"
     params:
         silva_LSU_db = config['silva_LSU_db']
     log:
@@ -43,9 +44,9 @@ rule LSU_sam_to_bam:
         Converting the LSU sam file to bam
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.sam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.sam"
     output:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.bam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.bam"
     shell:
         """
         samtools view \
@@ -59,10 +60,10 @@ rule LSU_stats:
         Tallying statistics on reads mapped to the LSU database
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.bam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.bam"
     output:
-        sorted_bam = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.sorted.bam",
-        stats = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.idxstats"
+        sorted_bam = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.sorted.bam",
+        stats = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.idxstats"
     shell:
         # this will sort > index > idxstats >
         # sort by number of mapped reads > only output contigs with at least 3 read mapped
@@ -84,9 +85,9 @@ rule LSU_get_unmapped:
         Collecting reads that did not map to the LSU database
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU.bam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.bam"
     output:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted.bam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted.bam"
     shell:
         # -f 13 should get reads where neither pair mapped (UNMAP & MUNMAP)
         # will turn into a bam file to save space
@@ -102,10 +103,10 @@ rule LSU_sam_to_fastq:
         Converting LSU depleted sam file to fastq files
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted.bam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted.bam"
     output:
-        R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_1P.fastq",
-        R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_2P.fastq"
+        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_2P.fastq"
     shell:
     # the dev null bit discards unpaired reads
     # the -F bit ensures the mates are paired
@@ -126,10 +127,10 @@ rule bowtie_to_SSU:
         Mapping LSU-depleted reads to the SILVA SSU rRNA database
         """
     input:
-        R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_1P.fastq",
-        R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_LSU_depleted_2P.fastq"
+        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_2P.fastq"
     output:
-        sam_fl = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.sam"
+        sam_fl = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.sam"
     params:
         silva_SSU_db = config['silva_SSU_db']
     log:
@@ -154,9 +155,9 @@ rule SSU_sam_to_bam:
         Converting the SSU sam file to bam
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.sam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.sam"
     output:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.bam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.bam"
     shell:
         """
         samtools view \
@@ -170,10 +171,10 @@ rule SSU_stats:
         Tallying statistics on reads mapped to the SSU database
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.bam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.bam"
     output:
-        sorted_bam = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.sorted.bam",
-        stats = config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.idxstats"
+        sorted_bam = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.sorted.bam",
+        stats = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.idxstats"
     shell:
         # this will sort > index > idxstats >
         # sort by number of mapped reads > only output contigs with at least 3 read mapped
@@ -195,9 +196,9 @@ rule SSU_get_unmapped:
         Collecting reads that did not map to either the LSU or SSU database
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_SSU.bam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.bam"
     output:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_rRNA_depleted.bam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_rRNA_depleted.bam"
     shell:
         # -f 13 should get reads where neither pair mapped (UNMAP & MUNMAP)
         """
@@ -212,10 +213,10 @@ rule mRNA_sam_to_fastq:
         Converting rRNA depleted sam file to mRNA fastq files
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_rRNA_depleted.bam"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_rRNA_depleted.bam"
     output:
-        R1 = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_1P.fastq",
-        R2 = config["sub_dirs"]["depletion_dir"] + "/{sample}_mRNA_2P.fastq"
+        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_2P.fastq"
     shell:
     # the dev null bit discards unpaired reads
     # the -F bit ensures the mates are paired
@@ -238,9 +239,9 @@ rule associate_genbank_to_taxids:
         Associating genbank accessions from the SILVA database to NCBI taxids
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats"
     output:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxid"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats.taxid"
     params:
         # for some reason, I have to define the sed pattern here, then pass it in
         # otherwise it is weirdly expanded in the actual shell command
@@ -266,9 +267,9 @@ rule associate_genbank_to_silvaids:
         Associating genbank accessions from the SILVA database to their taxonomy string
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats"
     output:
-        config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxstring"
+        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats.taxstring"
     params:
         # for some reason, I have to define the sed pattern here, then pass it in
         # otherwise it is weirdly expanded in the actual shell command
@@ -309,14 +310,14 @@ rule add_taxidTaxstring_to_idxstats:
         Adding taxid and SILVA taxonomy string to the idxstats file
         """
     input:
-        idxstats = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats", sample=config["samples"],
+        idxstats = expand(config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats", sample=config["samples"],
             rRNA_type=rRNA_type),
-        taxstring = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxstring", sample=config["samples"],
+        taxstring = expand(config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats.taxstring", sample=config["samples"],
             rRNA_type=rRNA_type),
-        taxid = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxid", sample=config["samples"],
+        taxid = expand(config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats.taxid", sample=config["samples"],
             rRNA_type=rRNA_type)
     output:
-        full_table = config["sub_dirs"]["depletion_dir"] + "/idxstats.summary"
+        full_table = config["sub_dirs"]["depletion_dir"] + "/rRNA/idxstats.summary"
     log:
         "logs/add_taxidTaxstring/taxid_not_found.log"
     shell:
@@ -334,11 +335,11 @@ rule plot_idxstats:
     # the LSU reads will still be removed, just not plotted
     # this could be easily changed in the below R script
     input:
-        full_table = config["sub_dirs"]["depletion_dir"] + "/idxstats.summary",
+        full_table = config["sub_dirs"]["depletion_dir"] + "/rRNA/idxstats.summary",
     output:
-        pdf = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.pdf",
-        png = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.png",
-        tsv = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.tsv"
+        pdf = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.pdf",
+        png = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.png",
+        tsv = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.tsv"
     shell:
         # couldn't figure out in R how to add a simple space after the colon!
         # just do it in sed

@@ -4,6 +4,13 @@ samples:
   prawn1:
     - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz
     - 18-2595-01-Prawn1_S6_L001_R2_001.fastq.gz
+  prawn2:
+    - 18-2595-02-Prawn2_S7_L001_R1_001.fastq.gz
+    - 18-2595-02-Prawn2_S7_L001_R2_001.fastq.gz
+  prawn3:
+    - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
+    - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
+
 
 # pipeline options
 # FULL = all assembly and annotation options
@@ -41,14 +48,12 @@ diamond_nr: "/data/bioref/diamond_db/nr"
 
 silva_LSU_db: "/data/nea040/db/silva_rRNA_db/SILVA_132_LSUParc_tax_silva.DNA.fasta"
 silva_SSU_db: "/data/nea040/db/silva_rRNA_db/SILVA_132_SSUParc_tax_silva.DNA.fasta"
-acc_to_taxids: "/data/nea040/db/ncbi_conversions/nucl_gb_wgs.accession2taxid"
+acc_to_taxids: "/data/nea040/db/ncbi_conversions/nucl_gb.accession2taxid"
 
 
 # -------------- pipline data structure -------------- #
 
-# could think about using accessing this directory structure through dicts
-# this would all the user to change folder names easily
-# however, the input parts of rules would have to be significantly more complicated
+# this allows the user to change folder names easily
 
 program_dir: "/flush3/nea040/mappd_master/mappd/"
 
