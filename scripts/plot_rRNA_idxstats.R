@@ -23,13 +23,16 @@ plot_idxstats <- function(idxstats_summary, pdf_file, png_file, tsv_file) {
   # write out a summary table for the report
   # need to add the taxonomy string to the summary file
   # this returns just the first match for taxonomy string for each species (called 'Organism')
-  species_summary_tax <- merge(species_summary, aggregate(Species ~ Organism, data=summary_df, head, 1), by="Species")
-
+  species_summary_tax <- merge(species_summary, aggregate(Species ~ Organism, data=summary_df, head, 1), by="Species") 
+  
+  # also add taxid
+  species_summary_taxid <- merge(species_summary_tax, aggregate(Species ~ Taxid, data=summary_df, head, 1), by="Species")
+  
   # change the data to wide format for a nicer table
-  species_summary_tax_long <- spread(species_summary_tax[,c("Sample", "Sum_Mapped", "Organism")], Sample, Sum_Mapped, fill=0)
+  species_summary_tax_long <- spread(species_summary_taxid[,c("Sample", "Sum_Mapped", "Organism", "Taxid")], Sample, Sum_Mapped, fill=0)
   
   # sort by the most abundant species (first sample column only)
-  species_summary_tax_long <- species_summary_tax_long[order(-species_summary_tax_long[,2]), ]
+  species_summary_tax_long <- species_summary_tax_long[order(-species_summary_tax_long[,3]), ]
   
   # write summary table to include in the report later
   write.table(species_summary_tax_long, tsv_file, quote=F, sep="\t", row.names = F)

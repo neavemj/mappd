@@ -253,7 +253,6 @@ rule associate_genbank_to_taxids:
         # ensures only uniq entries, then adds '^' to the start of the pattern,
         # and \t to the end. This ensures a complete match.
         # then greps for this pattern in the acc_to_taxids file
-        # -f <(cut -f 1 -d "." {input} | sort | uniq | sed "s/\(.*\)/^\1\t/g") \
         """
         grep \
             -f <(cut -f 1 -d "." {input} | sort | uniq | sed "{params.sed_pat}") \
@@ -304,24 +303,29 @@ rule associate_genbank_to_silvaids:
                 > {output}
             """)
 
-rule summarise_rRNA_idxstats:
+rule add_taxidTaxstring_to_idxstats:
     message:
         """
-        Adding SILVA taxonomy string to the idxstats file
+        Adding taxid and SILVA taxonomy string to the idxstats file
         """
     input:
         idxstats = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats", sample=config["samples"],
             rRNA_type=rRNA_type),
         taxstring = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxstring", sample=config["samples"],
+            rRNA_type=rRNA_type),
+        taxid = expand(config["sub_dirs"]["depletion_dir"] + "/{sample}_{rRNA_type}.idxstats.taxid", sample=config["samples"],
             rRNA_type=rRNA_type)
     output:
         full_table = config["sub_dirs"]["depletion_dir"] + "/idxstats.summary"
+    log:
+        "logs/add_taxidTaxstring/taxid_not_found.log"
     shell:
         """
         {config[program_dir]}/scripts/summarise_rRNAstats.py \
             -i {input.idxstats} \
             -t {input.taxstring} \
-            -o {output.full_table}
+            -d {input.taxid} \
+            -o {output.full_table} > {log}
         """
 
 rule plot_idxstats:
