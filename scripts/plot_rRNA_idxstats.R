@@ -2,8 +2,7 @@
 # script to plot the summarised count files for the rRNA databases
 
 library(ggplot2)
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 library(scales)
 
 
@@ -23,11 +22,11 @@ plot_idxstats <- function(idxstats_summary, pdf_file, png_file, tsv_file) {
 
   # write out a summary table for the report
   # need to add the taxonomy string to the summary file
-  # this returns just the first match for taxonomy string for each species
-  species_summary_tax <- merge(species_summary, aggregate(Species ~ Taxonomy_String, data=summary_df, head, 1), by="Species")
+  # this returns just the first match for taxonomy string for each species (called 'Organism')
+  species_summary_tax <- merge(species_summary, aggregate(Species ~ Organism, data=summary_df, head, 1), by="Species")
 
   # change the data to wide format for a nicer table
-  species_summary_tax_long <- spread(species_summary_tax[,c("Sample", "Sum_Mapped", "Taxonomy_String")], Sample, Sum_Mapped, fill=0)
+  species_summary_tax_long <- spread(species_summary_tax[,c("Sample", "Sum_Mapped", "Organism")], Sample, Sum_Mapped, fill=0)
   
   # sort by the most abundant species (first sample column only)
   species_summary_tax_long <- species_summary_tax_long[order(-species_summary_tax_long[,2]), ]
@@ -42,7 +41,7 @@ plot_idxstats <- function(idxstats_summary, pdf_file, png_file, tsv_file) {
     theme(axis.title.y = element_blank()) +
     scale_y_continuous(labels = comma) +
     ylab("Reads mapped") +
-    #theme(legend.position = "none") + 
+    #theme(legend.position = "none") +
     coord_flip()
     #facet_wrap(~Sample, scales="free", ncol=1)
   

@@ -13,9 +13,7 @@ dependencies:
 # preprocessing.snk
   - trimmomatic>=0.36
   - r-ggplot2>=3.1.0
-  - r-tidyr
-  - r-dplyr
-  - r-readr
+  - r-tidyverse
   - r-scales
 
 # assembly.snk

@@ -51,7 +51,7 @@ for taxstring_fls in args.taxstring:
 # now read through idxstats files and output taxonomy info
 
 output = open(args.output, "w")
-output.write("\t".join(["Sample", "Accession", "rRNA_Type", "Mapped_Reads", "Taxonomy_String", "Species"]) + "\n")
+output.write("\t".join(["Sample", "Accession", "rRNA_Type", "Mapped_Reads", "Organism", "Species"]) + "\n")
 
 for idxstats_fls in args.idxstats:
     with open(idxstats_fls) as fl:

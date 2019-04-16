@@ -336,9 +336,12 @@ rule plot_idxstats:
         png = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.png",
         tsv = config["sub_dirs"]["depletion_dir"] + "/SSU.idxstats.summary.tsv"
     shell:
+        # couldn't figure out in R how to add a simple space after the colon!
+        # just do it in sed
         """
         Rscript {config[program_dir]}/scripts/plot_rRNA_idxstats.R \
-        {input} {output.pdf} {output.png} {output.tsv}
+        {input} {output.pdf} {output.png} {output.tsv} && \
+        sed -i "s/;/; /g" {output.tsv}
         """
 
 
