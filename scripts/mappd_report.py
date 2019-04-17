@@ -22,6 +22,7 @@ def generate_report(config_file="config", dag_graph="",
                     LSU_figure="",
                     SSU_table="",
                     SSU_figure="",
+                    mapping_figure="",
                     spades_assembly="", spades_bandage="",
                     trinity_assembly="", trinity_bandage="",
                     spades_diamond="",
@@ -88,6 +89,19 @@ Ribosomal RNA removal
         SSU_string = maketable.make_table_from_csv(SSU_table, sep="\t")
         report += SSU_string + "\n"
         report += "\t.. image:: " + data_uri_from_file(SSU_figure)[0] + "\n"
+
+    if mapping_figure:
+        report += """
+Host removal
+======================
+    The rRNA mapping results were used to determine the most likely host species.
+    All genetic data from this species was then extracted from the NCBI nr database
+    and was used to remove host sequences from the samples.
+    A summary of the number of paired reads that were identified as rRNA or host,
+    and subsequenctly removed, is provided below.
+    
+"""
+        report += "\t.. image:: " + data_uri_from_file(mapping_figure)[0] + "\n"
 
     if spades_bandage:
         report += """

@@ -8,7 +8,7 @@ library(scales)
 
 plot_idxstats <- function(idxstats_summary, pdf_file, png_file, tsv_file) {
   
-  #idxstats_summary <- "/flush3/nea040/mappd_master/freshwater_prawn_mappd/02_depletion/idxstats.summary"
+  #idxstats_summary <- "/flush3/nea040/mappd_master/freshwater_prawn_mappd/02_depletion/rRNA/idxstats.summary"
   
   summary_df = read.csv(idxstats_summary, sep="\t", header=T)
   
@@ -41,6 +41,7 @@ plot_idxstats <- function(idxstats_summary, pdf_file, png_file, tsv_file) {
   p <- ggplot(species_summary, aes(x=reorder(Species, Sum_Mapped), y=Sum_Mapped, fill=Sample)) +
     geom_bar(stat='identity', position='dodge') +
     #theme(axis.text.x = element_text(angle=45, hjust=1)) +
+    theme_bw() +
     theme(axis.title.y = element_blank()) +
     scale_y_continuous(labels = comma) +
     ylab("Reads mapped") +

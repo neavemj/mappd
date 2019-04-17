@@ -176,5 +176,36 @@ rule host_sam_to_fastq:
             {input} 2> /dev/null
         """
 
+rule summarise_rRNA_host_mapping:
+    message:
+        """
+        Summarising number of reads mapped to rRNA and host databases
+        """
+    input:
+        lsu = expand("logs/bowtie_LSU/{sample}.log", sample=config["samples"]),
+        ssu = expand("logs/bowtie_SSU/{sample}.log", sample=config["samples"]),
+        host = expand("logs/bowtie_host/{sample}.log", sample=config["samples"])
+    output:
+        "logs/mapping_summary.tsv"
+    shell:
+        """
+        {config[program_dir]}/scripts/summarise_mapping_results.py \
+            -l {input.lsu} \
+            -s {input.ssu} \
+            -t {input.host} \
+            -o {output}
+        """
+
+rule plot_mapping:
+    input:
+        "logs/mapping_summary.tsv"
+    output:
+        pdf = "logs/mapping_summary.pdf",
+        png = "logs/mapping_summary.png"
+    shell:
+        """
+        Rscript {config[program_dir]}/scripts/plot_mapping.R \
+        {input} {output.pdf} {output.png}
+        """
 
 

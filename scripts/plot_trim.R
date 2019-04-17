@@ -20,9 +20,11 @@ plot_trim <- function(trim_summary, pdf_file, png_file) {
     geom_bar(stat='identity') +
     scale_y_continuous(labels = comma) +
     scale_fill_manual(values=cols) +
+    theme_bw() +
     theme(axis.text.x = element_text(angle=45, hjust=1)) +
     ylab("Read pairs") +
     xlab("Sample")
+
   
   # make the figure width adjust dynamically with the number of samples
   # add 1/3 of an inch for each additional samples

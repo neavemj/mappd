@@ -55,13 +55,15 @@ rule test_report:
         dag_graph = "benchmarks/dag.png",
         trim_summary = "logs/trimmomatic_PE/trim_summary.png",
         SSU_figure = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.png",
-        SSU_table = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.tsv"
+        SSU_table = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.tsv",
+        mapping_figure = "logs/mapping_summary.png"
     output:
         "test_report.html"
     run:
         sphinx_str = generate_report(config_file="", dag_graph=input.dag_graph,
                                      trim_summary=input.trim_summary,
                                      SSU_table=input.SSU_table,
-                                     SSU_figure=input.SSU_figure)
+                                     SSU_figure=input.SSU_figure,
+                                     mapping_figure=input.mapping_figure)
         report(sphinx_str, output[0], metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
 
