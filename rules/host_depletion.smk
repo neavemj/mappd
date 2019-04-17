@@ -15,26 +15,166 @@ rule associate_hostTaxid_genbank:
     message:
         """
         Retreiving genbank ids for the most abundant potential host species
-        Currently this is grepping all 10 most abundant
-        Maybe I should do 1 at a time - might end up with lots of sequence
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.tsv"
     output:
-        config["sub_dirs"]["depletion_dir"] + "/host/host1_nucl_gb.ids"
+        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.ids"
     params:
         acc_to_taxids = config["acc_to_taxids"],
         # need to do this to ensure only the string matches
-        sed_pat = r"s/\(.*\)/\t\1\t/g"
+        sed_pat = r"s/\(.*\)/\t\1\t/g",
+        hosts_to_download = config["hosts_to_download"]
+    benchmark:
+        "benchmarks/grep_nucl_gb_ids/grep_nucl_gb_ids.txt"
     shell:
         # cuts the second field (taxid), removes the header,
-        # adds a tab before and after the taxid to ensure a
+        # retrieves as many host taxids as required,
+        # adds a tab before and after each taxid to ensure a
         # clean match
         """
         grep \
-            -f <(cut -f 2 {input} | tail -n+2 | sed "{params.sed_pat}") \
+            -f <(cut -f 2 {input} | tail -n+2 | head -n {params.hosts_to_download} | sed "{params.sed_pat}") \
             {params.acc_to_taxids} \
             > {output}
         """
+
+rule extract_host_nucl:
+    message:
+        """
+        Extracting host nucleotide sequence from the nt database
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.ids"
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.fasta"
+    params:
+        blast_nt = config["blast_nt"]
+    log:
+        "logs/extract_nucl_gb_fasta/accessions_not_found.log"
+    benchmark:
+        "benchmarks/extract_nucl_gb_fasta/extract_nucl_gb_fasta.txt"
+    shell:
+        # if this command doesn't find an accesion number (often)
+        # it prints an error and returns an exit code of 1
+        # this stops snakemake working
+        # I want it to keep running even if some accessions weren't found
+        # so the '|| true' bit ensures it returns a successful exit code
+        """
+        blastdbcmd \
+            -db {params.blast_nt} \
+            -entry_batch <(cut -f 2 {input}) \
+            > {output} 2> {log} || true
+        """
+
+rule build_host_bowtiedb:
+    message:
+        """
+        Building a bowtie2 database from host nucleotide sequence
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.fasta"
+    output:
+        # bowtie2-build needs a basename for the database
+        # usually I just give it the same name as the input
+        # and it appends several *bt2 files
+        # will trick snakemake by using this as an output even though
+        # I won't use it in the shell command
+        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.fasta.1.bt2"
+    shell:
+        # use the same name for basename reference database
+        """
+        bowtie2-build \
+            {input} \
+            {input} > /dev/null
+        """
+
+rule bowtie_to_host:
+    message:
+        """
+        Mapping {wildcards.sample} mRNA reads to host database
+        """
+    input:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_2P.fastq",
+        db_trick = config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.fasta.1.bt2"
+    output:
+        sam_fl = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sam"
+    params:
+        host_db = config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.fasta"
+    log:
+        "logs/bowtie_host/{sample}.log"
+    benchmark:
+        "benchmarks/bowtie_host/{sample}.txt"
+    threads:
+        16
+    shell:
+        """
+        bowtie2 \
+            -x {params.host_db} \
+            -1 {input.R1} \
+            -2 {input.R2} \
+            -p {threads} \
+            -S {output.sam_fl} 2> {log}
+        """
+
+rule host_sam_to_bam:
+    message:
+        """
+        Converting {wildcards.sample} host sam file to bam
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sam"
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.bam"
+    shell:
+        """
+        samtools view \
+            -S -b \
+            {input} > {output}
+        """
+
+rule host_get_unmapped:
+    message:
+        """
+        Collecting {wildcards.sample} reads that did not map to host sequences
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.bam"
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted.bam"
+    shell:
+        # -f 13 should get reads where neither pair mapped (UNMAP & MUNMAP)
+        """
+        samtools view \
+            -b \
+            -f 13 \
+            {input} > {output}
+        """
+
+rule host_sam_to_fastq:
+    message:
+        """
+        Converting {wildcards.sample} host depleted sam file to fastq files
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted.bam"
+    output:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_2P.fastq"
+    shell:
+    # the dev null bit discards unpaired reads
+    # the -F bit ensures the mates are paired
+        """
+        samtools fastq \
+            -1 {output.R1} \
+            -2 {output.R2} \
+            -0 /dev/null \
+            -s /dev/null \
+            -n \
+            -F 0x900 \
+            {input} 2> /dev/null
+        """
+
 
 

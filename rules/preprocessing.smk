@@ -17,7 +17,7 @@ def getFastq(wildcards):
 rule trimmomatic_PE:
     message:
         """
-        Trimming for quality and Illumina adapters using Trimmomatic
+        Trimming {wildcards.sample} for quality and Illumina adapters using Trimmomatic
         """
     input:
         getFastq

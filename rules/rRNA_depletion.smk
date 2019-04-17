@@ -10,7 +10,7 @@ It will also guess the host species based on rRNA matches
 rule bowtie_to_LSU:
     message:
         """
-        Mapping cleaned reads to the SILVA LSU rRNA database
+        Mapping cleaned {wildcards.sample} reads to the SILVA LSU rRNA database
         """
     input:
         R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
@@ -41,7 +41,7 @@ rule bowtie_to_LSU:
 rule LSU_sam_to_bam:
     message:
         """
-        Converting the LSU sam file to bam
+        Converting {wildcards.sample} LSU sam file to bam
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.sam"
@@ -57,7 +57,7 @@ rule LSU_sam_to_bam:
 rule LSU_stats:
     message:
         """
-        Tallying statistics on reads mapped to the LSU database
+        Tallying statistics on {wildcards.sample} reads mapped to the LSU database
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.bam"
@@ -82,7 +82,7 @@ rule LSU_stats:
 rule LSU_get_unmapped:
     message:
         """
-        Collecting reads that did not map to the LSU database
+        Collecting {wildcards.sample} reads that did not map to the LSU database
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.bam"
@@ -100,7 +100,7 @@ rule LSU_get_unmapped:
 rule LSU_sam_to_fastq:
     message:
         """
-        Converting LSU depleted sam file to fastq files
+        Converting {wildcards.sample} LSU depleted sam file to fastq files
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted.bam"
@@ -124,7 +124,7 @@ rule LSU_sam_to_fastq:
 rule bowtie_to_SSU:
     message:
         """
-        Mapping LSU-depleted reads to the SILVA SSU rRNA database
+        Mapping {wildcards.sample} LSU-depleted reads to the SILVA SSU rRNA database
         """
     input:
         R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
@@ -152,7 +152,7 @@ rule bowtie_to_SSU:
 rule SSU_sam_to_bam:
     message:
         """
-        Converting the SSU sam file to bam
+        Converting {wildcards.sample} SSU sam file to bam
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.sam"
@@ -168,7 +168,7 @@ rule SSU_sam_to_bam:
 rule SSU_stats:
     message:
         """
-        Tallying statistics on reads mapped to the SSU database
+        Tallying {wildcards.sample} statistics on reads mapped to the SSU database
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.bam"
@@ -193,7 +193,7 @@ rule SSU_stats:
 rule SSU_get_unmapped:
     message:
         """
-        Collecting reads that did not map to either the LSU or SSU database
+        Collecting {wildcards.sample} reads that did not map to either the LSU or SSU database
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.bam"
@@ -204,13 +204,14 @@ rule SSU_get_unmapped:
         """
         samtools view \
             -f 13 \
+            -b \
             {input} > {output}
         """
 
 rule mRNA_sam_to_fastq:
     message:
         """
-        Converting rRNA depleted sam file to mRNA fastq files
+        Converting {wildcards.sample} rRNA depleted sam file to mRNA fastq files
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_rRNA_depleted.bam"
@@ -236,7 +237,7 @@ rRNA_type = ["LSU", "SSU"]
 rule associate_genbank_to_taxids:
     message:
         """
-        Associating genbank accessions from the SILVA database to NCBI taxids
+        Associating {wildcards.sample} genbank accessions from the SILVA database to NCBI taxids
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats"
@@ -264,7 +265,7 @@ rule associate_genbank_to_taxids:
 rule associate_genbank_to_silvaids:
     message:
         """
-        Associating genbank accessions from the SILVA database to their taxonomy string
+        Associating {wildcards.sample} genbank accessions from the SILVA database to their taxonomy string
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats"
@@ -304,10 +305,10 @@ rule associate_genbank_to_silvaids:
                 > {output}
             """)
 
-rule add_taxidTaxstring_to_idxstats:
+rule add_taxonomy_to_idxstats:
     message:
         """
-        Adding taxid and SILVA taxonomy string to the idxstats file
+        Adding taxid and SILVA taxonomy string to the {wildcards.sample} idxstats file
         """
     input:
         idxstats = expand(config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats", sample=config["samples"],

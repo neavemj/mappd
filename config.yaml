@@ -27,6 +27,7 @@ endedness: PE
 
 # -------------- pipeline parameters -------------- #
 
+## Trimming parameters ##
 # Trimmomatic is used for trimming the sequencing reads
 # The program requires an adapter file specific for the sequencing run
 # and a minimum quality score can be given
@@ -35,10 +36,18 @@ trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
 trimmomatic_minlen: 5
 
-
-# Assembly parameters
+## Assembly parameters ##
 
 draw_bandage: "True"
+
+## Host depletion parameters ##
+
+perform_host_depletion: "True"
+
+# Can't download more than 10 hosts because this relies
+# on the top 10 summary file. Even if more than 10 is given
+# below, only 10 will be downloaded.
+hosts_to_download: 2
 
 # location of reference databases
 
