@@ -7,11 +7,12 @@ This ensures that benchmarks are calculated at the end of the pipeline
 
 rule summarise_benchmarks:
     input:
-        expand("benchmarks/spades/{sample}.txt", sample=config["samples"])
+        # need to 'trick' snakemake into only running this at the end
+        # but before the report is generated
         # ideally this will be, for example,  "annotation_summary.txt"
+        expand("{sample}_host_depleted_1P.fastq", sample=config["samples"])
     output:
         "benchmarks/benchmarks.summary"
-    priority: 100
     shell:
         """
         {config[program_dir]}/scripts/summarise_benchmarks.py \

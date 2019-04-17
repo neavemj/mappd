@@ -53,6 +53,8 @@ rule full_run_report:
 rule test_report:
     input:
         dag_graph = "benchmarks/dag.png",
+        #bench_time = "benchmarks/bench_time.png",
+        #bench_mem = "benchmarks/bench_mem.png",
         trim_summary = "logs/trimmomatic_PE/trim_summary.png",
         SSU_figure = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.png",
         SSU_table = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.tsv",
@@ -60,7 +62,8 @@ rule test_report:
     output:
         "test_report.html"
     run:
-        sphinx_str = generate_report(config_file="", dag_graph=input.dag_graph,
+        sphinx_str = generate_report(config_file=config, dag_graph=input.dag_graph,
+                                     #bench_mem=input.bench_mem, bench_time=input.bench_time,
                                      trim_summary=input.trim_summary,
                                      SSU_table=input.SSU_table,
                                      SSU_figure=input.SSU_figure,

@@ -15,7 +15,7 @@ import maketable
 # this way the report should work no matter what pipeline components are run
 # and I'll also be able to refer to them easily
 
-def generate_report(config_file="config", dag_graph="",
+def generate_report(config_file="", dag_graph="",
                     bench_time="", bench_mem="",
                     trim_summary="",
                     LSU_table="",
@@ -87,6 +87,14 @@ Ribosomal RNA removal
 
 """
         SSU_string = maketable.make_table_from_csv(SSU_table, sep="\t")
+        # also want to extract out the text for the host species downloaded
+        # will read the top 10 table into memory and extract those lines
+        SSU_lines = [line for line in open(SSU_table)]
+        # this ignores the header, extracts number of lines / hosts according to config
+        host_strings = SSU_lines[1:config_file["hosts_to_download"]+1]
+        # this gets just the species name from the host string
+        hosts = [host.split("\t")[0].split(";")[-1].strip() for host in host_strings]
+
         report += SSU_string + "\n"
         report += "\t.. image:: " + data_uri_from_file(SSU_figure)[0] + "\n"
 
@@ -94,13 +102,14 @@ Ribosomal RNA removal
         report += """
 Host removal
 ======================
-    The rRNA mapping results were used to determine the most likely host species.
+    The rRNA mapping results were used to determine that the most likely host species
+    was {}.
     All genetic data from this species was then extracted from the NCBI nr database
     and was used to remove host sequences from the samples.
-    A summary of the number of paired reads that were identified as rRNA or host,
-    and subsequenctly removed, is provided below.
-    
-"""
+    A summary of the number of paired reads that were removed as rRNA or host is given below.
+
+""".format(hosts[0])
+
         report += "\t.. image:: " + data_uri_from_file(mapping_figure)[0] + "\n"
 
     if spades_bandage:

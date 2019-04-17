@@ -308,7 +308,7 @@ rule associate_genbank_to_silvaids:
 rule add_taxonomy_to_idxstats:
     message:
         """
-        Adding taxid and SILVA taxonomy string to the {wildcards.sample} idxstats file
+        Adding taxid and SILVA taxonomy string to the idxstats file
         """
     input:
         idxstats = expand(config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_{rRNA_type}.idxstats", sample=config["samples"],
