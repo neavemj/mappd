@@ -108,7 +108,7 @@ rule blast_contigs:
             -db {params.blast_nt} \
             -evalue 0.001 \
             -num_threads {threads} \
-            -outfmt '6 qseqid sseqid pident length evalue bitscore staxid salltitles'
+            -outfmt '6 qseqid sseqid pident length evalue bitscore staxid ssciname scomname salltitles'
         """
 
 rule subset_blast:
@@ -126,6 +126,9 @@ rule subset_blast:
             -b {input} \
             -o {output}
         """
+
+# might need to combine samples for the next bit, perhaps in the rule above
+# the pipeline should only be run with samples from the same species? I think?
 
 rule associate_hostTaxid_genbank:
     message:
