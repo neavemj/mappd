@@ -3,12 +3,113 @@ Host depletion rules
 
 These rules will map reads to host genetic data
 and split the reads into those that match and those that don't
-These rules rely on the results from 'rRNA_depletion.smk'
-in order to identy the most likely host species
-Note: these only use results from the SSU database
-as these are more accurate because more people
-sequence the SSU (e.g. 18S)
+Using results from the rRNA mapping wasn't working particularly
+well. Mainly because the SSU gene is too similar across species.
+E.g. sheep and human are very similar, so the host species
+gets mixed up.
+
+Decided instead to do a small assembly on a subset of the data
+and blast the results to find host.
+
+#These rules rely on the results from 'rRNA_depletion.smk'
+#in order to identy the most likely host species
+#Note: these only use results from the SSU database
+#as these are more accurate because more people
+#sequence the SSU (e.g. 18S)
 """
+
+rule subset_mRNA_reads:
+    message:
+        """
+        Taking a subset of 100,000 mRNA reads from {wildcards.sample}
+        to be used for assembly and host identification
+        """
+    input:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_2P.fastq",
+    output:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_100k_mRNA_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_100k_mRNA_2P.fastq",
+    shell:
+        """
+        head \
+            -n 400000 \
+            {input.R1} \
+            > {output.R1} && \
+        head \
+            -n 400000 \
+            {input.R2} \
+            > {output.R2}
+        """
+
+rule assembling_mRNA_subset:
+    message:
+        """
+        Assembling small subset {wildcards.sample} of reads to identify host
+        """
+    input:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_100k_mRNA_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_100k_mRNA_2P.fastq"
+    output:
+        out_fasta = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_sub_assembly/contigs.fasta",
+    params:
+        out_dir = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_sub_assembly"
+    log:
+        "logs/spades_sub_assembly/{sample}.log"
+    benchmark:
+        "benchmarks/spades_sub_assembly/{sample}.txt"
+    threads: 16
+    shell:
+        """
+        spades.py \
+            -1 {input.R1} \
+            -2 {input.R2} \
+            -t {threads} \
+            -o {params.out_dir} > {log}
+        """
+
+rule subset_contigs:
+    message:
+        """
+        Gathering the 10 largest contigs from the sub-assembly
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_sub_assembly/contigs.fasta",
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_largest_contigs.fasta",
+    shell:
+        # using the most abundant 10 contigs larger than 1000 bps for host identification
+        # can experiment with this parameters if required
+        """
+        {config[program_dir]}/scripts/gather_contigs.py \
+            -c {input} \
+            -s 1000 \
+            -n 10 \
+            -o {output}
+        """
+
+rule blast_contigs:
+    message:
+        """
+        Blasting the most abundant contigs from sub-assembly
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_largest_contigs.fasta",
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_largest_contigs.blastn",
+    params:
+        blast_nt = config["blast_nt"]
+    threads: 16
+    shell:
+        """
+        blastn \
+            -query {input} \
+            -out {output} \
+            -db {params.blast_nt} \
+            -evalue 0.001 \
+            -num_threads {threads} \
+            -outfmt '6 qseqid sseqid pident length evalue bitscore staxid salltitles'
+        """
 
 
 rule associate_hostTaxid_genbank:

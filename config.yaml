@@ -1,5 +1,10 @@
 # -------------- project specific parameters to be changed -------------- #
 
+# NOTE: can't include underscore in the sample name
+# I split by this somewhere
+# Perhaps I should include a little function to fix sample names in case
+# also should make sure sample is a string to avoid R interpreting it as an int
+
 samples:
   prawn1:
     - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz

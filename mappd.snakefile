@@ -23,4 +23,5 @@ include: os.path.join(rules_dir, "report.smk")
 
 rule all:
     input:
-        expand("{pipe}_report.html", pipe=config["pipeline"])
+        #expand("{pipe}_report.html", pipe=config["pipeline"])
+        "test_report.html"

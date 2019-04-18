@@ -23,5 +23,6 @@ dependencies:
   - bandage
 
 # depletion.smk
-  - blast
+# note: had blast in here but that causes an error with conflicting perl paths
   - ete3
+  - biopython
