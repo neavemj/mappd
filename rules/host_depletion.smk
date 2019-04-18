@@ -111,11 +111,26 @@ rule blast_contigs:
             -outfmt '6 qseqid sseqid pident length evalue bitscore staxid salltitles'
         """
 
+rule subset_blast:
+    message:
+        """
+        Retieving the 'best' hits for each {wildcards.sample} contig
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_largest_contigs.blastn",
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_largest_contigs.blastn.best_hits",
+    shell:
+        """
+        {config[program_dir]}/scripts/subset_blast.py \
+            -b {input} \
+            -o {output}
+        """
 
 rule associate_hostTaxid_genbank:
     message:
         """
-        Retreiving genbank ids for the most abundant potential host species
+        Retreiving genbank ids for the most abundant species
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.tsv"
