@@ -36,7 +36,7 @@ rule subset_mRNA_reads:
             > {output.R2}
         """
 
-rule assembling_mRNA_subset:
+rule assemble_mRNA_subset:
     message:
         """
         Assembling small subset {wildcards.sample} of reads to identify host
@@ -347,7 +347,7 @@ rule plot_mapping:
     shell:
         """
         Rscript {config[program_dir]}/scripts/plot_mapping.R \
-        {input} {output.pdf} {output.png}
+            {input} {output.pdf} {output.png}
         """
 
 

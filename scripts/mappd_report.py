@@ -18,10 +18,7 @@ import maketable
 def generate_report(config_file="", dag_graph="",
                     bench_time="", bench_mem="",
                     trim_summary="",
-                    LSU_table="",
-                    LSU_figure="",
-                    SSU_table="",
-                    SSU_figure="",
+                    host_table="",
                     mapping_figure="",
                     spades_assembly="", spades_bandage="",
                     trinity_assembly="", trinity_bandage="",
@@ -72,45 +69,39 @@ Trimming
 """
         report += "\t.. image:: " + data_uri_from_file(trim_summary)[0] + "\n"
 
-    if SSU_table:
-        report += """
-Ribosomal RNA removal
-======================
-    The trimmed reads were aligned to the SILVA databases, including the Long Sub Unit (LSU)
-    and Small Sub Unit (SSU) categories.
-    Matching reads were used to identify the host species for the host depletion step
-    and were then removed from further analysis.
-
-*SSU mapping*
----------------
-    The top 10 organisms with the most hits to the SSU database are summarised below
-
-"""
-        SSU_string = maketable.make_table_from_csv(SSU_table, sep="\t")
+    if host_table:
+        host_string = maketable.make_table_from_csv(host_table, sep="\t")
         # also want to extract out the text for the host species downloaded
         # will read the top 10 table into memory and extract those lines
-        SSU_lines = [line for line in open(SSU_table)]
+        host_lines = [line for line in open(host_table)]
         # this ignores the header, extracts number of lines / hosts according to config
-        host_strings = SSU_lines[1:config_file["hosts_to_download"]+1]
+        host_strings = host_lines[1:config_file["hosts_to_download"]+1]
         # this gets just the species name from the host string
-        hosts = [host.split("\t")[0].split(";")[-1].strip() for host in host_strings]
+        hosts = [host.split("\t")[3] for host in host_strings]
 
-        report += SSU_string + "\n"
-        report += "\t.. image:: " + data_uri_from_file(SSU_figure)[0] + "\n"
-
-    if mapping_figure:
         report += """
-Host removal
-======================
-    The rRNA mapping results were used to determine that the most likely host species
-    was {}.
-    All genetic data from this species was then extracted from the NCBI nr database
-    and was used to remove host sequences from the samples.
-    A summary of the number of paired reads that were removed as rRNA or host is given below.
+Ribosomal RNA and host removal
+===============================
+*rRNA mapping*
+------------------
+    The trimmed reads were aligned to the SILVA ribosomal RNA databases, including the Long Sub Unit (LSU)
+    and Small Sub Unit (SSU) categories, and matching reads were removed.
 
+*Host mapping*
+---------------
+    To identify the most abundant organism (potentially the 'host'),
+    a subset of 200,000 putative mRNA sequences from each sample were extracted and
+    individually assembled using SPAdes.
+    The top 10 contigs larger than 1,000 bps from the assemblies were blasted
+    against the NCBI nr database and the most abundant, best matches were used
+    to assign the most likely host species as {}.
+    All genetic data from was then extracted from the NCBI nr database
+    and was used to identify host sequences in the samples.
+    
 """.format(hosts[0])
-
+        report += host_string + "\n"
         report += "\t.. image:: " + data_uri_from_file(mapping_figure)[0] + "\n"
+
 
     if spades_bandage:
         report += """

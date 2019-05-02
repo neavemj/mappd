@@ -56,8 +56,7 @@ rule test_report:
         #bench_time = "benchmarks/bench_time.png",
         #bench_mem = "benchmarks/bench_mem.png",
         trim_summary = "logs/trimmomatic_PE/trim_summary.png",
-        SSU_figure = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.png",
-        SSU_table = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.tsv",
+        host_table = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide",
         mapping_figure = "logs/mapping_summary.png"
     output:
         "test_report.html"
@@ -65,8 +64,7 @@ rule test_report:
         sphinx_str = generate_report(config_file=config, dag_graph=input.dag_graph,
                                      #bench_mem=input.bench_mem, bench_time=input.bench_time,
                                      trim_summary=input.trim_summary,
-                                     SSU_table=input.SSU_table,
-                                     SSU_figure=input.SSU_figure,
+                                     host_table=input.host_table,
                                      mapping_figure=input.mapping_figure)
         report(sphinx_str, output[0], metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
 
