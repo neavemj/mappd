@@ -68,8 +68,9 @@ acc_to_taxids: "/data/nea040/db/ncbi_conversions/nucl_gb.accession2taxid"
 # -------------- pipline data structure -------------- #
 
 # this allows the user to change folder names easily
+# include the final forward slash in dir name
 
-program_dir: "/flush3/nea040/mappd_master/mappd/"
+program_dir: "/datasets/work/AAHL_PDNGS_WORK/mappd/"
 
 sub_dirs:
   trim_dir: "01_trimmomatic"
