@@ -164,19 +164,17 @@ rule associate_hostTaxid_genbank:
         config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.ids"
     params:
         nt_to_taxids = config["nt_to_taxids"],
-        # need to do this to ensure only the string matches
-        sed_pat = r"s/\(.*\)/\t\1\t/g",
         hosts_to_download = config["hosts_to_download"]
     benchmark:
-        "benchmarks/grep_nucl_gb_ids/grep_nucl_gb_ids.txt"
+        "benchmarks/grep_nucl_gb_ids/grep_nucl_nt_ids.txt"
     shell:
+        # -w means only match whole words - don't want part of the taxid matching another one
         # cuts the first column (taxids), removes header,
-        # retrieves as many host taxids as required,
-        # adds a tab before and after each taxid to ensure a
-        # clean match
+        # and retrieves as many host taxids as required,
         """
         grep \
-            -f <(cut -f 1 {input} | tail -n +2 | head -n {params.hosts_to_download} | sed "{params.sed_pat}") \
+            -w \
+            -f <(cut -f 1 {input} | tail -n +2 | head -n {params.hosts_to_download}) \
             {params.nt_to_taxids} \
             > {output}
         """
@@ -205,7 +203,7 @@ rule extract_host_nucl:
         """
         blastdbcmd \
             -db {params.blast_nt} \
-            -entry_batch <(cut -f 1 {input}) \
+            -entry_batch <(cut -f 1 -d " " {input}) \
             > {output} 2> {log} || true
         """
 
