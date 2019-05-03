@@ -64,6 +64,8 @@ silva_LSU_db: "/data/nea040/db/silva_rRNA_db/SILVA_132_LSUParc_tax_silva.DNA.fas
 silva_SSU_db: "/data/nea040/db/silva_rRNA_db/SILVA_132_SSUParc_tax_silva.DNA.fasta"
 acc_to_taxids: "/data/nea040/db/ncbi_conversions/nucl_gb.accession2taxid"
 
+nt_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/nt.acc2taxid.txt"
+
 
 # -------------- pipline data structure -------------- #
 

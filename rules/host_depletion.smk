@@ -161,9 +161,9 @@ rule associate_hostTaxid_genbank:
     input:
         config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide"
     output:
-        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.ids"
+        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.ids"
     params:
-        acc_to_taxids = config["acc_to_taxids"],
+        nt_to_taxids = config["nt_to_taxids"],
         # need to do this to ensure only the string matches
         sed_pat = r"s/\(.*\)/\t\1\t/g",
         hosts_to_download = config["hosts_to_download"]
@@ -177,7 +177,7 @@ rule associate_hostTaxid_genbank:
         """
         grep \
             -f <(cut -f 1 {input} | tail -n +2 | head -n {params.hosts_to_download} | sed "{params.sed_pat}") \
-            {params.acc_to_taxids} \
+            {params.nt_to_taxids} \
             > {output}
         """
 
@@ -187,15 +187,15 @@ rule extract_host_nucl:
         Extracting host nucleotide sequence from the nt database
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.ids"
+        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.ids"
     output:
-        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.fasta"
+        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta"
     params:
         blast_nt = config["blast_nt"]
     log:
         "logs/extract_nucl_gb_fasta/accessions_not_found.log"
     benchmark:
-        "benchmarks/extract_nucl_gb_fasta/extract_nucl_gb_fasta.txt"
+        "benchmarks/extract_nucl_gb_fasta/extract_nucl_nt_fasta.txt"
     shell:
         # if this command doesn't find an accesion number (often)
         # it prints an error and returns an exit code of 1
@@ -205,7 +205,7 @@ rule extract_host_nucl:
         """
         blastdbcmd \
             -db {params.blast_nt} \
-            -entry_batch <(cut -f 2 {input}) \
+            -entry_batch <(cut -f 1 {input}) \
             > {output} 2> {log} || true
         """
 
@@ -215,14 +215,14 @@ rule build_host_bowtiedb:
         Building a bowtie2 database from host nucleotide sequence
         """
     input:
-        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.fasta"
+        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta"
     output:
         # bowtie2-build needs a basename for the database
         # usually I just give it the same name as the input
         # and it appends several *bt2 files
         # will trick snakemake by using this as an output even though
         # I won't use it in the shell command
-        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.fasta.1.bt2"
+        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta.1.bt2"
     shell:
         # use the same name for basename reference database
         """
@@ -239,11 +239,11 @@ rule bowtie_to_host:
     input:
         R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
         R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_2P.fastq",
-        db_trick = config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.fasta.1.bt2"
+        db_trick = config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta.1.bt2"
     output:
         sam_fl = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sam"
     params:
-        host_db = config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_gb.fasta"
+        host_db = config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta"
     log:
         "logs/bowtie_host/{sample}.log"
     benchmark:
