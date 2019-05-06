@@ -60,6 +60,8 @@ hosts_to_download: 1
 ## Annotation parameters ##
 
 diamond_nr_evalue: 0.00001
+# contigs smaller than this will be removed from further analysis
+min_contig_size: 500
 
 # location of reference databases
 
@@ -71,6 +73,7 @@ diamond_nr: "/OSM/CDC/BIOINFO_CORE/reference/bioref/diamond_db/nr_190301_v0924"
 silva_LSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/SILVA_132_LSUParc_tax_silva.DNA.fasta"
 silva_SSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/SILVA_132_SSUParc_tax_silva.DNA.fasta"
 
+acc_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb.accession2taxid"
 nt_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nt.acc2taxid.txt"
 
 

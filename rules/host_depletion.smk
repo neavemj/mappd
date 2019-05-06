@@ -73,7 +73,7 @@ rule subset_subcontigs:
         config["sub_dirs"]["depletion_dir"] + "/host/{sample}_largest_contigs.fasta",
     shell:
         # using the most abundant 10 contigs larger than 1000 bps for host identification
-        # can experiment with this parameters if required
+        # can experiment with these parameters if required
         """
         {config[program_dir]}/scripts/gather_contigs.py \
             -c {input} \
@@ -95,6 +95,8 @@ rule blast_subcontigs:
         blast_nt = config["blast_nt"]
     threads: 16
     shell:
+        # in the output fmt, cols 6 and 7 need to be bitscore and taxid
+        # for the scripts subset_blast.py and tally_abundant_hosts.py
         """
         blastn \
             -query {input} \
@@ -102,13 +104,22 @@ rule blast_subcontigs:
             -db {params.blast_nt} \
             -evalue 0.001 \
             -num_threads {threads} \
-            -outfmt '6 qseqid sseqid pident length evalue bitscore staxid ssciname scomname salltitles'
+            -outfmt '6 \
+                qseqid \
+                sseqid \
+                pident \
+                length \
+                evalue \
+                bitscore \
+                staxid \
+                stitle'
         """
 
 rule subset_subblast:
     message:
         """
         Retieving the 'best' hits for each {wildcards.sample} contig
+        using the maximum bitscore
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/host/{sample}_largest_contigs.blastn",
@@ -135,7 +146,7 @@ rule tally_abundant_subspecies:
         long = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.long"
     shell:
         """
-        {config[program_dir]}/scripts/tally_abundant_hosts.py \
+        {config[program_dir]}/scripts/tally_blast_organisms.py \
             -b {input} \
             -t {output.wide} \
             -l {output.long}

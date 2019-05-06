@@ -2,7 +2,15 @@
 
 """
 Take most abundant blast hits from multiple samples and get most abundant species
--outfmt '6 qseqid sseqid pident length evalue bitscore staxid salltitles'
+            -outfmt '6 \
+                qseqid \
+                sseqid \
+                pident \
+                length \
+                evalue \
+                bitscore \
+                staxid \
+                stitle'
 """
 
 import sys, os

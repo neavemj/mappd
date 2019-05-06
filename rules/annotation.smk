@@ -6,7 +6,7 @@ and does blast / diamond searches of the contigs
 againt NCBI databases.
 
 Options:
-- blastx / diamondx => nr database (10^-3)
+- blastx / diamondx => nr database (10^-5)
 - blastx => viral protein RefSeq (10^-5)
     - then compare hits to complete nr database to
       ensure the match is still the best
@@ -32,6 +32,9 @@ rule diamond_nr:
         "benchmarks/diamond/{sample}.txt"
     threads: 16
     shell:
+        # note: diamond messages go to stderr
+        # in the output fmt, cols 6 and 7 need to be bitscore and taxid
+        # for the scripts subset_blast.py and tally_abundant_hosts.py
         """
         diamond blastx \
             -d {params.diamond_nr_db} \
@@ -41,20 +44,56 @@ rule diamond_nr:
             --evalue {params.diamond_nr_evalue} \
             -f 6 \
                 qseqid \
-                qlen \
                 sseqid \
-                slen \
-                qstart \
-                qend \
-                sstart \
-                send \
+				pident \
+                length \
                 evalue \
                 bitscore \
-                length \
-                pident \
+                staxids \
                 stitle \
-                salltitles \
-            > {log}
+            2> {log}
         """
+
+rule subset_diamond:
+    message:
+        """
+        Retieving the 'best' hits for each {wildcards.sample} contig
+        using the maximum bitscore
+        """
+    input:
+        config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}.diamond_blastx"
+    output:
+        config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}.diamond_blastx.best_hits"
+    shell:
+        """
+        {config[program_dir]}/scripts/subset_blast.py \
+            -b {input} \
+            -o {output}
+        """
+
+# could use idxstats to get reads mapped to each SPAdes contig
+# then could combine this with the taxonomy results
+# to output a table showing abundant organisms with how many reads mapped
+
+rule tally_diamond_organisms:
+    message:
+        """
+        Calculating the most abundant species in the diamond results for all samples
+        """
+    input:
+        config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}.diamond_blastx.best_hits"
+    output:
+        # producing both wide and long format tables here
+        # the wide will be used for the report, and the long for plotting in ggplot
+        wide = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_tax.wide",
+        long = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_tax.long",
+    shell:
+        """
+        {config[program_dir]}/scripts/tally_blast_organisms.py \
+            -b {input} \
+            -t {output.wide} \
+            -l {output.long}
+        """
+
 
 

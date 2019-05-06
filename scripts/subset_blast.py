@@ -2,7 +2,15 @@
 
 """
 Take blast result and subset to 'best' match per contig
--outfmt '6 qseqid sseqid pident length evalue bitscore staxid salltitles'
+            -outfmt '6 \
+                qseqid \
+                sseqid \
+                pident \
+                length \
+                evalue \
+                bitscore \
+                staxid \
+                stitle'
 """
 
 import sys

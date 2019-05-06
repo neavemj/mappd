@@ -87,15 +87,108 @@ rule subset_spades_contigs:
         config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta"
     output:
         config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta"
+    params:
+        min_contig_size = config["min_contig_size"]
     shell:
         # extract contigs larger than 500 bps for annotation
         # stop at 100,000 contigs? Presumably there won't be many more that this?
         """
         {config[program_dir]}/scripts/gather_contigs.py \
             -c {input} \
-            -s 500 \
-            -n 10 \
+            -s {params.min_contig_size} \
+            -n 100000 \
             -o {output}
+        """
+
+rule build_spades_bowtiedb:
+    message:
+        """
+        Building a bowtie2 database for the SPAdes assembly
+        """
+    input:
+        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta"
+    output:
+        # bowtie2-build needs a basename for the database
+        # usually I just give it the same name as the input
+        # and it appends several *bt2 files
+        # will trick snakemake by using this as an output even though
+        # I won't use it in the shell command
+        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta.1.bt2"
+    shell:
+        # use the same name for basename reference database
+        """
+        bowtie2-build \
+            {input} \
+            {input} > /dev/null
+        """
+
+rule bowtie_to_spades_assembly:
+    message:
+        """
+        Mapping {wildcards.sample} host-depleted reads to SPAdes assembly
+        to get abundance estimates
+        """
+    input:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_2P.fastq",
+        db_trick = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta.1.bt2"
+    output:
+        sam_fl = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sam"
+    params:
+        assembly_db = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta"
+    log:
+        "logs/bowtie_spades_assembly/{sample}.log"
+    benchmark:
+        "benchmarks/bowtie_spades_assembly/{sample}.txt"
+    threads:
+        16
+    shell:
+        """
+        bowtie2 \
+            -x {params.assembly_db} \
+            -1 {input.R1} \
+            -2 {input.R2} \
+            -p {threads} \
+            -S {output.sam_fl} 2> {log}
+        """
+
+rule spades_sam_to_bam:
+    message:
+        """
+        Converting {wildcards.sample} SPAdes sam file to bam
+        """
+    input:
+        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sam"
+    output:
+        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.bam"
+    shell:
+        """
+        samtools view \
+            -S -b \
+            {input} > {output}
+        """
+
+rule spades_mapping_stats:
+    message:
+        """
+        Tallying statistics on {wildcards.sample} reads mapped to the SPAdes assembly
+        """
+    input:
+        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.bam"
+    output:
+        sorted_bam = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.bam",
+        stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
+    shell:
+        # this will sort > index > idxstats > sort by most mapped reads
+        """
+        samtools sort \
+            {input} > {output.sorted_bam} && \
+        samtools index \
+            {output.sorted_bam} && \
+        samtools idxstats \
+            {output.sorted_bam} | \
+            sort -nrk 3 \
+            > {output.stats}
         """
 
 rule subset_spades_bandage:
