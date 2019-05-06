@@ -17,6 +17,7 @@ include: os.path.join(rules_dir, "preprocessing.smk")
 include: os.path.join(rules_dir, "rRNA_depletion.smk")
 include: os.path.join(rules_dir, "host_depletion.smk")
 include: os.path.join(rules_dir, "assembly.smk")
+include: os.path.join(rules_dir, "annotation.smk")
 include: os.path.join(rules_dir, "benchmark.smk")
 include: os.path.join(rules_dir, "report.smk")
 

@@ -27,3 +27,6 @@ dependencies:
   - ete3
   - biopython
   - blast
+
+# annotation
+  - diamond

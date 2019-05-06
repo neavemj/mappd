@@ -62,7 +62,7 @@ rule assemble_mRNA_subset:
             -o {params.out_dir} > {log}
         """
 
-rule subset_contigs:
+rule subset_subcontigs:
     message:
         """
         Gathering the 10 largest contigs from the sub-assembly
@@ -82,7 +82,7 @@ rule subset_contigs:
             -o {output}
         """
 
-rule blast_contigs:
+rule blast_subcontigs:
     message:
         """
         Blasting the most abundant contigs from sub-assembly
@@ -105,7 +105,7 @@ rule blast_contigs:
             -outfmt '6 qseqid sseqid pident length evalue bitscore staxid ssciname scomname salltitles'
         """
 
-rule subset_blast:
+rule subset_subblast:
     message:
         """
         Retieving the 'best' hits for each {wildcards.sample} contig
@@ -121,7 +121,7 @@ rule subset_blast:
             -o {output}
         """
 
-rule tally_abundant_species:
+rule tally_abundant_subspecies:
     message:
         """
         Calculating the most abundant species in the blast results for all samples
@@ -141,7 +141,7 @@ rule tally_abundant_species:
             -l {output.long}
         """
 
-rule plot_abundant_species:
+rule plot_abundant_subspecies:
     input:
         long = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.long"
     output:
@@ -336,7 +336,7 @@ rule summarise_rRNA_host_mapping:
             -o {output}
         """
 
-rule plot_mapping:
+rule plot_host_mapping:
     input:
         "logs/mapping_summary.tsv"
     output:

@@ -48,7 +48,6 @@ rule spades:
             mv {params.graph_fl} {params.out_dir}
         """
 
-
 rule trinity:
     message:
         """
@@ -77,6 +76,26 @@ rule trinity:
             --left {input.R1} \
             --right {input.R2} \
             --output {params.out_dir} > {log}
+        """
+
+rule subset_spades_contigs:
+    message:
+        """
+        Removing small contigs from the assembly
+        """
+    input:
+        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta"
+    output:
+        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta"
+    shell:
+        # extract contigs larger than 500 bps for annotation
+        # stop at 100,000 contigs? Presumably there won't be many more that this?
+        """
+        {config[program_dir]}/scripts/gather_contigs.py \
+            -c {input} \
+            -s 500 \
+            -n 10 \
+            -o {output}
         """
 
 rule subset_spades_bandage:
