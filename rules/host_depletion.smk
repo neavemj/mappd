@@ -39,7 +39,7 @@ rule subset_mRNA_reads:
 rule assemble_mRNA_subset:
     message:
         """
-        Assembling small subset {wildcards.sample} of reads to identify host
+        Assembling small subset of {wildcards.sample} reads to identify host
         """
     input:
         R1 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_100k_mRNA_1P.fastq",
@@ -94,9 +94,13 @@ rule blast_subcontigs:
     params:
         blast_nt = config["blast_nt"]
     threads: 16
+    log:
+        "logs/blast_sub_assembly/{sample}.log"
+    benchmark:
+        "benchmarks/blast_sub_assembly/{sample}.txt"
     shell:
         # in the output fmt, cols 6 and 7 need to be bitscore and taxid
-        # for the scripts subset_blast.py and tally_abundant_hosts.py
+        # for the scripts subset_blast.py and tally_organism_hits.py
         """
         blastn \
             -query {input} \
@@ -146,7 +150,7 @@ rule tally_abundant_subspecies:
         long = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.long"
     shell:
         """
-        {config[program_dir]}/scripts/tally_blast_organisms.py \
+        {config[program_dir]}/scripts/tally_organism_hits.py \
             -b {input} \
             -t {output.wide} \
             -l {output.long}

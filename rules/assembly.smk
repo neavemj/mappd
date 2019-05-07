@@ -30,6 +30,7 @@ rule spades:
         graph_fl = config["sub_dirs"]["assembly_dir"] + "/spades/{"
             "sample}_assembly/K73/assembly_graph_with_scaffolds.gfa",
         out_dir = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly",
+        max_memory = 16
     log:
         "logs/spades/{sample}.log"
     benchmark:
@@ -42,7 +43,7 @@ rule spades:
             -2 {input.R2} \
             -t {threads} \
             -k 73 \
-            -m 8 \
+            -m {params.max_memory} \
             --rna \
             -o {params.out_dir} > {log} &&
             mv {params.graph_fl} {params.out_dir}
@@ -178,6 +179,7 @@ rule spades_mapping_stats:
     output:
         sorted_bam = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.bam",
         stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
+        depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
     shell:
         # this will sort > index > idxstats > sort by most mapped reads
         """
@@ -188,7 +190,10 @@ rule spades_mapping_stats:
         samtools idxstats \
             {output.sorted_bam} | \
             sort -nrk 3 \
-            > {output.stats}
+            > {output.stats} && \
+        samtools depth \
+            {output.sorted_bam} \
+            > {output.depth}
         """
 
 rule subset_spades_bandage:

@@ -63,7 +63,7 @@ rule subset_diamond:
     input:
         config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}.diamond_blastx"
     output:
-        config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}.diamond_blastx.best_hits"
+        config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.best_hits"
     shell:
         """
         {config[program_dir]}/scripts/subset_blast.py \
@@ -78,22 +78,32 @@ rule subset_diamond:
 rule tally_diamond_organisms:
     message:
         """
-        Calculating the most abundant species in the diamond results for all samples
+        Calculating the most abundant species in the diamond results for each sample
         """
     input:
-        config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}.diamond_blastx.best_hits"
+        blast = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.best_hits",
+        stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
+        depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
     output:
         # producing both wide and long format tables here
         # the wide will be used for the report, and the long for plotting in ggplot
-        wide = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_tax.wide",
-        long = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_tax.long",
+        config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance",
     shell:
         """
-        {config[program_dir]}/scripts/tally_blast_organisms.py \
-            -b {input} \
-            -t {output.wide} \
-            -l {output.long}
+        {config[program_dir]}/scripts/tally_organism_abundance.py \
+            -b {input.blast} \
+            -i {input.stats} \
+            -d {input.depth} \
+            -o {output} \
         """
 
+# TODO: write script and rule to summarise abundance estimates from each sample
+# could keep abundance tables for each sample separate in the report
+# but just do a combined graph
+# should just be able to rbind for each sample and add sample as another column
+# think this will be the right format for ggplot
+# in some cases, the bar graph might look odd if a sample doesn't contain a particular
+# species. Could we get around this by first converting to wide format (missing = 0)
+# thus ensuring that each sample has a number for every species?
 
 

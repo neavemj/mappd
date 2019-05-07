@@ -6,9 +6,9 @@
 # also should make sure sample is a string to avoid R interpreting it as an int
 
 samples:
-    Lung10:
-      - Lung10_1.2m.fastq
-      - Lung10_2.2m.fastq
+#    Lung10:
+#      - Lung10_1.2m.fastq
+#      - Lung10_2.2m.fastq
 #  prawn1:
 #    - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz
 #    - 18-2595-01-Prawn1_S6_L001_R2_001.fastq.gz
@@ -18,7 +18,21 @@ samples:
 #  prawn3:
 #    - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
 #    - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
-
+    1201BrainLiver:
+        - 18-1201-MagpieBrainLiverP_S3_L001_R1_001.fastq
+        - 18-1201-MagpieBrainLiverP_S3_L001_R2_001.fastq
+#    1202Brain:
+#        - 18-1202-MagpieBrainP_S5_L001_R1_001.fastq
+#        - 18-1202-MagpieBrainP_S5_L001_R2_001.fastq
+#    1202Liver:
+#        - 18-1202-MagpieLiverP_S4_L001_R1_001.fastq
+#        - 18-1202-MagpieLiverP_S4_L001_R2_001.fastq
+#    1203Brain:
+#        - 18-1203-MagpieBrainP_S6_L001_R1_001.fastq
+#        - 18-1203-MagpieBrainP_S6_L001_R2_001.fastq
+#    1203Liver:
+#        - 18-1203-MagpieLiver_S7_L001_R1_001.fastq
+#        - 18-1203-MagpieLiver_S7_L001_R2_001.fastq
 
 # pipeline options
 # FULL = all assembly and annotation options

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """
-Take most abundant blast hits from multiple samples and get most abundant species
+Take most abundant blast hits from multiple samples and get most abundant species hits
+Doesn't take into account contig abundance - just the number of contigs matching the species
             -outfmt '6 \
                 qseqid \
                 sseqid \
@@ -20,7 +21,7 @@ import ete3_functions # used to get taxonomy info for taxids
 
 # use argparse to grab command line arguments
 
-parser = argparse.ArgumentParser("tally abundant hosts")
+parser = argparse.ArgumentParser("tally host hits")
 
 parser.add_argument('-b', '--blast', type = str,
                     nargs = "*", help = "best blast hists with outfmt 6 with particular items (see above)")
@@ -62,17 +63,20 @@ for blast_fls in args.blast:
         for line in fl:
             line = line.strip()
             cols = line.split("\t")
-            taxid = cols[6]
-            # most abundant taxids by sample
-            if taxid in blast_dict[sample]:
-                blast_dict[sample][taxid] += 1
-            else:
-                blast_dict[sample][taxid] = 1
-            # record most abundant taxids overall
-            if taxid in taxid_abund:
-                taxid_abund[taxid] += 1
-            else:
-                taxid_abund[taxid] = 1
+            # diamond sometimes returns more than 1 taxid
+            # split by a semi-colon
+            taxids = cols[6].split(";")
+            for taxid in taxids:
+                # most abundant taxids by sample
+                if taxid in blast_dict[sample]:
+                    blast_dict[sample][taxid] += 1
+                else:
+                    blast_dict[sample][taxid] = 1
+                # record most abundant taxids overall
+                if taxid in taxid_abund:
+                    taxid_abund[taxid] += 1
+                else:
+                    taxid_abund[taxid] = 1
 
 # will now use the ete3 functions to get taxonomy info for the taxids
 
@@ -85,19 +89,19 @@ for sample in blast_dict:
         # very occassionally a taxid is not found by ete3
         # this try-except will make it fail nicely
         try:
-            phylum = ete3_functions.get_desired_rank(taxid, "phylum")
+            superkingdom = ete3_functions.get_desired_rank(taxid, "superkingdom")
             family = ete3_functions.get_desired_rank(taxid, "family")
             species = ete3_functions.get_desired_rank(taxid, "species")
         except:
             print("taxid {} not found".format(taxid))
             continue
-        tax_dict[taxid] = {"phylum": phylum, "family": family, "species": species}
+        tax_dict[taxid] = {"superkingdom": superkingdom, "family": family, "species": species}
 
 # now write results in wide format for the report
 
 output_table = open(args.table, "w")
 
-output_table.write("\t".join(["Taxid", "Phylum", "Family", "Species"]) + "\t" + "\t".join(sample_list) + "\n")
+output_table.write("\t".join(["Taxid", "Kingdom", "Family", "Species"]) + "\t" + "\t".join(sample_list) + "\n")
 
 # sort taxids by their abundance for writing out
 sorted_taxids = sorted([(value, key) for (key,value) in taxid_abund.items()], reverse=True)
@@ -107,7 +111,7 @@ for taxid in sorted_taxids:
     taxid = taxid[1]
     # the taxid might not be in there if it failed the ete3 function bit
     if taxid in tax_dict:
-        output_table.write("\t".join([taxid, tax_dict[taxid]["phylum"], tax_dict[taxid]["family"], tax_dict[taxid]["species"]]))
+        output_table.write("\t".join([taxid, tax_dict[taxid]["superkingdom"], tax_dict[taxid]["family"], tax_dict[taxid]["species"]]))
         for sample in sample_list:
             output_table.write("\t" + str(blast_dict[sample][taxid]))
         output_table.write("\n")
@@ -116,13 +120,13 @@ for taxid in sorted_taxids:
 
 output_long = open(args.long, "w")
 
-output_long.write("\t".join(["Taxid", "Phylum", "Family", "Species", "Sample", "Count"]) + "\n")
+output_long.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Sample", "Count"]) + "\n")
 
 for taxid in sorted_taxids:
     taxid = taxid[1]
     if taxid in tax_dict:
         for sample in sample_list:
-            output_long.write("\t".join([taxid, tax_dict[taxid]["phylum"], tax_dict[taxid]["family"], \
+            output_long.write("\t".join([taxid, tax_dict[taxid]["superkingdom"], tax_dict[taxid]["family"], \
             tax_dict[taxid]["species"], sample, str(blast_dict[sample][taxid])]) + "\n")
 
 
