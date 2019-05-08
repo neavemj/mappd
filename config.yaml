@@ -18,9 +18,9 @@ samples:
 #  prawn3:
 #    - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
 #    - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
-    1201BrainLiver:
-        - 18-1201-MagpieBrainLiverP_S3_L001_R1_001.fastq
-        - 18-1201-MagpieBrainLiverP_S3_L001_R2_001.fastq
+#    1201BrainLiver:
+#        - 18-1201-MagpieBrainLiverP_S3_L001_R1_001.fastq
+#        - 18-1201-MagpieBrainLiverP_S3_L001_R2_001.fastq
 #    1202Brain:
 #        - 18-1202-MagpieBrainP_S5_L001_R1_001.fastq
 #        - 18-1202-MagpieBrainP_S5_L001_R2_001.fastq
@@ -33,6 +33,9 @@ samples:
 #    1203Liver:
 #        - 18-1203-MagpieLiver_S7_L001_R1_001.fastq
 #        - 18-1203-MagpieLiver_S7_L001_R2_001.fastq
+    D:
+      - D_R1.fastq
+      - D_R2.fastq
 
 # pipeline options
 # FULL = all assembly and annotation options

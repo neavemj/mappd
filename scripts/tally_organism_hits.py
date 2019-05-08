@@ -67,6 +67,7 @@ for blast_fls in args.blast:
             # split by a semi-colon
             taxids = cols[6].split(";")
             for taxid in taxids:
+                if taxid == "": continue
                 # most abundant taxids by sample
                 if taxid in blast_dict[sample]:
                     blast_dict[sample][taxid] += 1
@@ -113,7 +114,11 @@ for taxid in sorted_taxids:
     if taxid in tax_dict:
         output_table.write("\t".join([taxid, tax_dict[taxid]["superkingdom"], tax_dict[taxid]["family"], tax_dict[taxid]["species"]]))
         for sample in sample_list:
-            output_table.write("\t" + str(blast_dict[sample][taxid]))
+            if taxid in blast_dict[sample]:
+                output_table.write("\t" + str(blast_dict[sample][taxid]))
+            else:
+                # none of this particular taxid was found in this sample
+                output_table.write("\t0")
         output_table.write("\n")
 
 # also write out in long format for plotting in ggplot
@@ -126,8 +131,13 @@ for taxid in sorted_taxids:
     taxid = taxid[1]
     if taxid in tax_dict:
         for sample in sample_list:
-            output_long.write("\t".join([taxid, tax_dict[taxid]["superkingdom"], tax_dict[taxid]["family"], \
-            tax_dict[taxid]["species"], sample, str(blast_dict[sample][taxid])]) + "\n")
+            if taxid in blast_dict[sample]:
+                output_long.write("\t".join([taxid, tax_dict[taxid]["superkingdom"], tax_dict[taxid]["family"], \
+                tax_dict[taxid]["species"], sample, str(blast_dict[sample][taxid])]) + "\n")
+            else:
+                # none of this particular taxid was found in this sample
+                output_long.write("\t".join([taxid, tax_dict[taxid]["superkingdom"], tax_dict[taxid]["family"], \
+                tax_dict[taxid]["species"], sample, "0"]) + "\n")
 
 
 

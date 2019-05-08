@@ -100,6 +100,9 @@ with open(args.blast) as fl:
         # split by a semi-colon
         taxids = cols[6].split(";")
         for taxid in taxids:
+            # for some reason taxid is occassionally blank
+            # and it still gets added as a dict key!
+            if taxid == "": continue
             if taxid in blast_dict:
                 blast_dict[taxid]["mapped"] += idxstats_dict[contig]
                 blast_dict[taxid]["bases"] += depth_dict[contig]
