@@ -20,36 +20,6 @@ from snakemake.utils import report
 from mappd_report import generate_report
 
 
-rule full_run_report:
-    input:
-        dag_graph = "benchmarks/dag.png",
-        bench_time = "benchmarks/bench_time.png",
-        bench_mem = "benchmarks/bench_mem.png",
-        trim_summary = "logs/trimmomatic_PE/trim_summary.png",
-        # NOTE: the below parameters are received as a 'named list' due to wildcard expansion
-        # could this crash my report when multiple samples?
-        SSU_figure = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.png",
-        SSU_table = config["sub_dirs"]["depletion_dir"] + "/rRNA/SSU.idxstats.summary.tsv",
-        spades_assembly = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
-        sample=config["samples"]),
-        spades_bandage = expand(config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_10x.png",
-            sample=config["samples"]),
-        trinity_bandage = expand(config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{" \
-            "sample}_trinity.Trinity.png", sample=config["samples"])
-
-    output:
-        "full_report.html"
-    run:
-        sphinx_str = generate_report(config_file="config", dag_graph=input.dag_graph,
-                                     bench_mem=input.bench_mem, bench_time=input.bench_time,
-                                     trim_summary=input.trim_summary,
-                                     LSU_table=input.LSU_table,
-                                     SSU_table=input.SSU_table,
-                                     spades_bandage=input.spades_bandage,
-                                     trinity_bandage=input.trinity_bandage)
-        report(sphinx_str, output[0], metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
-
-
 rule test_report:
     input:
         dag_graph = "benchmarks/dag.png",
@@ -57,7 +27,11 @@ rule test_report:
         #bench_mem = "benchmarks/bench_mem.png",
         trim_summary = "logs/trimmomatic_PE/trim_summary.png",
         host_table = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide",
-        mapping_figure = "logs/mapping_summary.png"
+        mapping_figure = "logs/mapping_summary.png",
+        euk_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.euk.png",
+        bac_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.bac.png",
+        vir_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.vir.png",
+        report_css = config["program_dir"] + "config/report.css"
     output:
         "test_report.html"
     run:
@@ -65,6 +39,10 @@ rule test_report:
                                      #bench_mem=input.bench_mem, bench_time=input.bench_time,
                                      trim_summary=input.trim_summary,
                                      host_table=input.host_table,
-                                     mapping_figure=input.mapping_figure)
-        report(sphinx_str, output[0], metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
+                                     mapping_figure=input.mapping_figure,
+                                     euk_figure=input.euk_figure,
+                                     bac_figure=input.bac_figure,
+                                     vir_figure=input.vir_figure,
+                                     )
+        report(sphinx_str, output[0], stylesheet=input.report_css, metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
 

@@ -25,46 +25,61 @@ def generate_report(config_file="", dag_graph="",
                     spades_diamond="",
                     trinity_diamond="",
                     spades_blastn="",
-                    trinity_blastn=""):
+                    trinity_blastn="",
+                    euk_figure="",
+                    bac_figure="",
+                    vir_figure="",
+                    ):
 
     report = """
-==========================================================================================
+.. contents:: Table of Contents
+
+|
+|
+
+_______
+
+    """
+
+    report += """
+
+================================================================================
 MAPPD: Metagenomic Analysis Pipeline for Pathogen Discovery
-==========================================================================================
+================================================================================
+
+Introduction
+==============
+MAPPD is a general pipeline for the identification of organisms in a metagenomic sample,
+although it is targeted toward the identification of pathogens.
+The pipeline uses a strategy of read quality trimming, host identification,
+read assembly, and annotation using various blast and diamond searches.
+MAPPD does not require prior information about the sample (e.g. host),
+as this information is determined by classifying read sub-sets.
+
+*Important*
+------------
+Metagenomic analysis can be a useful technology for screening samples in cases
+where a pathogen is unknown. However, the classication of sequence fragments
+based on the highest identity in a database does not necessarily mean that a
+pathogen is present, only that this is the 'best' match. This report provides
+the percent identity of database hits and the location of the particular contigs.
+It may be necessary to check important classifications manually. As is usual,
+further lab-based tests are required to confirm pathogen identities.
+
+|
+|
 
 """
-    if dag_graph:
-        report += """
-DAG graph of pipeline components
-================================
-    A Directed Acyclic Graph (DAG) graph of the steps carried out in this pipeline is given below
-
-"""
-        report += "\t.. image:: " + data_uri_from_file(dag_graph)[0] + "\n"
-
-    if bench_time:
-        report += """
-Benchmarks
-=================
-    The time taken for each process, and each sample, is given below
-
-"""
-        report += "\t.. image:: " + data_uri_from_file(bench_time)[0] + "\n"
-
-    if bench_mem:
-        report += """
-    The maximum memory required for each process, and each sample, is given below
-
-"""
-        report += "\t.. image:: " + data_uri_from_file(bench_mem)[0] + "\n"
 
     if trim_summary:
         report += """
+_______
+
 Trimming
 =================
-    The reads were trimmed using Trimmomatic.
-    The figure below shows how many read pairs were both retained, how many single pairs were created
-    and how many reads were dropped altogether.
+The reads were trimmed using Trimmomatic.
+The figure below shows how many read pairs were both retained, how many single pairs were created
+and how many reads were dropped altogether.
 
 """
         report += "\t.. image:: " + data_uri_from_file(trim_summary)[0] + "\n"
@@ -80,24 +95,27 @@ Trimming
         hosts = [host.split("\t")[3] for host in host_strings]
 
         report += """
+
+_________
+
 Ribosomal RNA and host removal
 ===============================
 *rRNA mapping*
 ------------------
-    The trimmed reads were aligned to the SILVA ribosomal RNA databases, including the Long Sub Unit (LSU)
-    and Small Sub Unit (SSU) categories, and matching reads were removed.
+The trimmed reads were aligned to the SILVA ribosomal RNA databases, including the Long Sub Unit (LSU)
+and Small Sub Unit (SSU) categories, and matching reads were removed.
 
 *Host mapping*
 ---------------
-    To identify the most abundant organism (potentially the 'host'),
-    a subset of 200,000 putative mRNA sequences from each sample were extracted and
-    individually assembled using SPAdes.
-    The top 10 contigs larger than 1,000 bps from the assemblies were blasted
-    against the NCBI nr database and the most abundant, best matches were used
-    to assign the most likely host species as {}.
-    All genetic data from was then extracted from the NCBI nr database
-    and was used to identify host sequences in the samples.
-    
+To identify the most abundant organism (potentially the 'host'),
+a subset of 200,000 putative mRNA sequences from each sample were extracted and
+individually assembled using SPAdes.
+The top 10 contigs larger than 1,000 bps from the assemblies were blasted
+against the NCBI nr database and the most abundant, best matches were used
+to assign the most likely host species as {}.
+All genetic data from was then extracted from the NCBI nr database
+and was used to identify host sequences in the samples.
+
 """.format(hosts[0])
         report += host_string + "\n"
         report += "\t.. image:: " + data_uri_from_file(mapping_figure)[0] + "\n"
@@ -105,10 +123,12 @@ Ribosomal RNA and host removal
 
     if spades_bandage:
         report += """
+________
+
 Assembly
 =================
-    The reads were assembled using SPAdes.
-    The figure below gives a representation of the scaffolds with at least 10x coverage
+The reads were assembled using SPAdes.
+The figure below gives a representation of the scaffolds with at least 10x coverage
 
 """
         # NOTE: spades_bandage is a 'named list' due to wildcard expansion
@@ -117,12 +137,67 @@ Assembly
 
     if trinity_bandage:
         report += """
-    The reads were assembled using Trinity.
-    The figure below gives a representation of the scaffolds with at least 10x coverage
+The reads were assembled using Trinity.
+The figure below gives a representation of the scaffolds with at least 10x coverage
 
 """
         # NOTE: spades_bandage is a 'named list' due to wildcard expansion
         # thus, have to take first element of list to get str for data_uri
         report += "\t.. image:: " + data_uri_from_file(trinity_bandage[0])[0] + "\n"
+
+    if euk_figure:
+        report += """
+________
+
+Annotation
+=================
+*Eukaryotes*
+---------------
+The contigs were annotated using Diamond blastx.
+The figure below shows the most abundant Eukaryotic organisms.
+
+"""
+        report += "\t.. image:: " + data_uri_from_file(euk_figure)[0] + "\n"
+
+        report += """
+*Bacteria*
+---------------
+The figure below shows the most abundant bacteria.
+
+"""
+        report += "\t.. image:: " + data_uri_from_file(bac_figure)[0] + "\n"
+
+        report += """
+*Viruses*
+---------------
+The figure below shows the most abundant viruses.
+
+"""
+        report += "\t.. image:: " + data_uri_from_file(vir_figure)[0] + "\n"
+
+    if dag_graph:
+        report += """
+DAG graph of pipeline components
+================================
+A Directed Acyclic Graph (DAG) graph of the steps carried out in this pipeline is given below
+
+"""
+        report += "\t.. image:: " + data_uri_from_file(dag_graph)[0] + "\n"
+
+    if bench_time:
+        report += """
+Benchmarks
+=================
+The time taken for each process, and each sample, is given below
+
+"""
+        report += "\t.. image:: " + data_uri_from_file(bench_time)[0] + "\n"
+
+    if bench_mem:
+        report += """
+The maximum memory required for each process, and each sample, is given below
+
+"""
+        report += "\t.. image:: " + data_uri_from_file(bench_mem)[0] + "\n"
 
     return(report)
