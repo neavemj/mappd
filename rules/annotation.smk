@@ -16,7 +16,7 @@ Options:
 rule diamond_nr:
     message:
         """
-        Using Diamond blastx to compare contigs to the nr database
+        Using Diamond blastx to compare {wildcards.sample} contigs to the nr database
         using an evalue of {params.diamond_nr_evalue}
         """
     input:
@@ -106,4 +106,37 @@ rule tally_diamond_organisms:
 # species. Could we get around this by first converting to wide format (missing = 0)
 # thus ensuring that each sample has a number for every species?
 
+rule sort_combine_abundances:
+    message:
+        """
+        Sorting abundances into supertaxa and combining samples
+        """
+    input:
+        expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance", sample=config["samples"])
+    output:
+        euk = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.euk",
+        bac = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.bac",
+        vir = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.vir",
+    shell:
+        """
+        {config[program_dir]}/scripts/sort_combine_abundances.py \
+            -a {input} \
+            -e {output.euk} \
+            -b {output.bac} \
+            -v {output.vir} \
+        """
+
+superkingdoms = ["euk", "bac", "vir"]
+
+rule plot_abundances:
+    input:
+        config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.{kingdom}",
+    output:
+        pdf = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.{kingdom}.pdf",
+        png = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.{kingdom}.png",
+    shell:
+        """
+        Rscript {config[program_dir]}/scripts/plot_tax_abundances.R \
+            {input} {output.pdf} {output.png}
+        """
 
