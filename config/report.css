@@ -10,13 +10,28 @@ body {
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 
-div#table-of-contents{
+.sidebar {
+  height: 100%; /* Full-height: remove this if you want "auto" height */
+  width: auto; /* Set the width of the sidebar */
+  position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+  z-index: 1; /* Stay on top */
+  top: 0; /* Stay at the top */
+  left: 0;
+  background-color: #404040; /* midnight */
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 20px;
+  color: #b3b3b3; /* grey */
+}
+
+.contents{
     font-size: 120%;
+    line-height: 22px; /* line spacing */
+    /* color: #b3b3b3; grey */
 }
 
 .topic-title{
     font-weight: bold;
-    font-size: 150%;
+    font-size: 120%;
     color: rgb(0, 136, 204);
 }
 
@@ -89,7 +104,7 @@ div.document {
 }
 
 div.document:after {
-    content: "snakemake report";
+    content: "mappd report";
     position: absolute;
     top: -1px;
     right: -1px;
@@ -103,7 +118,7 @@ div.document:after {
 }
 
 div.document p {
-    text-align: justify;
+    text-align: left;
 }
 
 div#metadata {
@@ -170,3 +185,4 @@ img {
 p.caption {
     font-style: italic;
 }
+

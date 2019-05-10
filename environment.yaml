@@ -30,3 +30,6 @@ dependencies:
 
 # annotation
   - diamond
+
+# reporting
+  - sphinx

@@ -32,7 +32,8 @@ def generate_report(config_file="", dag_graph="",
                     ):
 
     report = """
-.. contents:: Table of Contents
+
+.. contents:: MAPPD: Metagenomic Analysis Pipeline for Pathogen Discovery
 
 |
 |
@@ -42,10 +43,6 @@ _______
     """
 
     report += """
-
-================================================================================
-MAPPD: Metagenomic Analysis Pipeline for Pathogen Discovery
-================================================================================
 
 Introduction
 ==============
@@ -96,6 +93,9 @@ and how many reads were dropped altogether.
 
         report += """
 
+|
+|
+
 _________
 
 Ribosomal RNA and host removal
@@ -123,6 +123,10 @@ and was used to identify host sequences in the samples.
 
     if spades_bandage:
         report += """
+
+|
+|
+
 ________
 
 Assembly
@@ -147,6 +151,10 @@ The figure below gives a representation of the scaffolds with at least 10x cover
 
     if euk_figure:
         report += """
+
+|
+|
+
 ________
 
 Annotation
