@@ -1,0 +1,10 @@
+Name
+python
+snakemake
+trimmomatic
+bowtie
+spades
+samtools
+diamond
+blast
+ggplot

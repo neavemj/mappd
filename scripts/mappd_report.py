@@ -17,6 +17,7 @@ import maketable
 
 def generate_report(config_file="", dag_graph="",
                     bench_time="", bench_mem="",
+                    software_versions="",
                     trim_summary="",
                     host_table="",
                     mapping_figure="",
@@ -44,8 +45,8 @@ _______
 
     report += """
 
-Introduction
-==============
+1   Introduction
+==================
 MAPPD is a general pipeline for the identification of organisms in a metagenomic sample,
 although it is targeted toward the identification of pathogens.
 The pipeline uses a strategy of read quality trimming, host identification,
@@ -66,10 +67,22 @@ further lab-based tests are required to confirm pathogen identities.
 |
 |
 
+_________
+
+2   Technical Summary
+========================
+The software verions used in this pipeline are given below.
+
 """
+    software_string = maketable.make_table_from_csv(software_versions, sep="\t")
+    report += software_string + "\n"
 
     if trim_summary:
         report += """
+
+|
+|
+
 _______
 
 Trimming

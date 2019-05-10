@@ -67,3 +67,11 @@ rule plot_trimmomatic_results:
         Rscript {config[program_dir]}/scripts/plot_trim.R \
         {input} {output.pdf} {output.png}
         """
+
+
+
+
+
+
+
+

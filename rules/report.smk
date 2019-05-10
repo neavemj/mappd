@@ -25,6 +25,7 @@ rule test_report:
         dag_graph = "benchmarks/dag.png",
         #bench_time = "benchmarks/bench_time.png",
         #bench_mem = "benchmarks/bench_mem.png",
+        software_versions = "logs/software_versions.txt",
         trim_summary = "logs/trimmomatic_PE/trim_summary.png",
         host_table = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide",
         mapping_figure = "logs/mapping_summary.png",
@@ -37,6 +38,7 @@ rule test_report:
     run:
         sphinx_str = generate_report(config_file=config, dag_graph=input.dag_graph,
                                      #bench_mem=input.bench_mem, bench_time=input.bench_time,
+                                     software_versions=input.software_versions,
                                      trim_summary=input.trim_summary,
                                      host_table=input.host_table,
                                      mapping_figure=input.mapping_figure,

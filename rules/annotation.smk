@@ -140,3 +140,35 @@ rule plot_abundances:
             {input} {output.pdf} {output.png}
         """
 
+rule plot_overall_results:
+    input:
+        trim = "logs/trimmomatic_PE/trim_logs.summary",
+        rRNA_host = "logs/mapping_summary.tsv",
+        euk = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.euk",
+        bac = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.bac",
+        vir = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.vir",
+    output:
+        pdf = "logs/overall_results.pdf",
+        png = "logs/overall_results.png",
+    shell:
+        """
+        Rscript {config[program_dir]}/scripts/plot_overall_results.R \
+            {input.trim} \
+            {input.rRNA_host} \
+            {input.euk} \
+            {input.bac} \
+            {input.vir} \
+            {output.pdf} {output.png}
+        """
+
+
+
+
+
+
+
+
+
+
+
+
