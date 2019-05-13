@@ -10,11 +10,11 @@ library(scales)
 plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
 
   
-  trim <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/logs/trimmomatic_PE/trim_logs.summary"
-  rRNA_host <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/logs/mapping_summary.tsv"
-  euk <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.euk"
-  bac <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.bac"
-  vir <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.vir"
+  #trim <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/logs/trimmomatic_PE/trim_logs.summary"
+  #rRNA_host <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/logs/mapping_summary.tsv"
+  #euk <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.euk"
+  #bac <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.bac"
+  #vir <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.vir"
 
   trim_df = read.csv(trim, sep="\t", header=T)
   # I'm not using reads if they're mate is discarded
@@ -24,8 +24,7 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
   
   # make long format
   trim_long =  gather(trim_df, Type, Reads, low_quality)
-  trim_long <- trim_long[,c("sample", "Type", "Reads")]
-  colnames(trim_long) <- c("Sample", "Type", "Reads")
+  trim_long <- trim_long[,c("Sample", "Type", "Reads")]
   
   rRNA_df = read.csv(rRNA_host, sep="\t", header=T)
   # make headers match for later rbind
@@ -62,6 +61,11 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
   
   overall_df <- rbind(trim_long, rRNA_df, euk_summary, bac_summary, vir_summary)
 
+  # figure out the total number of annotated / unannotated reads from these numbers
+  # should verify this by looking at: 
+    # 1) reads that didn't map to the contigs
+    # 2) plus reads that didn't form contigs or small contigs
+    # the sum of these two things should equal the Unannotated calcs below
   unannot_df <- overall_df %>%
     group_by(Sample) %>%
     summarise(Total_Annotated = sum(Reads))
@@ -73,20 +77,28 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
   
   overall_df <- rbind(overall_df, unannot_df)
   
+  # make the colours a bit more sensible
+  cols <- c("low_quality" = "#a6761d", "rRNA_LSU" = "#FDBF6F", "rRNA_SSU" = "#FF7F00", "Eukaryotic" = "#1b9e77", "Bacteria" = "#7570b3", "Viruses" = "#e7298a", "Unannotated" = "#666666")
+  
+  # order the categories
+  # flip everything around due to my coord_flip() in ggplot call
+  overall_df$Type <- factor(overall_df$Type, levels=rev(c("Viruses", "Bacteria", "Eukaryotic", "rRNA_LSU", "rRNA_SSU", "low_quality", "Unannotated")))
+  overall_df$Sample <- factor(overall_df$Sample, levels=rev(levels(overall_df$Sample)))
+  
     # plot the summary table
   p <- ggplot(overall_df, aes(x=Sample, y=Reads, fill=Type)) +
     geom_bar(stat='identity') +
     theme_bw() +
+    scale_fill_manual(values=cols) +
     theme(axis.title.y = element_blank()) +
     scale_y_continuous(labels = comma) +
-    ylab("Reads mapped") +
-    coord_flip()
+    ylab("Reads") +
+    coord_flip() +
+    guides(fill = guide_legend(reverse=T))
 
   # dynamically change figure height depending on number of samples
-  # add 2 inches for every additional sample
-  # and 0.1 inch for every speceis (sometimes less than 10 are recorded)
-  spp = 0.1 * length(unique(species_summary$Species))
-  ht = spp + (2 * (length(unique(summary_df$Sample))))
+  # add 1 inch for every additional sample
+  ht = 1 * (length(unique(overall_df$Sample)))
 
   ggsave(pdf_file, p, width=8, height=ht)
   ggsave(png_file, width=8, height=ht, dpi=300)
@@ -94,10 +106,15 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
 }
 
 args <- commandArgs(trailingOnly = TRUE)
-abund_summary = args[1]
+trim = args[1]
+rRNA_host = args[1]
+euk = args[1]
+bac = args[1]
+vir = args[1]
 pdf_file = args[2]
 png_file = args[3]
 
-plot_abund(abund_summary, pdf_file, png_file)
+plot_overall(trim, rRNA_host, euk, bac, vir, pdf_file, png_file)
 
+  
 
