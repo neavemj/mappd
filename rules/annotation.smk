@@ -132,12 +132,13 @@ rule plot_abundances:
     input:
         config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.{kingdom}",
     output:
-        pdf = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.{kingdom}.pdf",
-        png = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.{kingdom}.png",
+        tsv = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.{kingdom}.tsv",
+        pdf = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.{kingdom}.pdf",
+        png = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.{kingdom}.png",
     shell:
         """
         Rscript {config[program_dir]}/scripts/plot_tax_abundances.R \
-            {input} {output.pdf} {output.png}
+            {input} {output.tsv} {output.pdf} {output.png}
         """
 
 rule plot_overall_results:

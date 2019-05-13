@@ -37,7 +37,6 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
   # don't need the 'surviving' number
   rRNA_df <- subset(rRNA_df, Type!="surviving")
   
-  
   euk_df = read.csv(euk, sep="\t", header=T)
   bac_df = read.csv(bac, sep="\t", header=T)
   vir_df = read.csv(vir, sep="\t", header=T)
@@ -47,7 +46,6 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
     summarise(Reads = sum(Reads_Mapped))
   euk_summary["Type"] <- "Eukaryotic"
 
-  
   bac_summary <- bac_df %>%
     group_by(Sample) %>%
     summarise(Reads = sum(Reads_Mapped))
@@ -57,7 +55,6 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
     group_by(Sample) %>%
     summarise(Reads = sum(Reads_Mapped))
   vir_summary["Type"] <- "Viruses"
-  
   
   overall_df <- rbind(trim_long, rRNA_df, euk_summary, bac_summary, vir_summary)
 
@@ -83,6 +80,7 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
   # order the categories
   # flip everything around due to my coord_flip() in ggplot call
   overall_df$Type <- factor(overall_df$Type, levels=rev(c("Viruses", "Bacteria", "Eukaryotic", "rRNA_LSU", "rRNA_SSU", "low_quality", "Unannotated")))
+  overall_df$Sample <- as.factor(overall_df$Sample)
   overall_df$Sample <- factor(overall_df$Sample, levels=rev(levels(overall_df$Sample)))
   
     # plot the summary table
@@ -107,12 +105,12 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
 
 args <- commandArgs(trailingOnly = TRUE)
 trim = args[1]
-rRNA_host = args[1]
-euk = args[1]
-bac = args[1]
-vir = args[1]
-pdf_file = args[2]
-png_file = args[3]
+rRNA_host = args[2]
+euk = args[3]
+bac = args[4]
+vir = args[5]
+pdf_file = args[6]
+png_file = args[7]
 
 plot_overall(trim, rRNA_host, euk, bac, vir, pdf_file, png_file)
 

@@ -18,9 +18,7 @@ import maketable
 def generate_report(config_file="", dag_graph="",
                     bench_time="", bench_mem="",
                     software_versions="",
-                    trim_summary="",
-                    host_table="",
-                    mapping_figure="",
+                    overall_figure = "",
                     spades_assembly="", spades_bandage="",
                     trinity_assembly="", trinity_bandage="",
                     spades_diamond="",
@@ -28,8 +26,11 @@ def generate_report(config_file="", dag_graph="",
                     spades_blastn="",
                     trinity_blastn="",
                     euk_figure="",
+                    euk_table="",
                     bac_figure="",
+                    bac_table="",
                     vir_figure="",
+                    vir_table=""
                     ):
 
     report = """
@@ -54,8 +55,8 @@ read assembly, and annotation using various blast and diamond searches.
 MAPPD does not require prior information about the sample (e.g. host),
 as this information is determined by classifying read sub-sets.
 
-*Important*
-------------
+**Important**
+---------------
 Metagenomic analysis can be a useful technology for screening samples in cases
 where a pathogen is unknown. However, the classication of sequence fragments
 based on the highest identity in a database does not necessarily mean that a
@@ -77,62 +78,28 @@ The software verions used in this pipeline are given below.
     software_string = maketable.make_table_from_csv(software_versions, sep="\t")
     report += software_string + "\n"
 
-    if trim_summary:
-        report += """
-
-|
-|
-
-_______
-
-Trimming
-=================
-The reads were trimmed using Trimmomatic.
-The figure below shows how many read pairs were both retained, how many single pairs were created
-and how many reads were dropped altogether.
-
-"""
-        report += "\t.. image:: " + data_uri_from_file(trim_summary)[0] + "\n"
-
-    if host_table:
-        host_string = maketable.make_table_from_csv(host_table, sep="\t")
-        # also want to extract out the text for the host species downloaded
-        # will read the top 10 table into memory and extract those lines
-        host_lines = [line for line in open(host_table)]
-        # this ignores the header, extracts number of lines / hosts according to config
-        host_strings = host_lines[1:config_file["hosts_to_download"]+1]
-        # this gets just the species name from the host string
-        hosts = [host.split("\t")[3] for host in host_strings]
-
-        report += """
+    report += """
 
 |
 |
 
 _________
 
-Ribosomal RNA and host removal
-===============================
-*rRNA mapping*
-------------------
-The trimmed reads were aligned to the SILVA ribosomal RNA databases, including the Long Sub Unit (LSU)
-and Small Sub Unit (SSU) categories, and matching reads were removed.
+3   Data Quality and Overall Classifications
+===============================================
+The raw data were trimmed for quality and adapters using `Trimmomatic`_.
+The cleaned reads were then aligned to the SILVA ribosomal RNA databases,
+including the Long Sub Unit (LSU) and Small Sub Unit (SSU) categories,
+and matching reads were removed.
 
-*Host mapping*
----------------
-To identify the most abundant organism (potentially the 'host'),
-a subset of 200,000 putative mRNA sequences from each sample were extracted and
-individually assembled using SPAdes.
-The top 10 contigs larger than 1,000 bps from the assemblies were blasted
-against the NCBI nr database and the most abundant, best matches were used
-to assign the most likely host species as {}.
-All genetic data from was then extracted from the NCBI nr database
-and was used to identify host sequences in the samples.
+The remaining reads were then classified using iterative assemblies,
+blasts and diamond searches. Reads that could not be classified after these
+processes are shown as the grey 'Unannotated' bar below.
 
-""".format(hosts[0])
-        report += host_string + "\n"
-        report += "\t.. image:: " + data_uri_from_file(mapping_figure)[0] + "\n"
+.. _Trimmomatic: http://www.usadellab.org/cms/?page=trimmomatic
 
+    """
+    report += "\t.. image:: " + data_uri_from_file(overall_figure)[0] + "\n"
 
     if spades_bandage:
         report += """
@@ -170,36 +137,86 @@ The figure below gives a representation of the scaffolds with at least 10x cover
 
 ________
 
-Annotation
-=================
+4   Summary Classifications
+=============================
 *Eukaryotes*
 ---------------
 The contigs were annotated using Diamond blastx.
-The figure below shows the most abundant Eukaryotic organisms.
+The figure most abundant Eukaryotic organisms
+in all of the samples combined.
 
 """
         report += "\t.. image:: " + data_uri_from_file(euk_figure)[0] + "\n"
 
         report += """
+
+|
+
+The table shows how many reads were assigned to each organism.
+
+"""
+
+        euk_string = maketable.make_table_from_csv(euk_table, sep="\t")
+        report += euk_string + "\n"
+
+    if bac_figure:
+        report += """
+
+|
+
 *Bacteria*
 ---------------
-The figure below shows the most abundant bacteria.
+The figure below shows the most abundant Bacterial organisms
+in all of the samples combined.
 
 """
         report += "\t.. image:: " + data_uri_from_file(bac_figure)[0] + "\n"
 
         report += """
+
+|
+
+The table shows how many reads were assigned to each bacteria.
+
+"""
+
+        bac_string = maketable.make_table_from_csv(bac_table, sep="\t")
+        report += bac_string + "\n"
+
+    if vir_figure:
+        report += """
+
+|
+
 *Viruses*
 ---------------
-The figure below shows the most abundant viruses.
+The figure below shows the most abundant Viral organisms
+in all of the samples combined.
 
 """
         report += "\t.. image:: " + data_uri_from_file(vir_figure)[0] + "\n"
 
+        report += """
+
+|
+
+The table shows how many reads were assigned to each virus.
+
+"""
+
+        vir_string = maketable.make_table_from_csv(vir_table, sep="\t")
+        report += vir_string + "\n"
+
     if dag_graph:
         report += """
-DAG graph of pipeline components
-================================
+
+|
+|
+
+__________
+
+Detailed DAG graph of pipeline structure
+===========================================
 A Directed Acyclic Graph (DAG) graph of the steps carried out in this pipeline is given below
 
 """

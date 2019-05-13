@@ -26,12 +26,13 @@ rule test_report:
         #bench_time = "benchmarks/bench_time.png",
         #bench_mem = "benchmarks/bench_mem.png",
         software_versions = "logs/software_versions.txt",
-        trim_summary = "logs/trimmomatic_PE/trim_summary.png",
-        host_table = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide",
-        mapping_figure = "logs/mapping_summary.png",
-        euk_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.euk.png",
-        bac_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.bac.png",
-        vir_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.vir.png",
+        overall_figure = "logs/overall_results.png",
+        euk_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.euk.png",
+        euk_table = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.euk.tsv",
+        bac_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.bac.png",
+        bac_table = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.bac.tsv",
+        vir_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.vir.png",
+        vir_table = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.vir.tsv",
         report_css = config["program_dir"] + "config/report.css"
     output:
         "test_report.html"
@@ -39,12 +40,13 @@ rule test_report:
         sphinx_str = generate_report(config_file=config, dag_graph=input.dag_graph,
                                      #bench_mem=input.bench_mem, bench_time=input.bench_time,
                                      software_versions=input.software_versions,
-                                     trim_summary=input.trim_summary,
-                                     host_table=input.host_table,
-                                     mapping_figure=input.mapping_figure,
+                                     overall_figure=input.overall_figure,
                                      euk_figure=input.euk_figure,
+                                     euk_table=input.euk_table,
                                      bac_figure=input.bac_figure,
+                                     bac_table=input.bac_table,
                                      vir_figure=input.vir_figure,
+                                     vir_table=input.vir_table,
                                      )
         report(sphinx_str, output[0], stylesheet=input.report_css, metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
 
