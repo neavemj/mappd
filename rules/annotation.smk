@@ -97,14 +97,8 @@ rule tally_diamond_organisms:
             -o {output} \
         """
 
-# TODO: write script and rule to summarise abundance estimates from each sample
-# could keep abundance tables for each sample separate in the report
-# but just do a combined graph
-# should just be able to rbind for each sample and add sample as another column
-# think this will be the right format for ggplot
-# in some cases, the bar graph might look odd if a sample doesn't contain a particular
-# species. Could we get around this by first converting to wide format (missing = 0)
-# thus ensuring that each sample has a number for every species?
+# TODO: alter this script to only output a file if the kingdom is present
+# change the argparse params to 'stem' for the output names or something
 
 rule sort_combine_abundances:
     message:
@@ -126,6 +120,9 @@ rule sort_combine_abundances:
             -v {output.vir} \
         """
 
+# TODO: I think if the above rule doesn't produce a .vir file,
+# then this rule won't run a vir instance? Check this.
+
 superkingdoms = ["euk", "bac", "vir"]
 
 rule plot_abundances:
@@ -140,6 +137,7 @@ rule plot_abundances:
         Rscript {config[program_dir]}/scripts/plot_tax_abundances.R \
             {input} {output.tsv} {output.pdf} {output.png}
         """
+# TODO: could I use wildcards here instead to only run with files that exist?
 
 rule plot_overall_results:
     input:

@@ -62,8 +62,8 @@ where a pathogen is unknown. However, the classication of sequence fragments
 based on the highest identity in a database does not necessarily mean that a
 pathogen is present, only that this is the 'best' match. This report provides
 the percent identity of database hits and the location of the particular contigs.
-It may be necessary to check important classifications manually. As is usual,
-further lab-based tests are required to confirm pathogen identities.
+It may be necessary to check important classifications manually.
+Additional lab-based tests are required to confirm pathogen identification.
 
 |
 |
@@ -152,7 +152,9 @@ in all of the samples combined.
 
 |
 
-The table shows how many reads were assigned to each organism.
+The table shows how many reads were assigned to each `organism`_.
+
+.. _organism: 04_annotation/diamond/diamond_blastx_abundance.euk
 
 """
 

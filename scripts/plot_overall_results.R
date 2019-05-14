@@ -95,8 +95,14 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
     guides(fill = guide_legend(reverse=T))
 
   # dynamically change figure height depending on number of samples
+  # although, it has to be at least 3 inches high for the legend
   # add 1 inch for every additional sample
-  ht = 1 * (length(unique(overall_df$Sample)))
+  
+  if(length(unique(overall_df$Sample)) < 3){
+    ht = 3
+  } else {
+    ht = 1 * (length(unique(overall_df$Sample)))
+  }
 
   ggsave(pdf_file, p, width=8, height=ht)
   ggsave(png_file, width=8, height=ht, dpi=300)

@@ -44,7 +44,7 @@ plot_abund <- function(abund_summary, tsv_file, pdf_file, png_file) {
   
   # brewer pallete colours - Paired or Set3 for 10 samples max
   cols <- brewer.pal(length(unique(summary_table$Species)), "Set3")
-
+  
   p <- ggplot(species_summary_long, aes(x=Sample, y=Sum_Mapped, fill=Species)) +
     geom_bar(stat='identity') +
     theme_bw() +
@@ -55,8 +55,14 @@ plot_abund <- function(abund_summary, tsv_file, pdf_file, png_file) {
     coord_flip()
   
   # dynamically change figure height depending on number of samples
+  # although, has to be at least 3 inches high for the legend
   # add 1 inch for every additional sample
-  ht = 1 * (length(unique(species_summary_long$Sample)))
+  
+  if(length(unique(species_summary_long$Sample)) < 3){
+    ht = 3
+  } else {
+    ht = 1 * (length(unique(species_summary_long$Sample)))
+  }
   
   ggsave(pdf_file, p, width=8, height=ht)
   ggsave(png_file, width=8, height=ht, dpi=300)
