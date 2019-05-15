@@ -7,14 +7,12 @@ library(tidyverse)
 library(scales)
 
 
-plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
+plot_overall <- function(trim, rRNA_host, abund, pdf_file, png_file) {
 
   
   #trim <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/logs/trimmomatic_PE/trim_logs.summary"
   #rRNA_host <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/logs/mapping_summary.tsv"
-  #euk <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.euk"
-  #bac <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.bac"
-  #vir <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.vir"
+  #abund <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/04_annotation/diamond/tmp"
 
   trim_df = read.csv(trim, sep="\t", header=T)
   # I'm not using reads if they're mate is discarded
@@ -37,24 +35,33 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
   # don't need the 'surviving' number
   rRNA_df <- subset(rRNA_df, Type!="surviving")
   
-  euk_df = read.csv(euk, sep="\t", header=T)
-  bac_df = read.csv(bac, sep="\t", header=T)
-  vir_df = read.csv(vir, sep="\t", header=T)
-
-  euk_summary <- euk_df %>%
-    group_by(Sample) %>%
-    summarise(Reads = sum(Reads_Mapped))
-  euk_summary["Type"] <- "Eukaryotic"
-
-  bac_summary <- bac_df %>%
-    group_by(Sample) %>%
-    summarise(Reads = sum(Reads_Mapped))
-  bac_summary["Type"] <- "Bacteria"
+  abund_df = read.csv(abund, sep="\t", header=T)
   
-  vir_summary <- vir_df %>%
-    group_by(Sample) %>%
-    summarise(Reads = sum(Reads_Mapped))
-  vir_summary["Type"] <- "Viruses"
+  euk_df = subset(abund_df, Kingdom=="Eukaryota")
+  bac_df = subset(abund_df, Kingdom=="Bacteria")
+  vir_df = subset(abund_df, Kingdom=="Viruses")
+
+  # function to check that taxa dataframes have something in them
+  # return and dataframe with 0 reads if not
+  process_taxa <- function(taxa_df, name){
+    if(length(taxa_df$Sample) > 0){
+      summary <- taxa_df %>%
+        group_by(Sample) %>%
+        summarise(Reads = sum(Reads_Mapped))
+      summary["Type"] <- name
+    } else {
+      num = length(unique(abund_df$Sample))
+      summary <- data.frame(Sample <- unique(abund_df$Sample),
+                            Reads <- rep("0", num),
+                            Type <- rep(name, num))
+      colnames(summary) <- c("Sample", "Reads", "Type")
+    }
+    return(summary)
+  }
+
+  euk_summary <- process_taxa(euk_df, "Eukaryote")
+  bac_summary <- process_taxa(bac_df, "Bacteria")
+  vir_summary <- process_taxa(vir_df, "Virus")
   
   overall_df <- rbind(trim_long, rRNA_df, euk_summary, bac_summary, vir_summary)
 
@@ -112,13 +119,11 @@ plot_overall <- function(trim, rRNA_host, euk, bac, vir, pdf_file, png_file) {
 args <- commandArgs(trailingOnly = TRUE)
 trim = args[1]
 rRNA_host = args[2]
-euk = args[3]
-bac = args[4]
-vir = args[5]
-pdf_file = args[6]
-png_file = args[7]
+abund = args[3]
+pdf_file = args[4]
+png_file = args[5]
 
-plot_overall(trim, rRNA_host, euk, bac, vir, pdf_file, png_file)
+plot_overall(trim, rRNA_host, abund, pdf_file, png_file)
 
   
 

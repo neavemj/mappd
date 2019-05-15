@@ -97,10 +97,10 @@ rule tally_diamond_organisms:
             -o {output} \
         """
 
-# TODO: alter this script to only output a file if the kingdom is present
-# change the argparse params to 'stem' for the output names or something
-
-rule sort_combine_abundances:
+# making this rule a 'checkpoint'
+# because we don't know if all supertaxa will be detected in every sample
+# this ensures that the DAG is re-evaluated depending on the files produced here
+checkpoint sort_combine_abundances:
     message:
         """
         Sorting abundances into supertaxa and combining samples
@@ -108,26 +108,26 @@ rule sort_combine_abundances:
     input:
         expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance", sample=config["samples"])
     output:
-        euk = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.euk",
-        bac = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.bac",
-        vir = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.vir",
+        combined = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.all",
+    params:
+        stem = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_taxa",
     shell:
+        # outputs a file for each kingdom present
+        # e.g. if no viruses detected, the .vir file will not be created
+        # also outputs a combined file with everything
         """
         {config[program_dir]}/scripts/sort_combine_abundances.py \
             -a {input} \
-            -e {output.euk} \
-            -b {output.bac} \
-            -v {output.vir} \
+            -s {params.stem} \
+            -o {output.combined}
         """
 
-# TODO: I think if the above rule doesn't produce a .vir file,
-# then this rule won't run a vir instance? Check this.
-
-superkingdoms = ["euk", "bac", "vir"]
+# this rule is like the 'intermediate' rule in the checkpoint examples
+# it uses the kingdom wildcards to produce only plots for kingdoms that were detected
 
 rule plot_abundances:
     input:
-        config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.{kingdom}",
+        config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_taxa.{kingdom}",
     output:
         tsv = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.{kingdom}.tsv",
         pdf = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.{kingdom}.pdf",
@@ -137,15 +137,44 @@ rule plot_abundances:
         Rscript {config[program_dir]}/scripts/plot_tax_abundances.R \
             {input} {output.tsv} {output.pdf} {output.png}
         """
-# TODO: could I use wildcards here instead to only run with files that exist?
+
+# can now use the get method to grab just the files produced
+
+def aggregate_input(wildcards):
+    # I think this just ensures that this function depends on the output of sort_combine_abundances
+    # I don't actually use 'checkpoint_output' in this case
+    checkpoint_output = checkpoints.sort_combine_abundances.get(**wildcards).output[0]
+    # the wildcard_glob gets wildcards depending on the file names
+    # thus, the 'kingdom' wildcard will only contain kingdoms that were output during
+    # the sort_combine_abundances checkpoint
+    return expand(config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.{kingdom}.png",
+                  kingdom=glob_wildcards(config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_taxa.{kingdom}").kingdom)
+
+
+# this rule is required to make the whole thing work
+# it takes the aggregate_input function, which expands the files required based
+# on the kingkom wildcard (determined by looked at what files are present)
+# because this rule requires these *top10.{kingdom}.png files, snakemake
+# knows to run plot_abundances on whatever kingdoms are in the wildcard
+
+rule aggregated:
+    input:
+        aggregate_input
+    output:
+        # this is really a dummy file to make the rules run
+        # although, maybe I'll check through this file to determine
+        # what png files to include in the report
+        config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
+    shell:
+        """
+        echo {input} > {output}
+        """
 
 rule plot_overall_results:
     input:
         trim = "logs/trimmomatic_PE/trim_logs.summary",
         rRNA_host = "logs/mapping_summary.tsv",
-        euk = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.euk",
-        bac = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.bac",
-        vir = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.vir",
+        combined = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.all",
     output:
         pdf = "logs/overall_results.pdf",
         png = "logs/overall_results.png",
@@ -154,9 +183,7 @@ rule plot_overall_results:
         Rscript {config[program_dir]}/scripts/plot_overall_results.R \
             {input.trim} \
             {input.rRNA_host} \
-            {input.euk} \
-            {input.bac} \
-            {input.vir} \
+            {input.combined} \
             {output.pdf} {output.png}
         """
 

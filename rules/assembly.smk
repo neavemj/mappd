@@ -14,7 +14,7 @@ Current assemblers include:
 rule spades:
     message:
         """
-        Assembling trimmed reads with spades PE mode
+        Assembling host_depleted reads with spades PE mode
         Using spades RNA mode
         """
     input:

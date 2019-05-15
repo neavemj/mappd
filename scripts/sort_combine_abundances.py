@@ -3,6 +3,7 @@
 """
 Take *abundance files from tally_organism_abundance.py
 and split into supertaxa file (Eukaryotes, Bacteria and Viruses).
+Only output a file if the supertaxa is detected.
 Also conbine the abundances from different samples into a
 single file for plotting in ggplot
 """
@@ -16,12 +17,12 @@ parser = argparse.ArgumentParser("sort and combine abundance files")
 
 parser.add_argument('-a', '--abundance', type = str,
                     nargs = "*", help = "abundance files from tally_organism_abundance.py")
-parser.add_argument('-e', '--euk_output', type = str,
-                    help = "table with Eukaryotes")
-parser.add_argument('-b', '--bac_output', type = str,
-                    help = "table with Bacteria")
-parser.add_argument('-v', '--vir_output', type = str,
-                    help = "table with Viruses")
+parser.add_argument('-o', '--output', type = str,
+                    help = "name for the combined output")
+parser.add_argument('-s', '--stem', type = str,
+                    help = "stem file name for the split outputs. This will be"
+                           "appended with euk, bac or vir, depending"
+                           " on the organisms detected")
 
 # if no args given, print help and exit
 
@@ -34,23 +35,17 @@ args = parser.parse_args()
 # check that the required arguments are provided
 
 if args.abundance is None or \
-        args.euk_output is None or \
-        args.bac_output is None or \
-        args.vir_output is None:
+        args.stem is None:
     print("\n** a required input is missing\n"
-          "** at least 1 abundance file and output names for each kingdom are required\n")
+          "** at least 1 abundance file and output and stem name is required\n")
     parser.print_help(sys.stderr)
     sys.exit(1)
 
-# open and write headers for the output files
+# create a list of results to write for each kingdom
 
-euk = open(args.euk_output, "w")
-bac = open(args.bac_output, "w")
-vir = open(args.vir_output, "w")
-
-for fl in [euk, bac, vir]:
-    fl.write("\t".join(["Sample", "Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", \
-                        "Reads_Mapped_percent", "Bases_Covered", "Bases_Covered_percent"]) + "\n")
+euk_list = []
+bac_list = []
+vir_list = []
 
 # now read through each abundance file
 # and combine the samples but split by superkingdom
@@ -64,13 +59,27 @@ for abund_fl in args.abundance:
             cols = line.split("\t")
             kingdom = cols[1]
             if kingdom == "Eukaryota":
-                euk.write(sample + "\t" + line + "\n")
+                euk_list.append(sample + "\t" + line + "\n")
             if kingdom == "Bacteria":
-                bac.write(sample + "\t" + line + "\n")
+                bac_list.append(sample + "\t" + line + "\n")
             if kingdom == "Viruses":
-                vir.write(sample + "\t" + line + "\n")
+                vir_list.append(sample + "\t" + line + "\n")
 
+# create a combined output as well
+output = open(args.output, "w")
+output.write("\t".join(["Sample", "Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", \
+                            "Reads_Mapped_percent", "Bases_Covered", "Bases_Covered_percent"]) + "\n")
 
+# zip goes through two lists in parallel
+for results, name in zip([euk_list, bac_list, vir_list], [".euk", ".bac", ".vir"]):
+    # only write if something in the list
+    if results:
+        fl = open(args.stem + name, "w")
+        fl.write("\t".join(["Sample", "Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", \
+                            "Reads_Mapped_percent", "Bases_Covered", "Bases_Covered_percent"]) + "\n")
+        for result in results:
+            fl.write(result)
+            output.write(result)
 
 
 
