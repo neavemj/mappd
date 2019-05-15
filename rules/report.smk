@@ -27,26 +27,18 @@ rule test_report:
         #bench_mem = "benchmarks/bench_mem.png",
         software_versions = "logs/software_versions.txt",
         overall_figure = "logs/overall_results.png",
-        euk_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.euk.png",
-        euk_table = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.euk.tsv",
-        bac_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.bac.png",
-        bac_table = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.bac.tsv",
-        vir_figure = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.vir.png",
-        vir_table = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.vir.tsv",
+        # this will make the taxa plotting run, although only graphs
+        # for taxa found will be created. I'll check this in mapped_report.py
+        taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
+
         report_css = config["program_dir"] + "config/report.css"
     output:
         "test_report.html"
     run:
-        sphinx_str = generate_report(config_file=config, dag_graph=input.dag_graph,
+        sphinx_str = generate_report(config=config, dag_graph=input.dag_graph,
                                      #bench_mem=input.bench_mem, bench_time=input.bench_time,
                                      software_versions=input.software_versions,
                                      overall_figure=input.overall_figure,
-                                     euk_figure=input.euk_figure,
-                                     euk_table=input.euk_table,
-                                     bac_figure=input.bac_figure,
-                                     bac_table=input.bac_table,
-                                     vir_figure=input.vir_figure,
-                                     vir_table=input.vir_table,
                                      )
         report(sphinx_str, output[0], stylesheet=input.report_css, metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
 

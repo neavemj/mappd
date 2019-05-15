@@ -15,7 +15,7 @@ import maketable
 # this way the report should work no matter what pipeline components are run
 # and I'll also be able to refer to them easily
 
-def generate_report(config_file="", dag_graph="",
+def generate_report(config="", dag_graph="",
                     bench_time="", bench_mem="",
                     software_versions="",
                     overall_figure = "",
@@ -25,13 +25,24 @@ def generate_report(config_file="", dag_graph="",
                     trinity_diamond="",
                     spades_blastn="",
                     trinity_blastn="",
-                    euk_figure="",
-                    euk_table="",
-                    bac_figure="",
-                    bac_table="",
-                    vir_figure="",
-                    vir_table=""
                     ):
+
+    # if a superkingdom is not detected, the figs and tables won't be created
+    # e.g. if no viruses in a sample, there won't be any figures for these
+    # will go through and check which ones exist
+    potential_taxa_files = {
+        "euk_figure": config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.euk.png",
+        "euk_table": config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.euk.tsv",
+        "bac_figure": config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.bac.png",
+        "bac_table": config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.bac.tsv",
+        "vir_figure": config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.vir.png",
+        "vir_table": config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.vir.tsv",
+    }
+
+    taxa_files = {}
+    for taxa in potential_taxa_files:
+        if os.path.isfile(potential_taxa_files[taxa]):
+            taxa_files[taxa] = potential_taxa_files[taxa]
 
     report = """
 
@@ -129,7 +140,7 @@ The figure below gives a representation of the scaffolds with at least 10x cover
         # thus, have to take first element of list to get str for data_uri
         report += "\t.. image:: " + data_uri_from_file(trinity_bandage[0])[0] + "\n"
 
-    if euk_figure:
+    if "euk_figure" in taxa_files:
         report += """
 
 |
@@ -146,7 +157,7 @@ The figure most abundant Eukaryotic organisms
 in all of the samples combined.
 
 """
-        report += "\t.. image:: " + data_uri_from_file(euk_figure)[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(taxa_files["euk_figure"])[0] + "\n"
 
         report += """
 
@@ -158,10 +169,10 @@ The table shows how many reads were assigned to each `organism`_.
 
 """
 
-        euk_string = maketable.make_table_from_csv(euk_table, sep="\t")
+        euk_string = maketable.make_table_from_csv(taxa_files["euk_table"], sep="\t")
         report += euk_string + "\n"
 
-    if bac_figure:
+    if "bac_figure" in taxa_files:
         report += """
 
 |
@@ -172,7 +183,7 @@ The figure below shows the most abundant Bacterial organisms
 in all of the samples combined.
 
 """
-        report += "\t.. image:: " + data_uri_from_file(bac_figure)[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(taxa_files["bac_figure"])[0] + "\n"
 
         report += """
 
@@ -182,10 +193,10 @@ The table shows how many reads were assigned to each bacteria.
 
 """
 
-        bac_string = maketable.make_table_from_csv(bac_table, sep="\t")
+        bac_string = maketable.make_table_from_csv(taxa_files["bac_table"], sep="\t")
         report += bac_string + "\n"
 
-    if vir_figure:
+    if "vir_figure" in taxa_files:
         report += """
 
 |
@@ -196,7 +207,7 @@ The figure below shows the most abundant Viral organisms
 in all of the samples combined.
 
 """
-        report += "\t.. image:: " + data_uri_from_file(vir_figure)[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(taxa_files["vir_figure"])[0] + "\n"
 
         report += """
 
@@ -206,7 +217,7 @@ The table shows how many reads were assigned to each virus.
 
 """
 
-        vir_string = maketable.make_table_from_csv(vir_table, sep="\t")
+        vir_string = maketable.make_table_from_csv(taxa_files["vir_table"], sep="\t")
         report += vir_string + "\n"
 
     if dag_graph:
