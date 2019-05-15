@@ -10,9 +10,9 @@ library(scales)
 plot_overall <- function(trim, rRNA_host, abund, pdf_file, png_file) {
 
   
-  #trim <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/logs/trimmomatic_PE/trim_logs.summary"
-  #rRNA_host <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/logs/mapping_summary.tsv"
-  #abund <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/04_annotation/diamond/tmp"
+  #trim <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/logs/trimmomatic_PE/trim_logs.summary"
+  #rRNA_host <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/logs/mapping_summary.tsv"
+  #abund <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/04_annotation/diamond/diamond_blastx_abundance.all"
 
   trim_df = read.csv(trim, sep="\t", header=T)
   # I'm not using reads if they're mate is discarded
@@ -31,7 +31,7 @@ plot_overall <- function(trim, rRNA_host, abund, pdf_file, png_file) {
   # the 'host' here should actually be combined with the Eukaryotes
   # should make sure that my host module always uses a Euk
   # or aborts otherwise
-  levels(rRNA_df$Type)[levels(rRNA_df$Type)=="host"] <- "Eukaryotic"
+  levels(rRNA_df$Type)[levels(rRNA_df$Type)=="host"] <- "Eukaryote"
   # don't need the 'surviving' number
   rRNA_df <- subset(rRNA_df, Type!="surviving")
   
@@ -42,7 +42,7 @@ plot_overall <- function(trim, rRNA_host, abund, pdf_file, png_file) {
   vir_df = subset(abund_df, Kingdom=="Viruses")
 
   # function to check that taxa dataframes have something in them
-  # return and dataframe with 0 reads if not
+  # return a dataframe with 0 reads if not
   process_taxa <- function(taxa_df, name){
     if(length(taxa_df$Sample) > 0){
       summary <- taxa_df %>%
@@ -52,19 +52,19 @@ plot_overall <- function(trim, rRNA_host, abund, pdf_file, png_file) {
     } else {
       num = length(unique(abund_df$Sample))
       summary <- data.frame(Sample <- unique(abund_df$Sample),
-                            Reads <- rep("0", num),
+                            Reads <- rep(0, num),
                             Type <- rep(name, num))
       colnames(summary) <- c("Sample", "Reads", "Type")
     }
     return(summary)
-  }
+  } 
 
   euk_summary <- process_taxa(euk_df, "Eukaryote")
   bac_summary <- process_taxa(bac_df, "Bacteria")
   vir_summary <- process_taxa(vir_df, "Virus")
   
   overall_df <- rbind(trim_long, rRNA_df, euk_summary, bac_summary, vir_summary)
-
+  
   # figure out the total number of annotated / unannotated reads from these numbers
   # should verify this by looking at: 
     # 1) reads that didn't map to the contigs
@@ -73,7 +73,7 @@ plot_overall <- function(trim, rRNA_host, abund, pdf_file, png_file) {
   unannot_df <- overall_df %>%
     group_by(Sample) %>%
     summarise(Total_Annotated = sum(Reads))
-
+  
   unannot_df <- merge(trim_df, unannot_df, by="Sample")
   unannot_df$Reads <- (unannot_df$input_pairs * 2) - unannot_df$Total_Annotated
   unannot_df$Type <- "Unannotated"
@@ -81,12 +81,21 @@ plot_overall <- function(trim, rRNA_host, abund, pdf_file, png_file) {
   
   overall_df <- rbind(overall_df, unannot_df)
   
+  # because I added host reads to Eukaryote, these need to be combined
+  # for the factor bit below
+  overall_df <- overall_df %>%
+    group_by(Sample, Type) %>%
+    summarise(Reads = sum(Reads))
+  
+  
   # make the colours a bit more sensible
-  cols <- c("low_quality" = "#a6761d", "rRNA_LSU" = "#FDBF6F", "rRNA_SSU" = "#FF7F00", "Eukaryotic" = "#1b9e77", "Bacteria" = "#7570b3", "Viruses" = "#e7298a", "Unannotated" = "#666666")
+  cols <- c("low_quality" = "#a6761d", "rRNA_LSU" = "#FDBF6F", "rRNA_SSU" = "#FF7F00", "Eukaryote" = "#1b9e77", "Bacteria" = "#7570b3", "Virus" = "#e7298a", "Unannotated" = "#666666")
   
   # order the categories
   # flip everything around due to my coord_flip() in ggplot call
-  overall_df$Type <- factor(overall_df$Type, levels=rev(c("Viruses", "Bacteria", "Eukaryotic", "rRNA_LSU", "rRNA_SSU", "low_quality", "Unannotated")))
+  
+  overall_df$Type <- factor(overall_df$Type, levels=rev(c("Virus", "Bacteria", "Eukaryote", "rRNA_LSU", "rRNA_SSU", "low_quality", "Unannotated")))
+  
   overall_df$Sample <- as.factor(overall_df$Sample)
   overall_df$Sample <- factor(overall_df$Sample, levels=rev(levels(overall_df$Sample)))
   
