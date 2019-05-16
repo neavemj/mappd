@@ -10,7 +10,7 @@ rule summarise_benchmarks:
         # need to 'trick' snakemake into only running this at the end
         # but before the report is generated
         # ideally this will be, for example,  "annotation_summary.txt"
-        expand("{sample}_host_depleted_1P.fastq", sample=config["samples"])
+        config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
     output:
         "benchmarks/benchmarks.summary"
     shell:
@@ -63,6 +63,7 @@ rule get_package_versions:
         sed_pat1 = r"s/\(.*\)/^\1\t/g",
         sed_pat2 = r"s/ \+/\t/g"
     shell:
+        # puts a header line into the output
         # lists all packages in the conda environment
         # replaces large whitespace with tabs
         # greps for specific packages with ^ and \t to ensure complete match

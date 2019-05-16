@@ -180,14 +180,18 @@ rule spades_mapping_stats:
         sorted_bam = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.bam",
         stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
         depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
+    threads: 16
     shell:
         # this will sort > index > idxstats > sort by most mapped reads
         """
         samtools sort \
+            -@ {threads} \
             {input} > {output.sorted_bam} && \
         samtools index \
+            -@ {threads} \
             {output.sorted_bam} && \
         samtools idxstats \
+            -@ {threads} \
             {output.sorted_bam} | \
             sort -nrk 3 \
             > {output.stats} && \

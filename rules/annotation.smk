@@ -84,6 +84,8 @@ rule tally_diamond_organisms:
         blast = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.best_hits",
         stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
         depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
+        # adding host-specific stats here to append onto the tax results
+        host = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.blastn.abundance",
     output:
         # producing both wide and long format tables here
         # the wide will be used for the report, and the long for plotting in ggplot
@@ -94,6 +96,7 @@ rule tally_diamond_organisms:
             -b {input.blast} \
             -i {input.stats} \
             -d {input.depth} \
+            -s {input.host} \
             -o {output} \
         """
 

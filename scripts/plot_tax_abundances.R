@@ -9,17 +9,23 @@ library(RColorBrewer)
 
 plot_abund <- function(abund_summary, tsv_file, pdf_file, png_file) {
 
-  #abund_summary <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.euk"
+  #abund_summary <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/04_annotation/diamond/diamond_blastx_abundance_taxa.euk"
 
   summary_df = read.csv(abund_summary, sep="\t", header=T)
 
   # the summarise bit keeps family as a column - gets dropped otherwise
+  # because family is repeated for a species, this forces it 
+  # to choose just the one with the most reads (should all be the same anyway)
   species_summary <- summary_df %>%
     group_by(Sample, Species) %>%
-    summarise(Sum_Mapped = sum(Reads_Mapped), Family=toString(Family)) %>%
+    summarise(Sum_Mapped = sum(Reads_Mapped), 
+              max_reads = which.max(Reads_Mapped),
+              Family = Family[max_reads]) %>%
     top_n(10, wt = Sum_Mapped)
   
   species_summary <- subset(species_summary, Species != "<not present>")
+  # dummy varible created to avoid doubling up on family names - will remove now
+  species_summary <- species_summary[, !(names(species_summary) %in% c("max_reads"))]
   
   # if a species is not in a particular sample, ggplot draws a wide column
   # want to have a 0 in this case so the column width is constant

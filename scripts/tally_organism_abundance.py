@@ -3,6 +3,7 @@
 """
 Take idxstats and depth files from bam and blast / diamond results and species abundance
 Only works with single samples - won't combine sample files
+Can take a pre-calculated host abundance file to add to the results calculated here
 The blast / diamond format should look like this:
             -outfmt '6 \
                 qseqid \
@@ -30,6 +31,9 @@ parser.add_argument('-i', '--idxstats', type = str,
                     help = "samtools idxstats file from reads mapped back to assembly")
 parser.add_argument('-d', '--depth', type = str,
                     help = "samtools depth file from reads mapped back to assembly")
+parser.add_argument('-s', '--host', type = str,
+                    help = "a pre-calculated host abundance file to add to these stats. "
+                            "Can leave blank if not required.")
 parser.add_argument('-o', '--output', type = str,
                     help = "table with taxid, spp, and abundance for each sample for report")
 
@@ -121,7 +125,7 @@ for taxid in blast_dict:
     # this try-except will make it fail nicely
     try:
         superkingdom = ete3_functions.get_desired_rank(taxid, "superkingdom")
-        family = ete3_functions.get_desired_rank(taxid, "family")
+        family = ete3_functions.get_desired_rank(taxid, "family").split(",")[0]
         species = ete3_functions.get_desired_rank(taxid, "species")
     except:
         print("taxid {} not found".format(taxid))
@@ -132,9 +136,18 @@ for taxid in blast_dict:
 sorted_taxids = sorted([(value, key) for (key,value) in abund_dict.items()], reverse=True)
 
 # now write results
-
 output = open(args.output, "w")
 output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", "Reads_Mapped_percent", "Bases_Covered", "Bases_Covered_percent"]) + "\n")
+
+# if a pre-calculated host abundance file is created, will be added first
+# should be the most abundant taxid
+if args.host:
+    with open(args.host) as fl:
+        next(fl)
+        for line in fl:
+            output.write(line)
+
+# now add other taxids in order of abundance
 
 for taxid in sorted_taxids:
     taxid = taxid[1]

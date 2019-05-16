@@ -28,7 +28,7 @@ def generate_report(config="", dag_graph="",
                     ):
 
     # if a superkingdom is not detected, the figs and tables won't be created
-    # e.g. if no viruses in a sample, there won't be any figures for these
+    # e.g. if no viruses in a sample, there won't be any figures for them
     # will go through and check which ones exist
     potential_taxa_files = {
         "euk_figure": config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.euk.png",
@@ -43,6 +43,27 @@ def generate_report(config="", dag_graph="",
     for taxa in potential_taxa_files:
         if os.path.isfile(potential_taxa_files[taxa]):
             taxa_files[taxa] = potential_taxa_files[taxa]
+
+    # if a taxa is not detected, want some generic text explaining this
+
+    not_detected = """
+
+|
+
+*{}*
+---------------------
+
+NONE DETECTED.
+
+No {} sequences were detected with the parameters, software, strategy and
+databases used here. This does not necessary mean that they are not present,
+only that they were not detected with this particular pipeline.
+
+Organisms are more likely to escape detection if they are low in abundance
+(might get dropped in the assembly steps) or if they don't have close matches
+in the NCBI databases (might get missed in the classification steps).
+
+    """
 
     report = """
 
@@ -165,12 +186,14 @@ in all of the samples combined.
 
 The table shows how many reads were assigned to each `organism`_.
 
-.. _organism: 04_annotation/diamond/diamond_blastx_abundance.euk
+.. _organism: 04_annotation/diamond/diamond_blastx_abundance_taxa.euk
 
 """
 
         euk_string = maketable.make_table_from_csv(taxa_files["euk_table"], sep="\t")
         report += euk_string + "\n"
+    else:
+        report += not_detected.format("Eukaryotes", "eukaryote")
 
     if "bac_figure" in taxa_files:
         report += """
@@ -195,6 +218,8 @@ The table shows how many reads were assigned to each bacteria.
 
         bac_string = maketable.make_table_from_csv(taxa_files["bac_table"], sep="\t")
         report += bac_string + "\n"
+    else:
+        report += not_detected.format("Bacteria", "bacteria")
 
     if "vir_figure" in taxa_files:
         report += """
@@ -219,6 +244,10 @@ The table shows how many reads were assigned to each virus.
 
         vir_string = maketable.make_table_from_csv(taxa_files["vir_table"], sep="\t")
         report += vir_string + "\n"
+    else:
+        report += not_detected.format("Viruses", "virus")
+
+
 
     if dag_graph:
         report += """
@@ -237,6 +266,12 @@ A Directed Acyclic Graph (DAG) graph of the steps carried out in this pipeline i
 
     if bench_time:
         report += """
+
+|
+|
+
+________
+
 Benchmarks
 =================
 The time taken for each process, and each sample, is given below
@@ -246,6 +281,9 @@ The time taken for each process, and each sample, is given below
 
     if bench_mem:
         report += """
+
+|
+
 The maximum memory required for each process, and each sample, is given below
 
 """

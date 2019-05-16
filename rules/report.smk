@@ -23,20 +23,19 @@ from mappd_report import generate_report
 rule test_report:
     input:
         dag_graph = "benchmarks/dag.png",
-        #bench_time = "benchmarks/bench_time.png",
-        #bench_mem = "benchmarks/bench_mem.png",
+        bench_time = "benchmarks/bench_time.png",
+        bench_mem = "benchmarks/bench_mem.png",
         software_versions = "logs/software_versions.txt",
         overall_figure = "logs/overall_results.png",
         # this will make the taxa plotting run, although only graphs
         # for taxa found will be created. I'll check this in mapped_report.py
         taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
-
         report_css = config["program_dir"] + "config/report.css"
     output:
         "test_report.html"
     run:
         sphinx_str = generate_report(config=config, dag_graph=input.dag_graph,
-                                     #bench_mem=input.bench_mem, bench_time=input.bench_time,
+                                     bench_mem=input.bench_mem, bench_time=input.bench_time,
                                      software_versions=input.software_versions,
                                      overall_figure=input.overall_figure,
                                      )

@@ -363,4 +363,65 @@ rule plot_host_mapping:
             {input} {output.pdf} {output.png}
         """
 
+# this rule was copied over from the assembly.smk rules
+# need to do this so I can add the host stats to the overall tax stats
+# TODO: does this rule replace any other rules in this module?
+rule host_mapping_stats:
+    message:
+        """
+        Tallying statistics on {wildcards.sample} reads mapped to the host
+        """
+    input:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.bam"
+    output:
+        sorted_bam = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.bam",
+        stats = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.idxstats",
+        depth = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.depth",
+    threads: 16
+    shell:
+        # this will sort > index > idxstats > sort by most mapped reads
+        """
+        samtools sort \
+            -@ {threads} \
+            {input} > {output.sorted_bam} && \
+        samtools index \
+            -@ {threads} \
+            {output.sorted_bam} && \
+        samtools idxstats \
+            -@ {threads} \
+            {output.sorted_bam} | \
+            sort -nrk 3 \
+            > {output.stats} && \
+        samtools depth \
+            {output.sorted_bam} \
+            > {output.depth}
+        """
+
+# required so that I can add the host reads onto my
+# tax barcharts in the report
+# had to modify the 'tally_organism_abundance.py' script here
+# because I'm not adding reads per contig - rather per host taxid
+rule summarise_host_abundance:
+    message:
+        """
+        summarise abundance stats for the host species
+        """
+    input:
+        wide = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide",
+        stats = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.idxstats",
+        depth = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.depth",
+    output:
+        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.blastn.abundance",
+    shell:
+        """
+        {config[program_dir]}/scripts/tally_host_abundance.py \
+            -w {input.wide} \
+            -i {input.stats} \
+            -d {input.depth} \
+            -o {output} \
+        """
+
+
+
+
 
