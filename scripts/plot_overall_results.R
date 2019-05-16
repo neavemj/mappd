@@ -10,9 +10,9 @@ library(scales)
 plot_overall <- function(trim, rRNA_host, abund, pdf_file, png_file) {
 
   
-  #trim <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/logs/trimmomatic_PE/trim_logs.summary"
-  #rRNA_host <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/logs/mapping_summary.tsv"
-  #abund <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/04_annotation/diamond/diamond_blastx_abundance.all"
+  #trim <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/logs/trimmomatic_PE/trim_logs.summary"
+  #rRNA_host <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/logs/mapping_summary.tsv"
+  #abund <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/04_annotation/diamond/diamond_blastx_abundance.all"
 
   trim_df = read.csv(trim, sep="\t", header=T)
   # I'm not using reads if they're mate is discarded
@@ -28,12 +28,11 @@ plot_overall <- function(trim, rRNA_host, abund, pdf_file, png_file) {
   # make headers match for later rbind
   rRNA_df$Reads <- rRNA_df$Paired_Reads * 2
   rRNA_df <- rRNA_df[,c("Sample", "Type", "Reads")]
-  # the 'host' here should actually be combined with the Eukaryotes
-  # should make sure that my host module always uses a Euk
-  # or aborts otherwise
-  levels(rRNA_df$Type)[levels(rRNA_df$Type)=="host"] <- "Eukaryote"
-  # don't need the 'surviving' number
+
+  # don't need the 'surviving' or 'host' number here
+  # the host is combined with the abund_df results in 'tally_organism_abundance.py'
   rRNA_df <- subset(rRNA_df, Type!="surviving")
+  rRNA_df <- subset(rRNA_df, Type!="host")
   
   abund_df = read.csv(abund, sep="\t", header=T)
   

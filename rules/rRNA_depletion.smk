@@ -24,7 +24,7 @@ rule bowtie_to_LSU:
     log:
         "logs/bowtie_LSU/{sample}.log"
     benchmark:
-        "benchmarks/bowtie_LSU/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/bowtie_LSU/{sample}.txt"
     threads:
         16
     shell:
@@ -136,7 +136,7 @@ rule bowtie_to_SSU:
     log:
         "logs/bowtie_SSU/{sample}.log"
     benchmark:
-        "benchmarks/bowtie_SSU/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/bowtie_SSU/{sample}.txt"
     threads:
         16
     shell:
@@ -249,7 +249,7 @@ rule associate_genbank_to_taxids:
         sed_pat = r"s/\(.*\)/^\1\t/g",
         acc_to_taxids = config["acc_to_taxids"]
     benchmark:
-        "benchmarks/grep_taxids/{sample}_{rRNA_type}.txt"
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/grep_taxids_{rRNA_type}/{sample}.txt"
     shell:
         # takes the idxstats output, cuts the first column (genbank ID)
         # ensures only uniq entries, then adds '^' to the start of the pattern,
@@ -280,7 +280,7 @@ rule associate_genbank_to_silvaids:
         silva_LSU_db = config['silva_LSU_db'] + ".taxstring",
         silva_SSU_db = config['silva_SSU_db'] + ".taxstring",
     benchmark:
-        "benchmarks/grep_silva_taxstrings/{sample}_{rRNA_type}.txt"
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/grep_silva{rRNA_type}_taxstrings/{sample}.txt"
     run:
         # doing an if else statement here to use the correct database
         if wildcards.rRNA_type == "LSU":

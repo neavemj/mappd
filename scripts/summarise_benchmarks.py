@@ -48,24 +48,26 @@ def read_benchmark(fl):
 
 # walk through each directory in the benchmarks folder
 # these should look like "01_trimmomatic", "02_spades", etc.
-# the output give the current directory, then each subdirectory, like this:
+# the output gives the current directory, then each subdirectory, like this:
 # ('benchmarks/', ['01_trimmomatic', '02_spades'], [])
 # ('benchmarks/01_trimmomatic', [], ['prawn1.txt', 'prawn3.txt', 'prawn2.txt'])
 # ('benchmarks/02_spades', [], ['prawn3.txt', 'prawn1.txt', 'prawn2.txt'])
 
 output = open(args.output, "w")
-output.write("\t".join(["process", "sample", "s", "h:m:s", "max_rss", "max_vms", "max_uss", "max_pss", "io_in",
+output.write("\t".join(["module", "process", "sample", "s", "h:m:s", "max_rss", "max_vms", "max_uss", "max_pss", "io_in",
                         "io_out", "mean_load"]) + "\n")
 
 for walk in os.walk(args.benchmark_directory):
     # will ignore the current directory (with no files)
     if walk[0] == args.benchmark_directory:
         continue
+
     # ok, now process each benchmark file
     for bench_fl in walk[2]:
         sample = bench_fl.rstrip(".txt")
+        module = os.path.dirname(walk[0]).lstrip("./")
         process = os.path.basename(walk[0])
         file_path = os.path.join(walk[0], bench_fl)
         value_list = read_benchmark(file_path)
-        output.write(process + "\t" + sample + "\t" + "\t".join(value_list) + "\n")
+        output.write(module + "\t" + process + "\t" + sample + "\t" + "\t".join(value_list) + "\n")
 

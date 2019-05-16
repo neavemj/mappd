@@ -29,7 +29,7 @@ rule diamond_nr:
     log:
        "logs/diamond/{sample}.log"
     benchmark:
-        "benchmarks/diamond/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}.txt"
     threads: 16
     shell:
         # note: diamond messages go to stderr

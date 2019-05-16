@@ -34,7 +34,7 @@ rule spades:
     log:
         "logs/spades/{sample}.log"
     benchmark:
-        "benchmarks/spades/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["assembly_dir"] + "/spades/{sample}.txt"
     threads: 16
     shell:
         """
@@ -62,7 +62,7 @@ rule trinity:
     log:
        "logs/trinity/{sample}.log"
     benchmark:
-        "benchmarks/trinity/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/trinity/{sample}.txt"
     params:
         out_dir = config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity",
         max_memory = "16G"
@@ -140,7 +140,7 @@ rule bowtie_to_spades_assembly:
     log:
         "logs/bowtie_spades_assembly/{sample}.log"
     benchmark:
-        "benchmarks/bowtie_spades_assembly/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["assembly_dir"] + "/bowtie_spades_assembly/{sample}.txt"
     threads:
         16
     shell:

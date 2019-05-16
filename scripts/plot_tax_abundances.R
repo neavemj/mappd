@@ -49,8 +49,8 @@ plot_abund <- function(abund_summary, tsv_file, pdf_file, png_file) {
   species_summary_long$Sample <- factor(species_summary_long$Sample, levels=rev(levels(species_summary_long$Sample)))
   
   # brewer pallete colours - Paired or Set3 for 10 samples max
-  cols <- brewer.pal(length(unique(summary_table$Species)), "Set3")
-  
+  cols <- rev(brewer.pal(length(unique(summary_table$Species)), "Paired"))
+
   p <- ggplot(species_summary_long, aes(x=Sample, y=Sum_Mapped, fill=reorder(Species, Sum_Mapped))) +
     geom_bar(stat='identity') +
     theme_bw() +

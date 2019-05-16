@@ -51,7 +51,7 @@ rule assemble_mRNA_subset:
     log:
         "logs/spades_sub_assembly/{sample}.log"
     benchmark:
-        "benchmarks/spades_sub_assembly/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/spades_sub_assembly/{sample}.txt"
     threads: 16
     shell:
         """
@@ -97,7 +97,7 @@ rule blast_subcontigs:
     log:
         "logs/blast_sub_assembly/{sample}.log"
     benchmark:
-        "benchmarks/blast_sub_assembly/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/blast_sub_assembly/{sample}.txt"
     shell:
         # in the output fmt, cols 6 and 7 need to be bitscore and taxid
         # for the scripts subset_blast.py and tally_organism_hits.py
@@ -181,7 +181,7 @@ rule associate_hostTaxid_genbank:
         nt_to_taxids = config["nt_to_taxids"],
         hosts_to_download = config["hosts_to_download"]
     benchmark:
-        "benchmarks/grep_nucl_gb_ids/grep_nucl_nt_ids.txt"
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/grep_nucl_gb_ids/generic.txt"
     shell:
         # -w means only match whole words - don't want part of the taxid matching another one
         # cuts the first column (taxids), removes header,
@@ -208,7 +208,7 @@ rule extract_host_nucl:
     log:
         "logs/extract_nucl_gb_fasta/accessions_not_found.log"
     benchmark:
-        "benchmarks/extract_nucl_gb_fasta/extract_nucl_nt_fasta.txt"
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/extract_nucl_gb_fasta/generic.txt"
     shell:
         # if this command doesn't find an accesion number (often)
         # it prints an error and returns an exit code of 1
@@ -260,7 +260,7 @@ rule bowtie_to_host:
     log:
         "logs/bowtie_host/{sample}.log"
     benchmark:
-        "benchmarks/bowtie_host/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/bowtie_host/{sample}.txt"
     threads:
         16
     shell:
