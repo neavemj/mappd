@@ -15,6 +15,7 @@ and blast the results to find host.
 rule subset_mRNA_reads:
     message:
         """
+        ** host_depletion **
         Taking a subset of 100,000 mRNA reads from {wildcards.sample}
         to be used for assembly and host identification
         """
@@ -39,6 +40,7 @@ rule subset_mRNA_reads:
 rule assemble_mRNA_subset:
     message:
         """
+        ** host_depletion **
         Assembling small subset of {wildcards.sample} reads to identify host
         """
     input:
@@ -65,6 +67,7 @@ rule assemble_mRNA_subset:
 rule subset_subcontigs:
     message:
         """
+        ** host_depletion **
         Gathering the 10 largest contigs from the sub-assembly
         """
     input:
@@ -85,6 +88,7 @@ rule subset_subcontigs:
 rule blast_subcontigs:
     message:
         """
+        ** host_depletion **
         Blasting the most abundant contigs from sub-assembly
         """
     input:
@@ -122,6 +126,7 @@ rule blast_subcontigs:
 rule subset_subblast:
     message:
         """
+        ** host_depletion **
         Retieving the 'best' hits for each {wildcards.sample} contig
         using the maximum bitscore
         """
@@ -139,6 +144,7 @@ rule subset_subblast:
 rule tally_abundant_subspecies:
     message:
         """
+        ** host_depletion **
         Calculating the most abundant species in the blast results for all samples
         """
     input:
@@ -156,21 +162,10 @@ rule tally_abundant_subspecies:
             -l {output.long}
         """
 
-rule plot_abundant_subspecies:
-    input:
-        long = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.long"
-    output:
-        pdf = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.pdf",
-        png = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.png"
-    shell:
-        """
-        Rscript {config[program_dir]}/scripts/plot_host_stats.R \
-        {input} {output.pdf} {output.png}
-        """
-
 rule associate_hostTaxid_genbank:
     message:
         """
+        ** host_depletion **
         Retreiving genbank ids for the most abundant species
         """
     input:
@@ -197,6 +192,7 @@ rule associate_hostTaxid_genbank:
 rule extract_host_nucl:
     message:
         """
+        ** host_depletion **
         Extracting host nucleotide sequence from the nt database
         """
     input:
@@ -225,6 +221,7 @@ rule extract_host_nucl:
 rule build_host_bowtiedb:
     message:
         """
+        ** host_depletion **
         Building a bowtie2 database from host nucleotide sequence
         """
     input:
@@ -247,6 +244,7 @@ rule build_host_bowtiedb:
 rule bowtie_to_host:
     message:
         """
+        ** host_depletion **
         Mapping {wildcards.sample} mRNA reads to host database
         """
     input:
@@ -276,15 +274,18 @@ rule bowtie_to_host:
 rule host_sam_to_bam:
     message:
         """
+        ** host_depletion **
         Converting {wildcards.sample} host sam file to bam
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sam"
     output:
         config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.bam"
+    threads: 8
     shell:
         """
         samtools view \
+            -@ {threads} \
             -S -b \
             {input} > {output}
         """
@@ -292,16 +293,19 @@ rule host_sam_to_bam:
 rule host_get_unmapped:
     message:
         """
+        ** host_depletion **
         Collecting {wildcards.sample} reads that did not map to host sequences
         """
     input:
         config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.bam"
     output:
         config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted.bam"
+    threads: 8
     shell:
         # -f 13 should get reads where neither pair mapped (UNMAP & MUNMAP)
         """
         samtools view \
+            -@ {threads} \
             -b \
             -f 13 \
             {input} > {output}
@@ -310,6 +314,7 @@ rule host_get_unmapped:
 rule host_sam_to_fastq:
     message:
         """
+        ** host_depletion **
         Converting {wildcards.sample} host depleted sam file to fastq files
         """
     input:
@@ -317,11 +322,13 @@ rule host_sam_to_fastq:
     output:
         R1 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_1P.fastq",
         R2 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_2P.fastq"
+    threads: 8
     shell:
     # the dev null bit discards unpaired reads
     # the -F bit ensures the mates are paired
         """
         samtools fastq \
+            -@ {threads} \
             -1 {output.R1} \
             -2 {output.R2} \
             -0 /dev/null \
@@ -334,11 +341,13 @@ rule host_sam_to_fastq:
 rule summarise_rRNA_host_mapping:
     message:
         """
+        ** host_depletion **
         Summarising number of reads mapped to rRNA and host databases
         """
     input:
         lsu = expand("logs/bowtie_LSU/{sample}.log", sample=config["samples"]),
         ssu = expand("logs/bowtie_SSU/{sample}.log", sample=config["samples"]),
+        # note the host results are no longer used down-stream
         host = expand("logs/bowtie_host/{sample}.log", sample=config["samples"])
     output:
         "logs/mapping_summary.tsv"
@@ -351,24 +360,12 @@ rule summarise_rRNA_host_mapping:
             -o {output}
         """
 
-rule plot_host_mapping:
-    input:
-        "logs/mapping_summary.tsv"
-    output:
-        pdf = "logs/mapping_summary.pdf",
-        png = "logs/mapping_summary.png"
-    shell:
-        """
-        Rscript {config[program_dir]}/scripts/plot_mapping.R \
-            {input} {output.pdf} {output.png}
-        """
-
 # this rule was copied over from the assembly.smk rules
 # need to do this so I can add the host stats to the overall tax stats
-# TODO: does this rule replace any other rules in this module?
 rule host_mapping_stats:
     message:
         """
+        ** host_depletion **
         Tallying statistics on {wildcards.sample} reads mapped to the host
         """
     input:
@@ -404,6 +401,7 @@ rule host_mapping_stats:
 rule summarise_host_abundance:
     message:
         """
+        ** host_depletion **
         summarise abundance stats for the host species
         """
     input:

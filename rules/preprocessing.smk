@@ -7,6 +7,16 @@ The outputs are:
     - cleaned Illumina sequencing reads
 """
 
+# record start time of the run
+
+rule record_start:
+    output:
+        "logs/start_time.txt"
+    shell:
+        """
+        date > {output}
+        """
+
 # for some reason I have put this function here to get wildcards to work
 # it wont work if directly in the rule
 def getFastq(wildcards):
@@ -17,10 +27,13 @@ def getFastq(wildcards):
 rule trimmomatic_PE:
     message:
         """
+        ** preprocessing **
         Trimming {wildcards.sample} for quality and Illumina adapters using Trimmomatic
         """
     input:
-        getFastq
+        reads = getFastq,
+        # trick to get date recorded at this first step
+        date = "logs/start_time.txt"
     output:
         R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
         R1_U = config["sub_dirs"]["trim_dir"] + "/{sample}_1U.fastq.gz",
@@ -39,7 +52,7 @@ rule trimmomatic_PE:
         """
         trimmomatic PE \
             -threads {threads} \
-            {input} {output.R1_P} {output.R1_U} {output.R2_P} {output.R2_U} \
+            {input.reads} {output.R1_P} {output.R1_U} {output.R2_P} {output.R2_U} \
             ILLUMINACLIP:{params.adapters}:2:30:10 \
             LEADING:3 TRAILING:3 SLIDINGWINDOW:4:{params.qual} MINLEN:{params.minlen} \
             2> {log}
@@ -55,23 +68,6 @@ rule summarise_trimmomatic_log:
         {config[program_dir]}/scripts/summarise_trimmomatic.py \
         -i {input} -o {output}
         """
-
-rule plot_trimmomatic_results:
-    input:
-        "logs/trimmomatic_PE/trim_logs.summary"
-    output:
-        pdf = "logs/trimmomatic_PE/trim_summary.pdf",
-        png = "logs/trimmomatic_PE/trim_summary.png"
-    shell:
-        """
-        Rscript {config[program_dir]}/scripts/plot_trim.R \
-        {input} {output.pdf} {output.png}
-        """
-
-
-
-
-
 
 
 

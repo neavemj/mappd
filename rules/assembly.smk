@@ -14,6 +14,7 @@ Current assemblers include:
 rule spades:
     message:
         """
+        ** assembly **
         Assembling host_depleted reads with spades PE mode
         Using spades RNA mode
         """
@@ -52,6 +53,7 @@ rule spades:
 rule trinity:
     message:
         """
+        ** assembly **
         Assembling RNA-Seq reads with Trinity
         """
     input:
@@ -82,6 +84,7 @@ rule trinity:
 rule subset_spades_contigs:
     message:
         """
+        ** assembly **
         Removing small contigs from the assembly
         """
     input:
@@ -104,6 +107,7 @@ rule subset_spades_contigs:
 rule build_spades_bowtiedb:
     message:
         """
+        ** assembly **
         Building a bowtie2 database for the SPAdes assembly
         """
     input:
@@ -115,10 +119,12 @@ rule build_spades_bowtiedb:
         # will trick snakemake by using this as an output even though
         # I won't use it in the shell command
         config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta.1.bt2"
+    threads: 8
     shell:
         # use the same name for basename reference database
         """
         bowtie2-build \
+            --threads {threads} \
             {input} \
             {input} > /dev/null
         """
@@ -126,6 +132,7 @@ rule build_spades_bowtiedb:
 rule bowtie_to_spades_assembly:
     message:
         """
+        ** assembly **
         Mapping {wildcards.sample} host-depleted reads to SPAdes assembly
         to get abundance estimates
         """
@@ -141,8 +148,7 @@ rule bowtie_to_spades_assembly:
         "logs/bowtie_spades_assembly/{sample}.log"
     benchmark:
         "benchmarks/" + config["sub_dirs"]["assembly_dir"] + "/bowtie_spades_assembly/{sample}.txt"
-    threads:
-        16
+    threads: 16
     shell:
         """
         bowtie2 \
@@ -156,15 +162,18 @@ rule bowtie_to_spades_assembly:
 rule spades_sam_to_bam:
     message:
         """
+        ** assembly **
         Converting {wildcards.sample} SPAdes sam file to bam
         """
     input:
         config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sam"
     output:
         config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.bam"
+    threads: 8
     shell:
         """
         samtools view \
+            -@ {threads} \
             -S -b \
             {input} > {output}
         """
@@ -172,6 +181,7 @@ rule spades_sam_to_bam:
 rule spades_mapping_stats:
     message:
         """
+        ** assembly **
         Tallying statistics on {wildcards.sample} reads mapped to the SPAdes assembly
         """
     input:
@@ -180,7 +190,7 @@ rule spades_mapping_stats:
         sorted_bam = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.bam",
         stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
         depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
-    threads: 16
+    threads: 8
     shell:
         # this will sort > index > idxstats > sort by most mapped reads
         """
@@ -200,41 +210,3 @@ rule spades_mapping_stats:
             > {output.depth}
         """
 
-rule subset_spades_bandage:
-    input:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_with_scaffolds.gfa"
-    output:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_10x.gfa"
-    shell:
-        """
-        Bandage reduce \
-            {input} \
-            {output} \
-            --scope depthrange \
-            --mindepth 10 \
-            --maxdepth 1000000
-        """
-
-rule draw_spades_bandage:
-    input:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_10x.gfa"
-    output:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_10x.png"
-    shell:
-        """
-        Bandage image \
-            {input} \
-            {output}
-        """
-
-rule draw_trinity_bandage:
-    input:
-        config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.fasta"
-    output:
-        config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.png"
-    shell:
-        """
-        Bandage image \
-            {input} \
-            {output}
-        """

@@ -16,6 +16,7 @@ Options:
 rule diamond_nr:
     message:
         """
+        ** annotation **
         Using Diamond blastx to compare {wildcards.sample} contigs to the nr database
         using an evalue of {params.diamond_nr_evalue}
         """
@@ -57,6 +58,7 @@ rule diamond_nr:
 rule subset_diamond:
     message:
         """
+        ** annotation **
         Retieving the 'best' hits for each {wildcards.sample} contig
         using the maximum bitscore
         """
@@ -78,6 +80,7 @@ rule subset_diamond:
 rule tally_diamond_organisms:
     message:
         """
+        ** annotation **
         Calculating the most abundant species in the diamond results for each sample
         """
     input:
@@ -106,6 +109,7 @@ rule tally_diamond_organisms:
 checkpoint sort_combine_abundances:
     message:
         """
+        ** annotation **
         Sorting abundances into supertaxa and combining samples
         """
     input:
@@ -189,15 +193,3 @@ rule plot_overall_results:
             {input.combined} \
             {output.pdf} {output.png}
         """
-
-
-
-
-
-
-
-
-
-
-
-
