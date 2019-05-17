@@ -5,9 +5,9 @@ library(ggplot2)
 
 
 plot_bench_mem <- function(bench_summary, pdf_file, png_file) {
-  
+
   #bench_summary <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/benchmarks/tmp_benchmarks/tmp.txt"
-  
+
   bench_fl = read.table(bench_summary, sep="\t", header=T)
 
   ggplot(bench_fl, aes(x=max_vms, y=process, color=sample)) +
@@ -15,13 +15,13 @@ plot_bench_mem <- function(bench_summary, pdf_file, png_file) {
     #geom_point(data=total_df, aes(x=x, y=sum), size=2) +
     facet_grid(module ~ ., scales="free", space="free") +
     theme(strip.text.y = element_text(angle=0))
-  
-  # plot 1 inch per process
-  fig_height = 1 * (length(unique(bench_fl$process)))
-  
+
+  # plot 0.5 inch per process
+  fig_height = 0.5 * (length(unique(bench_fl$process)))
+
   ggsave(pdf_file, width=8, height=fig_height)
   ggsave(png_file, width=8, height=fig_height, dpi=300)
-  
+
 }
 
 
