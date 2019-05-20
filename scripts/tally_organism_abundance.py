@@ -34,6 +34,8 @@ parser.add_argument('-d', '--depth', type = str,
 parser.add_argument('-s', '--host', type = str,
                     help = "a pre-calculated host abundance file to add to these stats. "
                             "Can leave blank if not required.")
+parser.add_argument('-m', '--mapping', type = str,
+                    help = "mapping_summary.tsv file required to get overall read numbers")
 parser.add_argument('-o', '--output', type = str,
                     help = "table with taxid, spp, and abundance for each sample for report")
 
@@ -50,9 +52,10 @@ args = parser.parse_args()
 if args.blast is None or \
         args.idxstats is None or \
         args.depth is None or \
+        args.mapping is None or \
         args.output is None:
     print("\n** a required input is missing\n"
-          "** a blast file, idxstats file, depth file and output name are required\n")
+          "** a blast file, idxstats file, depth file, mapping file and output name are required\n")
     parser.print_help(sys.stderr)
     sys.exit(1)
 
@@ -135,6 +138,26 @@ for taxid in blast_dict:
 # sort taxids by their abundance (mapped reads) for writing out
 sorted_taxids = sorted([(value, key) for (key,value) in abund_dict.items()], reverse=True)
 
+# get overall mRNA read numbers from mapping_summary.tsv to calculate percentages
+# tricky thing is that this script runs once for each sample,
+# however, the mapping file contains results for all samples
+
+with open(args.mapping) as fl:
+    sample = os.path.basename(args.output).split("_")[0]
+    for line in fl:
+        line = line.strip()
+        cols = line.split("\t")
+        name = cols[0]
+        type = cols[1]
+        paired_reads = cols[2]
+        if name == sample and type == "mRNA_pairs":
+            overall_reads = int(paired_reads) * 2
+
+if not overall_reads:
+    print("could not determine overall reads from mapping_summary.tsv file")
+    print("outputting 0")
+    overall_reads = 0
+
 # now write results
 output = open(args.output, "w")
 output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", "Reads_Mapped_percent", "Bases_Covered", "Bases_Covered_percent"]) + "\n")
@@ -151,7 +174,7 @@ if args.host:
 
 for taxid in sorted_taxids:
     taxid = taxid[1]
-    mapped_perc = (blast_dict[taxid]["mapped"] / total_mapped_reads) * 100
+    mapped_perc = (blast_dict[taxid]["mapped"] / overall_reads) * 100
     bases_perc = (blast_dict[taxid]["bases"] / total_bases) * 100
     output.write("\t".join([taxid, tax_dict[taxid]["superkingdom"], tax_dict[taxid]["family"], \
     tax_dict[taxid]["species"], str(blast_dict[taxid]["mapped"]), str(mapped_perc), str(blast_dict[taxid]["bases"]), \

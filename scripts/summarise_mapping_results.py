@@ -10,7 +10,7 @@ import argparse
 
 # use argparse to grab command line arguments
 
-parser = argparse.ArgumentParser("Summarise bowtie rRNA and host mapping results")
+parser = argparse.ArgumentParser("Summarise bowtie rRNA mapping results")
 
 parser.add_argument('-l', '--lsu', type = str,
                     nargs = "*", help = "LSU log files")
@@ -81,16 +81,12 @@ for sample in sample_to_mapping:
     LSU_total = int(sample_to_mapping[sample]["LSU"]["total"])
     SSU_total = int(sample_to_mapping[sample]["SSU"]["total"])
     host_total = int(sample_to_mapping[sample]["host"]["total"])
-    host_unaligned = int(sample_to_mapping[sample]["host"]["unaligned"])
     LSU_pairs = LSU_total - SSU_total
     SSU_pairs = SSU_total - host_total
-    host_pairs = host_total - host_unaligned
+    mRNA_pairs = sample_to_mapping[sample]["SSU"]["unaligned"]
     output.write("\t".join([sample, "rRNA_LSU", str(LSU_pairs)]) + "\n")
     output.write("\t".join([sample, "rRNA_SSU", str(SSU_pairs)]) + "\n")
-    output.write("\t".join([sample, "host", str(host_pairs)]) + "\n")
-    # this is slightly off due to the issue of pairing above
-    # could just count the number of reads using grep
-    output.write("\t".join([sample, "surviving", str(host_unaligned)]) + "\n")
+    output.write("\t".join([sample, "mRNA_pairs", str(mRNA_pairs)]) + "\n")
 
 
 

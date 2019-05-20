@@ -21,6 +21,8 @@ parser.add_argument('-i', '--idxstats', type = str,
                     help = "samtools idxstats file from reads mapped back to assembly")
 parser.add_argument('-d', '--depth', type = str,
                     help = "samtools depth file from reads mapped back to assembly")
+parser.add_argument('-m', '--mapping', type = str,
+                    help = "mapping_summary.tsv file required to get overall read numbers")
 parser.add_argument('-o', '--output', type = str,
                     help = "table with taxid, spp, and abundance for each sample for report")
 
@@ -68,6 +70,21 @@ with open(args.depth) as fl:
         depth = int(cols[2])
         total_bases += depth
 
+# get overall mRNA read numbers from mapping_summary.tsv to calculate percentages
+# tricky thing is that this script runs once for each sample,
+# however, the mapping file contains results for all samples
+
+with open(args.mapping) as fl:
+    sample = os.path.basename(args.output).split("_")[0]
+    for line in fl:
+        line = line.strip()
+        cols = line.split("\t")
+        name = cols[0]
+        type = cols[1]
+        paired_reads = cols[2]
+        if name == sample and type == "mRNA_pairs":
+            overall_reads = int(paired_reads) * 2
+
 # now write results with the host taxid info
 
 output = open(args.output, "w")
@@ -93,11 +110,11 @@ with open(args.wide) as fl:
         # total reads mapped to the assembly
         # maybe should be bases on total reads in the entire dataset?
         # could then incorporate that figure here
-        mapped_perc = "100"
-        bases_perc = "100"
+        mapped_perc = (total_mapped_reads / overall_reads) * 100
+        bases_perc = "0"
 
         output.write("\t".join([taxid, superkingdom, family, species, str(total_mapped_reads),
-                                mapped_perc, str(total_bases), bases_perc]) + "\n")
+                                str(mapped_perc), str(total_bases), bases_perc]) + "\n")
 
         # just get the most abundand taxid as per other modules
         # could change if more than 1 host is downloaded in the

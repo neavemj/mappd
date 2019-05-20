@@ -65,7 +65,7 @@ for walk in os.walk(args.benchmark_directory):
     # ok, now process each benchmark file
     for bench_fl in walk[2]:
         sample = bench_fl.rstrip(".txt")
-        module = os.path.dirname(walk[0]).lstrip("./")
+        module = os.path.basename(os.path.dirname(walk[0]))
         process = os.path.basename(walk[0])
         file_path = os.path.join(walk[0], bench_fl)
         value_list = read_benchmark(file_path)

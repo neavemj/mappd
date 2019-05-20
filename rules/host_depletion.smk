@@ -233,10 +233,12 @@ rule build_host_bowtiedb:
         # will trick snakemake by using this as an output even though
         # I won't use it in the shell command
         config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta.1.bt2"
+    threads: 8
     shell:
         # use the same name for basename reference database
         """
         bowtie2-build \
+            --threads {threads} \
             {input} \
             {input} > /dev/null
         """
@@ -408,6 +410,7 @@ rule summarise_host_abundance:
         wide = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide",
         stats = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.idxstats",
         depth = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.depth",
+        mapping = "logs/mapping_summary.tsv",
     output:
         config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.blastn.abundance",
     shell:
@@ -416,6 +419,7 @@ rule summarise_host_abundance:
             -w {input.wide} \
             -i {input.stats} \
             -d {input.depth} \
+            -m {input.mapping} \
             -o {output} \
         """
 
