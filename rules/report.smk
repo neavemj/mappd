@@ -25,7 +25,7 @@ rule test_report:
         dag_graph = "benchmarks/dag.png",
         bench_time = "benchmarks/bench_time.png",
         bench_mem = "benchmarks/bench_mem.png",
-        software_versions = "logs/software_versions.txt",
+        technical_summary = "logs/technical_summary.txt",
         overall_figure = "logs/overall_results.png",
         # this will make the taxa plotting run, although only graphs
         # for taxa found will be created. I'll check this in mapped_report.py
@@ -36,7 +36,7 @@ rule test_report:
     run:
         sphinx_str = generate_report(config=config, dag_graph=input.dag_graph,
                                      bench_mem=input.bench_mem, bench_time=input.bench_time,
-                                     software_versions=input.software_versions,
+                                     technical_summary=input.technical_summary,
                                      overall_figure=input.overall_figure,
                                      )
         report(sphinx_str, output[0], stylesheet=input.report_css, metadata="Author: Matthew Neave (matthew.neave@csiro.au)")

@@ -9,7 +9,7 @@ library(RColorBrewer)
 
 plot_abund <- function(abund_summary, tsv_file, pdf_file, png_file) {
 
-  #abund_summary <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/04_annotation/diamond/diamond_blastx_abundance_taxa.euk"
+  #abund_summary <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/04_annotation/diamond/diamond_blastx_abundance_taxa.euk"
 
   summary_df = read.csv(abund_summary, sep="\t", header=T)
 
@@ -21,8 +21,10 @@ plot_abund <- function(abund_summary, tsv_file, pdf_file, png_file) {
     summarise(Sum_Mapped = sum(Reads_Mapped), 
               max_reads = which.max(Reads_Mapped),
               Family = Family[max_reads]) %>%
-    top_n(10, wt = Sum_Mapped)
+    arrange(desc(Sum_Mapped)) %>%
+    filter(row_number() <=10)
   
+
   species_summary <- subset(species_summary, Species != "<not present>")
   # dummy varible created to avoid doubling up on family names - will remove now
   species_summary <- species_summary[, !(names(species_summary) %in% c("max_reads"))]

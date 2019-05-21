@@ -17,7 +17,7 @@ import maketable
 
 def generate_report(config="", dag_graph="",
                     bench_time="", bench_mem="",
-                    software_versions="",
+                    technical_summary="",
                     overall_figure = "",
                     spades_assembly="", spades_bandage="",
                     trinity_assembly="", trinity_bandage="",
@@ -104,11 +104,12 @@ _________
 
 2   Technical Summary
 ========================
-The software verions used in this pipeline are given below.
+The important parameters used in this pipeline are given below, including sample
+files analysed, start and end times, and software versions.
 
 """
-    software_string = maketable.make_table_from_csv(software_versions, sep="\t")
-    report += software_string + "\n"
+    tech_string = maketable.make_table_from_csv(technical_summary, sep="\t")
+    report += tech_string + "\n"
 
     report += """
 
