@@ -19,6 +19,7 @@ def generate_report(config="", dag_graph="",
                     bench_time="", bench_mem="",
                     technical_summary="",
                     overall_figure = "",
+                    sample_abundances = "",
                     spades_assembly="", spades_bandage="",
                     trinity_assembly="", trinity_bandage="",
                     spades_diamond="",
@@ -26,6 +27,7 @@ def generate_report(config="", dag_graph="",
                     spades_blastn="",
                     trinity_blastn="",
                     ):
+
 
     # if a superkingdom is not detected, the figs and tables won't be created
     # e.g. if no viruses in a sample, there won't be any figures for them
@@ -174,9 +176,8 @@ ________
 =============================
 *Eukaryotes*
 ---------------
-The contigs were annotated using Diamond blastx.
-The figure most abundant Eukaryotic organisms
-in all of the samples combined.
+The figure below shows the top 10 most abundant Eukaryotic organisms,
+including how many reads mapped to each organism from each sample.
 
 """
         report += "\t.. image:: " + data_uri_from_file(taxa_files["euk_figure"])[0] + "\n"
@@ -185,9 +186,12 @@ in all of the samples combined.
 
 |
 
-The table shows how many reads were assigned to each `organism`_.
+The table shows how many reads were assigned to each organism, which family
+the organism belongs to, and gives the read count for each sample.
 
-.. _organism: 04_annotation/diamond/diamond_blastx_abundance_taxa.euk
+A complete table listing all organisms is available at this `link`_.
+
+.. _link: 04_annotation/diamond/diamond_blastx_abundance_taxa.euk
 
 """
 
@@ -203,8 +207,8 @@ The table shows how many reads were assigned to each `organism`_.
 
 *Bacteria*
 ---------------
-The figure below shows the most abundant Bacterial organisms
-in all of the samples combined.
+The figure below shows the top 10 most abundant bacteria,
+including how many reads mapped to each organism from each sample.
 
 """
         report += "\t.. image:: " + data_uri_from_file(taxa_files["bac_figure"])[0] + "\n"
@@ -213,7 +217,8 @@ in all of the samples combined.
 
 |
 
-The table shows how many reads were assigned to each bacteria.
+The table shows how many reads were assigned to each organism, which family
+the organism belongs to, and gives the read count for each sample.
 
 """
 
@@ -229,8 +234,8 @@ The table shows how many reads were assigned to each bacteria.
 
 *Viruses*
 ---------------
-The figure below shows the most abundant Viral organisms
-in all of the samples combined.
+The figure below shows the top 10 most abundant viruses (if at least 10 were detected)
+including how many reads mapped to each organism from each sample.
 
 """
         report += "\t.. image:: " + data_uri_from_file(taxa_files["vir_figure"])[0] + "\n"
@@ -239,7 +244,8 @@ in all of the samples combined.
 
 |
 
-The table shows how many reads were assigned to each virus.
+The table shows how many reads were assigned to each organism, which family
+the organism belongs to, and gives the read count for each sample.
 
 """
 
@@ -247,6 +253,34 @@ The table shows how many reads were assigned to each virus.
         report += vir_string + "\n"
     else:
         report += not_detected.format("Viruses", "virus")
+
+
+
+
+    if sample_abundances:
+        report += """
+
+|
+|
+
+________
+
+5   Per Sample Classifications
+===============================
+
+"""
+        for sample in sample_abundances:
+            report += """
+
+*{}*
+--------------------------------------
+
+The full annotation report is provided below
+
+""".format(os.path.basename(sample).split("_")[0])
+
+            samp_string = maketable.make_table_from_csv(sample, sep="\t")
+            report += samp_string + "\n"
 
 
 

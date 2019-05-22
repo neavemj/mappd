@@ -88,7 +88,7 @@ with open(args.mapping) as fl:
 # now write results with the host taxid info
 
 output = open(args.output, "w")
-output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", "Reads_Mapped_percent", "Bases_Covered", "Bases_Covered_percent"]) + "\n")
+output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", "Reads_Mapped_percent"]) + "\n")
 
 with open(args.wide) as fl:
     next(fl)
@@ -105,16 +105,12 @@ with open(args.wide) as fl:
             print("taxid {} not found".format(taxid))
             continue
 
-        # need to calculate this better
-        # currently (in tally_organism_abundance.py) it's calculated based on
-        # total reads mapped to the assembly
-        # maybe should be bases on total reads in the entire dataset?
-        # could then incorporate that figure here
-        mapped_perc = (total_mapped_reads / overall_reads) * 100
-        bases_perc = "0"
+        # get percentage mapped compared to all high-quality reads in dataset
+        # then round to 4 decimal places
+        mapped_perc = round((total_mapped_reads / overall_reads) * 100, 4)
 
         output.write("\t".join([taxid, superkingdom, family, species, str(total_mapped_reads),
-                                str(mapped_perc), str(total_bases), bases_perc]) + "\n")
+                                str(mapped_perc)]) + "\n")
 
         # just get the most abundand taxid as per other modules
         # could change if more than 1 host is downloaded in the

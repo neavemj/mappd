@@ -160,7 +160,7 @@ if not overall_reads:
 
 # now write results
 output = open(args.output, "w")
-output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", "Reads_Mapped_percent", "Bases_Covered", "Bases_Covered_percent"]) + "\n")
+output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", "Reads_Mapped_percent"]) + "\n")
 
 # if a pre-calculated host abundance file is created, will be added first
 # should be the most abundant taxid
@@ -174,11 +174,13 @@ if args.host:
 
 for taxid in sorted_taxids:
     taxid = taxid[1]
-    mapped_perc = (blast_dict[taxid]["mapped"] / overall_reads) * 100
+    # get percentage mapped compared to all high-quality reads in dataset
+    # then round to 4 decimal places
+    mapped_perc = round((blast_dict[taxid]["mapped"] / overall_reads) * 100, 4)
+    # note: not writing out bases covered at this stage
     bases_perc = (blast_dict[taxid]["bases"] / total_bases) * 100
     output.write("\t".join([taxid, tax_dict[taxid]["superkingdom"], tax_dict[taxid]["family"], \
-    tax_dict[taxid]["species"], str(blast_dict[taxid]["mapped"]), str(mapped_perc), str(blast_dict[taxid]["bases"]), \
-    str(bases_perc)]) + "\n")
+    tax_dict[taxid]["species"], str(blast_dict[taxid]["mapped"]), str(mapped_perc)]) + "\n")
 
 
 

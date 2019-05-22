@@ -153,6 +153,13 @@ table.docutils th:first-child, td:first-child {
     text-align: right;
 }
 
+#technical-summary th:first-child, td:first-child {
+    text-align: left;
+    font-weight: bold;
+    font-style: italic;
+}
+
+
 table.docutils th:only-child, td:only-child {
     text-align: center;
 }

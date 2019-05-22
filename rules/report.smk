@@ -30,7 +30,8 @@ rule test_report:
         # this will make the taxa plotting run, although only graphs
         # for taxa found will be created. I'll check this in mapped_report.py
         taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
-        report_css = config["program_dir"] + "config/report.css"
+        sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance", sample=config["samples"]),
+        report_css = config["program_dir"] + "config/report.css",
     output:
         "test_report.html"
     run:
@@ -38,6 +39,7 @@ rule test_report:
                                      bench_mem=input.bench_mem, bench_time=input.bench_time,
                                      technical_summary=input.technical_summary,
                                      overall_figure=input.overall_figure,
+                                     sample_abundances=input.sample_abundances,
                                      )
         report(sphinx_str, output[0], stylesheet=input.report_css, metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
 
