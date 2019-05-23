@@ -81,19 +81,19 @@ def create_rest(name, hdr, king_list):
         rest_table = maketable.make_table(new_list)
         header_str = """
 
-|
-
 *{}*
 +++++++++++++++++++++++++++++++
 
 """.format(name)
-        complete_str = header_str + rest_table + "\n\n"
+        complete_str = header_str + rest_table + """
+
+|
+
+"""
 
     # if the kingdom is absent
     else:
         complete_str = """
-
-|
 
 *{}*
 +++++++++++++++++++++++++++++++

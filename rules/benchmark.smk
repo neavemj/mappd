@@ -61,7 +61,7 @@ rule record_end:
         "logs/end_time.txt"
     shell:
         """
-        echo "End time\t"$(date) > {output}
+        echo "End time_"$(date) > {output}
         """
 
 rule get_package_versions:
@@ -79,57 +79,30 @@ rule get_package_versions:
         # replaces large whitespace with tabs
         # greps for specific packages with ^ and \t to ensure complete match
         # cuts just the first 2 columns of interest
-        # Adds 'version' in front of the software
         """
         conda list | \
             sed "{params.sed_pat2}" | \
             grep -f <(cat {input} | sed "{params.sed_pat1}") | \
-            cut -f 1,2 | \
-            sed "s/^/Version /g" >> {output}
-        """
-
-rule get_sample_list:
-    output:
-        "logs/sample_list.txt"
-    params:
-        # had to put all the patterns here to ensure
-        # snakemake doesn't mangle them
-        # see below for explanation of patterns
-        sed1 = r"s/], /\n/g",
-        sed2 = r"s/{\|}\|\[\|\]//g",
-        sed3 = r"s/^/Sample /g",
-        sed4 = r"s/:/\t/g",
-    shell:
-        # prints a dictionary of samples in the config file
-        # creates a newline for each sample
-        # removes square brackets and braces
-        # adds 'Sample' to the beginning of each line
-        # replaces the colon with a tab for the technical summary table
-        """
-        echo {config[samples]} | \
-            sed "{params.sed1}" | \
-            sed "{params.sed2}" | \
-            sed "{params.sed3}" | \
-            sed "{params.sed4}" > {output}
+            cut -f 1,2 > {output}
         """
 
 rule compile_technical_summary:
     input:
-        "logs/start_time.txt",
-        "logs/end_time.txt",
-        "logs/sample_list.txt",
-        "logs/software_versions.txt",
+        start = "logs/start_time.txt",
+        end = "logs/end_time.txt",
+        software = "logs/software_versions.txt",
     output:
-        "logs/technical_summary.txt"
+        "logs/technical_summary.ReST"
     shell:
+        # note: will pass sample info directly in from the config file
         """
-        echo "Parameter\tValue" > {output} &&
-        cat {input} >> {output}
+        {config[program_dir]}/scripts/technical_ReST.py \
+            -c "{config[samples]}" \
+            -s {input.start} \
+            -e {input.end} \
+            -f {input.software} \
+            -o {output}
         """
-
-
-
-
 
 
 

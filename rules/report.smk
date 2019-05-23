@@ -25,7 +25,7 @@ rule test_report:
         dag_graph = "benchmarks/dag.png",
         bench_time = "benchmarks/bench_time.png",
         bench_mem = "benchmarks/bench_mem.png",
-        technical_summary = "logs/technical_summary.txt",
+        technical_summary = "logs/technical_summary.ReST",
         overall_figure = "logs/overall_results.png",
         # this will make the taxa plotting run, although only graphs
         # for taxa found will be created. I'll check this in mapped_report.py

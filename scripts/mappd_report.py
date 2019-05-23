@@ -110,8 +110,18 @@ The important parameters used in this pipeline are given below, including sample
 files analysed, start and end times, and software versions.
 
 """
-    tech_string = maketable.make_table_from_csv(technical_summary, sep="\t")
-    report += tech_string + "\n"
+
+    with open(technical_summary) as fl:
+        tech_string = fl.read()
+    report += tech_string + """
+
+
+|
+|
+
+________
+
+"""
 
     report += """
 
