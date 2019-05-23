@@ -51,12 +51,17 @@ taxid_list = []
 
 with open(args.abundance) as fl:
     header = next(fl).strip().split("\t")
+    # tidying up some of the headers
+    header[0] = "Sequences"
+    header[4] = "Reads"
+    header[5] = "Reads (%)"
+    sample = os.path.basename(args.abundance).split("_")[0]
     for line in fl:
         line = line.strip()
         cols = line.split("\t")
         taxid_list.append(cols[0])
         # put this ReST syntax around taxid to make it link to contigs
-        taxid = "`" + cols[0] + "`_"
+        taxid = "`" + sample + "_" + cols[0] + "`_"
         cols[0] = taxid
         kingdom = cols[1]
         if kingdom == "Viruses":
@@ -79,7 +84,7 @@ def create_rest(name, hdr, king_list):
 |
 
 *{}*
----------------------
++++++++++++++++++++++++++++++++
 
 """.format(name)
         complete_str = header_str + rest_table + "\n\n"
@@ -91,7 +96,7 @@ def create_rest(name, hdr, king_list):
 |
 
 *{}*
----------------------
++++++++++++++++++++++++++++++++
 
 NONE DETECTED.
 
@@ -100,11 +105,12 @@ NONE DETECTED.
 
     return(complete_str)
 
-vir_out = create_rest("Viruses", header, vir_list)
-bac_out = create_rest("Bacteria", header, bac_list)
-euk_out = create_rest("Eukaryotes", header, euk_list)
 
-taxa_out = vir_out + bac_out + euk_out
+euk_out = create_rest("Eukaryotes", header, euk_list)
+bac_out = create_rest("Bacteria", header, bac_list)
+vir_out = create_rest("Viruses", header, vir_list)
+
+taxa_out = euk_out + bac_out + vir_out
 
 # now need to write out the contig links to the taxids
 
@@ -113,7 +119,7 @@ link_str = ""
 for taxid in taxid_list:
     link_str += """
 .. _{}: {}/{}.fasta
-""".format(taxid, args.taxid_contig_dir, taxid)
+""".format(sample + "_" + taxid, args.taxid_contig_dir, taxid)
 
 
 output = open(args.output, "w")

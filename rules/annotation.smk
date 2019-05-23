@@ -195,3 +195,44 @@ rule plot_overall_results:
             {input.combined} \
             {output.pdf} {output.png}
         """
+
+# want to create a ReST table for each individual sample
+# that contains links to contigs per taxid
+
+rule sort_contigs_taxid:
+    input:
+        contigs = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
+        best_hits = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.best_hits"
+    output:
+        directory(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_contigs_taxid/")
+    shell:
+        """
+        {config[program_dir]}/scripts/sort_contigs_taxid.py \
+            -c {input.contigs} \
+            -b {input.best_hits} \
+            -o {output}
+        """
+
+rule create_abund_ReST_table:
+    input:
+        abund = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance",
+        contig_dir = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_contigs_taxid/"
+    output:
+        config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.ReST",
+    shell:
+        """
+        {config[program_dir]}/scripts/abundance_ReST.py \
+            -a {input.abund} \
+            -d {input.contig_dir} \
+            -o {output}
+        """
+
+
+
+
+
+
+
+
+
+

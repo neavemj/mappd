@@ -80,7 +80,7 @@ _______
 
     report += """
 
-1   Introduction
+1.   Introduction
 ==================
 MAPPD is a general pipeline for the identification of organisms in a metagenomic sample,
 although it is targeted toward the identification of pathogens.
@@ -104,7 +104,7 @@ Additional lab-based tests are required to confirm pathogen identification.
 
 _________
 
-2   Technical Summary
+2.   Technical Summary
 ========================
 The important parameters used in this pipeline are given below, including sample
 files analysed, start and end times, and software versions.
@@ -120,7 +120,7 @@ files analysed, start and end times, and software versions.
 
 _________
 
-3   Data Quality and Overall Classifications
+3.   Data Quality and Overall Classifications
 ===============================================
 The raw data were trimmed for quality and adapters using `Trimmomatic`_.
 The cleaned reads were then aligned to the SILVA ribosomal RNA databases,
@@ -172,8 +172,16 @@ The figure below gives a representation of the scaffolds with at least 10x cover
 
 ________
 
-4   Summary Classifications
+4.   Summary Classifications
 =============================
+
+The figures and tables below provide summary classifications for all samples
+that were analysed in this run. Usually this includes the most abundant 10
+organisms from Eukaryotes, Bacteria and Viruses. If you would like more detailed
+information on individual classifications, or to download sequence data associated
+with particular organisms, see section `5.  Per Sample Classifications`_.
+
+
 *Eukaryotes*
 ---------------
 The figure below shows the top 10 most abundant Eukaryotic organisms,
@@ -189,9 +197,6 @@ including how many reads mapped to each organism from each sample.
 The table shows how many reads were assigned to each organism, which family
 the organism belongs to, and gives the read count for each sample.
 
-A complete table listing all organisms is available at this `link`_.
-
-.. _link: 04_annotation/diamond/diamond_blastx_abundance_taxa.euk
 
 """
 
@@ -265,23 +270,43 @@ the organism belongs to, and gives the read count for each sample.
 
 ________
 
-5   Per Sample Classifications
+5.   Per Sample Classifications
 ===============================
+
+This section contains the complete classiciation reports for each sample.
+Again, they are divided into Eukaryotes, Bacteria and Viruses.
+The tables show the classification of each sequence at the kingdom,
+family and species level, and provide the number of reads that were
+classified to that taxa. This number is also used to calculate
+the percentage of reads mapped as a fraction of all high-quality reads in
+the dataset. In addition, the "Sequences" column provides a download link
+for all sequences classified to that particular organism (often there will
+be several).
+
+|
 
 """
         for sample in sample_abundances:
             report += """
 
-*{}*
+{}
 --------------------------------------
-
-The full annotation report is provided below
 
 """.format(os.path.basename(sample).split("_")[0])
 
-            samp_string = maketable.make_table_from_csv(sample, sep="\t")
-            report += samp_string + "\n"
+            # I've already created a ReST table using 'abundance_ReST.py'
+            # just want to insert that text directly here
+            with open(sample) as fl:
+                samp_string = fl.read()
+            report += samp_string + """
 
+
+|
+|
+
+________
+
+"""
 
 
     if dag_graph:
