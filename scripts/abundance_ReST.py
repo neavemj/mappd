@@ -71,6 +71,12 @@ with open(args.abundance) as fl:
         elif kingdom == "Eukaryota":
             euk_list.append(cols)
 
+# sometimes the sorting gets a bit out due to the host addition
+# sort the taxa lists by the 5th element (number of reads)
+vir_list = sorted(vir_list, key=lambda x: int(x[4]), reverse=True)
+bac_list = sorted(bac_list, key=lambda x: int(x[4]), reverse=True)
+euk_list = sorted(euk_list, key=lambda x: int(x[4]), reverse=True)
+
 
 def create_rest(name, hdr, king_list):
     # if this kingdom is detected, only need to add the header line

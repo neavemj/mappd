@@ -85,8 +85,6 @@ end_list = [end.split("_") for end in open(args.end)][0]
 date_list.append(start_list)
 date_list.append(end_list)
 
-print(date_list)
-
 date_rest = maketable.make_table(date_list)
 
 ## software versions ##
@@ -101,7 +99,7 @@ software_rest = maketable.make_table(software_list)
 
 # combine technical tables into one for writing
 
-rest_table = date_rest + "\n\n\n" + sample_rest2 + "\n\n\n" + software_rest
+rest_table = date_rest + "\n\n|\n\n" + sample_rest2 + "\n\n|\n\n" + software_rest
 
 output = open(args.output, "w")
 output.write(rest_table)

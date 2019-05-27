@@ -75,13 +75,13 @@ rule subset_subcontigs:
     output:
         config["sub_dirs"]["depletion_dir"] + "/host/{sample}_largest_contigs.fasta",
     shell:
-        # using the most abundant 10 contigs larger than 1000 bps for host identification
+        # using the most abundant 20 contigs larger than 1000 bps for host identification
         # can experiment with these parameters if required
         """
         {config[program_dir]}/scripts/gather_contigs.py \
             -c {input} \
             -s 1000 \
-            -n 10 \
+            -n 20 \
             -o {output}
         """
 

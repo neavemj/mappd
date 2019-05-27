@@ -33,9 +33,20 @@ samples:
 #    1203Liver:
 #        - 18-1203-MagpieLiver_S7_L001_R1_001.fastq
 #        - 18-1203-MagpieLiver_S7_L001_R2_001.fastq
-    D:
-      - D_R1.fastq
-      - D_R2.fastq
+#    D:
+#      - D_R1.fastq
+#      - D_R2.fastq
+    BFV:
+        - BFV_S11_L001_R1_001.fastq.gz
+        - BFV_S11_L001_R2_001.fastq.gz
+    Peaton:
+        - PeatonV_S13_L001_R1_001.fastq.gz
+        - PeatonV_S13_L001_R2_001.fastq.gz
+    RRV:
+        - RRV_S12_L001_R1_001.fastq.gz
+        - RRV_S12_L001_R2_001.fastq.gz
+
+
 
 # pipeline options
 # FULL = all assembly and annotation options
