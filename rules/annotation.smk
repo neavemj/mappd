@@ -89,7 +89,7 @@ rule tally_diamond_organisms:
         depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
         # adding host-specific stats here to append onto the tax results
         host = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.blastn.abundance",
-        mapping = "logs/mapping_summary.tsv",
+        mapping = "logs/rRNA_mapping_summary.tsv",
     output:
         # producing both wide and long format tables here
         # the wide will be used for the report, and the long for plotting in ggplot
@@ -182,7 +182,7 @@ rule aggregated:
 rule plot_overall_results:
     input:
         trim = "logs/trimmomatic_PE/trim_logs.summary",
-        rRNA_host = "logs/mapping_summary.tsv",
+        rRNA = "logs/rRNA_mapping_summary.tsv",
         combined = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.all",
     output:
         pdf = "logs/overall_results.pdf",
@@ -191,7 +191,7 @@ rule plot_overall_results:
         """
         Rscript {config[program_dir]}/scripts/plot_overall_results.R \
             {input.trim} \
-            {input.rRNA_host} \
+            {input.rRNA} \
             {input.combined} \
             {output.pdf} {output.png}
         """

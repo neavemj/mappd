@@ -162,6 +162,9 @@ rule tally_abundant_subspecies:
             -l {output.long}
         """
 
+# TODO: If the host is identified as a virus or bacteria (maybe because the sample is a cell-culture)
+# TODO: should stop the host-depletion and go direct to assembly.smk
+
 rule associate_hostTaxid_genbank:
     message:
         """
@@ -340,27 +343,6 @@ rule host_sam_to_fastq:
             {input} 2> /dev/null
         """
 
-rule summarise_rRNA_host_mapping:
-    message:
-        """
-        ** host_depletion **
-        Summarising number of reads mapped to rRNA and host databases
-        """
-    input:
-        lsu = expand("logs/bowtie_LSU/{sample}.log", sample=config["samples"]),
-        ssu = expand("logs/bowtie_SSU/{sample}.log", sample=config["samples"]),
-        # note the host results are no longer used down-stream
-        host = expand("logs/bowtie_host/{sample}.log", sample=config["samples"])
-    output:
-        "logs/mapping_summary.tsv"
-    shell:
-        """
-        {config[program_dir]}/scripts/summarise_mapping_results.py \
-            -l {input.lsu} \
-            -s {input.ssu} \
-            -t {input.host} \
-            -o {output}
-        """
 
 # this rule was copied over from the assembly.smk rules
 # need to do this so I can add the host stats to the overall tax stats
@@ -410,7 +392,7 @@ rule summarise_host_abundance:
         wide = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide",
         stats = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.idxstats",
         depth = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.depth",
-        mapping = "logs/mapping_summary.tsv",
+        mapping = "logs/rRNA_mapping_summary.tsv",
     output:
         config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.blastn.abundance",
     shell:

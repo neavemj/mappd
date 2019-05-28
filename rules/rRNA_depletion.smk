@@ -260,3 +260,21 @@ rule mRNA_sam_to_fastq:
             {input} 2> /dev/null
         """
 
+rule summarise_rRNA_mapping:
+    message:
+        """
+        ** rRNA_depletion **
+        Summarising number of reads mapped to rRNA and host databases
+        """
+    input:
+        lsu = expand("logs/bowtie_LSU/{sample}.log", sample=config["samples"]),
+        ssu = expand("logs/bowtie_SSU/{sample}.log", sample=config["samples"]),
+    output:
+        "logs/rRNA_mapping_summary.tsv"
+    shell:
+        """
+        {config[program_dir]}/scripts/summarise_rRNA_mapping.py \
+            -l {input.lsu} \
+            -s {input.ssu} \
+            -o {output}
+        """

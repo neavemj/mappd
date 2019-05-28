@@ -11,7 +11,7 @@ plot_overall <- function(trim, rRNA, abund, pdf_file, png_file) {
 
 
   #trim <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/logs/trimmomatic_PE/trim_logs.summary"
-  #rRNA <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/logs/mapping_summary.tsv"
+  #rRNA <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/logs/rRNA_mapping_summary.tsv"
   #abund <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/04_annotation/diamond/diamond_blastx_abundance.all"
 
   trim_df = read.csv(trim, sep="\t", header=T)

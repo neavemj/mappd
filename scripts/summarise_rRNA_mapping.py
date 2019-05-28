@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Summarise bowtie results for the rRNA and host databases
+Summarise bowtie results for the rRNA databases
 This will summarise multiple sample results into a single file
 """
 
@@ -16,10 +16,8 @@ parser.add_argument('-l', '--lsu', type = str,
                     nargs = "*", help = "LSU log files")
 parser.add_argument('-s', '--ssu', type = str,
                     nargs = "*", help = "SSU log files")
-parser.add_argument('-t', '--host', type = str,
-                    nargs = "*", help = "host log files")
 parser.add_argument('-o', '--output', type = str,
-                    help = "summary of host and rRNA mapping")
+                    help = "summary ofrRNA mapping")
 
 # if no args given, print help and exit
 
@@ -32,10 +30,9 @@ args = parser.parse_args()
 # check that the required arguments are provided
 
 if args.lsu is None or \
-        args.ssu is None or \
-        args.host is None:
+        args.ssu is None:
     print("\n** a required input is missing\n"
-          "** both rRNA and host mapping log files are required\n")
+          "** both rRNA (SSU and LSU) mapping log files are required\n")
     parser.print_help(sys.stderr)
     sys.exit(1)
 
@@ -65,13 +62,9 @@ for log_fl in args.ssu:
     results = summarise_bowtie(log_fl)
     sample_to_mapping[results[0]]["SSU"] = {"total": results[1], "unaligned": results[2]}
 
-for log_fl in args.host:
-    results = summarise_bowtie(log_fl)
-    sample_to_mapping[results[0]]["host"] = {"total": results[1], "unaligned": results[2]}
-
 # looks good now write out file for plotting
 # have to calculate the actual aligned reads weirdly like this due to bowtie output
-# because I"m removing mapped pairs, including if only 1 pair mapped,
+# because I'm removing mapped pairs, including if only 1 pair mapped,
 # it doesn't appear in the output
 
 output = open(args.output, "w")
@@ -80,10 +73,13 @@ output.write("\t".join(["Sample", "Type", "Paired_Reads"]) + "\n")
 for sample in sample_to_mapping:
     LSU_total = int(sample_to_mapping[sample]["LSU"]["total"])
     SSU_total = int(sample_to_mapping[sample]["SSU"]["total"])
-    host_total = int(sample_to_mapping[sample]["host"]["total"])
+
     LSU_pairs = LSU_total - SSU_total
-    SSU_pairs = SSU_total - host_total
+
+    SSU_pairs = SSU_total - int(sample_to_mapping[sample]["SSU"]["unaligned"])
+
     mRNA_pairs = sample_to_mapping[sample]["SSU"]["unaligned"]
+
     output.write("\t".join([sample, "rRNA_LSU", str(LSU_pairs)]) + "\n")
     output.write("\t".join([sample, "rRNA_SSU", str(SSU_pairs)]) + "\n")
     output.write("\t".join([sample, "mRNA_pairs", str(mRNA_pairs)]) + "\n")

@@ -15,7 +15,7 @@ rule spades:
     message:
         """
         ** assembly **
-        Assembling host_depleted reads with spades PE mode
+        Assembling {wildcards.sample} mRNA reads with spades PE mode
         Using spades RNA mode
         """
     input:
