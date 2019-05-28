@@ -73,9 +73,16 @@ rule subset_diamond:
             -o {output}
         """
 
-# could use idxstats to get reads mapped to each SPAdes contig
-# then could combine this with the taxonomy results
-# to output a table showing abundant organisms with how many reads mapped
+# if the host_depletion module was run, want to add those reads
+# to the overall abundance tables here
+# however, I don't want the host abundance file as a required input
+# because then all the host_depletion rules will run even If not required
+def get_host_reads(wildcards):
+    if config["host_depletion"]:
+        return(config["sub_dirs"]["depletion_dir"] + "/host/{}_host.blastn.abundance".format(wildcards.sample))
+    else:
+        return(False)
+
 
 rule tally_diamond_organisms:
     message:
@@ -87,20 +94,21 @@ rule tally_diamond_organisms:
         blast = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.best_hits",
         stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
         depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
-        # adding host-specific stats here to append onto the tax results
-        host = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.blastn.abundance",
         mapping = "logs/rRNA_mapping_summary.tsv",
     output:
         # producing both wide and long format tables here
         # the wide will be used for the report, and the long for plotting in ggplot
         config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance",
+    params:
+        # adding host-specific stats here to append onto the tax results if available
+        host = get_host_reads
     shell:
         """
         {config[program_dir]}/scripts/tally_organism_abundance.py \
             -b {input.blast} \
             -i {input.stats} \
             -d {input.depth} \
-            -s {input.host} \
+            --host {params.host} \
             -m {input.mapping} \
             -o {output} \
         """

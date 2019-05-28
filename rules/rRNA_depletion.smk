@@ -264,7 +264,7 @@ rule summarise_rRNA_mapping:
     message:
         """
         ** rRNA_depletion **
-        Summarising number of reads mapped to rRNA and host databases
+        Summarising number of reads mapped to rRNA databases
         """
     input:
         lsu = expand("logs/bowtie_LSU/{sample}.log", sample=config["samples"]),

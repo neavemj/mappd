@@ -11,6 +11,33 @@ Current assemblers include:
     - Trinity for RNA-Seq only
 """
 
+# first need to decide which reads to assemble based on the config file
+# options include rRNA depletion or host depletion
+# the host depletion happens last so the following elif order should work
+def get_reads(wildcards):
+    # if host_depletion is true then rRNA_depletion will also be true because
+    # the host_depletion rules use rRNA depleted fastq files
+    if config["host_depletion"]:
+        return([
+            config["sub_dirs"]["depletion_dir"] + "/host/{}_host_depleted_1P.fastq".format(wildcards.sample),
+            config["sub_dirs"]["depletion_dir"] + "/host/{}_host_depleted_2P.fastq".format(wildcards.sample)
+        ])
+    # if host_depletion is not true, can still just do the rRNA_depletion bit
+    elif config["rRNA_depletion"]:
+        return([
+            config["sub_dirs"]["depletion_dir"] + "/rRNA/{}_mRNA_1P.fastq".format(wildcards.sample),
+            config["sub_dirs"]["depletion_dir"] + "/rRNA/{}_mRNA_2P.fastq".format(wildcards.sample)
+        ])
+    # if neither host_depletion or rRNA_depletion are true, just returned trimmed reads
+    # NOTE: At this stage, rRNA_depletion will be run regardless due to downstream requirements
+    # need to modify overall_abundance plot (required by report) to make this work
+    else:
+        return([
+            config["sub_dirs"]["trim_dir"] + "/{}_1P.fastq.gz".format(wildcards.sample),
+            config["sub_dirs"]["trim_dir"] + "/{}_2P.fastq.gz".format(wildcards.sample)
+        ])
+
+
 rule spades:
     message:
         """
@@ -19,8 +46,7 @@ rule spades:
         Using spades RNA mode
         """
     input:
-        R1 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_1P.fastq",
-        R2 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_2P.fastq"
+        get_reads
     output:
         out_trans = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
         out_gfa = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_with_scaffolds.gfa"
@@ -40,8 +66,8 @@ rule spades:
     shell:
         """
         spades.py \
-            -1 {input.R1} \
-            -2 {input.R2} \
+            -1 {input[0]} \
+            -2 {input[1]} \
             -t {threads} \
             -k 73 \
             -m {params.max_memory} \
@@ -133,12 +159,13 @@ rule bowtie_to_spades_assembly:
     message:
         """
         ** assembly **
-        Mapping {wildcards.sample} host-depleted reads to SPAdes assembly
+        Mapping {wildcards.sample} reads back to SPAdes assembly
         to get abundance estimates
         """
     input:
-        R1 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_1P.fastq",
-        R2 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_2P.fastq",
+        # map either host_depleted reads or raw reads back to assembly
+        # depending on config file requirements
+        reads = get_reads,
         db_trick = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta.1.bt2"
     output:
         sam_fl = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sam"
@@ -153,8 +180,8 @@ rule bowtie_to_spades_assembly:
         """
         bowtie2 \
             -x {params.assembly_db} \
-            -1 {input.R1} \
-            -2 {input.R2} \
+            -1 {input.reads[0]} \
+            -2 {input.reads[1]} \
             -p {threads} \
             -S {output.sam_fl} 2> {log}
         """

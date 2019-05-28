@@ -10,9 +10,9 @@ library(scales)
 plot_overall <- function(trim, rRNA, abund, pdf_file, png_file) {
 
 
-  #trim <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/logs/trimmomatic_PE/trim_logs.summary"
-  #rRNA <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/logs/rRNA_mapping_summary.tsv"
-  #abund <- "/datasets/work/AAHL_PDNGS_WORK/test_data/sheep/04_annotation/diamond/diamond_blastx_abundance.all"
+  #trim <- "/datasets/work/AAHL_PDNGS_WORK/test_data/evag_RRV/logs/trimmomatic_PE/trim_logs.summary"
+  #rRNA <- "/datasets/work/AAHL_PDNGS_WORK/test_data/evag_RRV/logs/rRNA_mapping_summary.tsv"
+  #abund <- "/datasets/work/AAHL_PDNGS_WORK/test_data/evag_RRV/04_annotation/diamond/diamond_blastx_abundance.all"
 
   trim_df = read.csv(trim, sep="\t", header=T)
   # I'm not using reads if they're mate is discarded
@@ -70,18 +70,19 @@ plot_overall <- function(trim, rRNA, abund, pdf_file, png_file) {
     summarise(Total_Annotated = sum(Reads))
 
   unannot_df <- merge(trim_df, unannot_df, by="Sample")
+  
   unannot_df$Reads <- (unannot_df$input_pairs * 2) - unannot_df$Total_Annotated
+  # if most of the reads have been annotated, this can sometimes be less than 0
+  # due to paired end calculations in the bowtie output files
+  # could improve this by using a SQL database and tracking individual reads
+  if(unannot_df$Reads < 0){
+    unannot_df$Reads <- 0
+  }
+  
   unannot_df$Type <- "Unannotated"
   unannot_df <- unannot_df[,c("Sample", "Type", "Reads")]
 
   overall_df <- rbind(overall_df, unannot_df)
-
-  # because I added host reads to Eukaryote, these need to be combined
-  # for the factor bit below
-  overall_df <- overall_df %>%
-    group_by(Sample, Type) %>%
-    summarise(Reads = sum(Reads))
-
 
   # make the colours a bit more sensible
   cols <- c("low_quality" = "#a6761d", "rRNA_LSU" = "#FDBF6F", "rRNA_SSU" = "#FF7F00", "Eukaryote" = "#1b9e77", "Bacteria" = "#7570b3", "Virus" = "#e7298a", "Unannotated" = "#666666")

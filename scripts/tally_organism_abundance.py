@@ -23,7 +23,7 @@ import ete3_functions # used to get taxonomy info for taxids
 
 # use argparse to grab command line arguments
 
-parser = argparse.ArgumentParser("tally abundant hosts")
+parser = argparse.ArgumentParser("tally abundant organisms")
 
 parser.add_argument('-b', '--blast', type = str,
                     help = "best blast hists with outfmt 6 with particular items (see above)")
@@ -31,7 +31,7 @@ parser.add_argument('-i', '--idxstats', type = str,
                     help = "samtools idxstats file from reads mapped back to assembly")
 parser.add_argument('-d', '--depth', type = str,
                     help = "samtools depth file from reads mapped back to assembly")
-parser.add_argument('-s', '--host', type = str,
+parser.add_argument('--host', type = str,
                     help = "a pre-calculated host abundance file to add to these stats. "
                             "Can leave blank if not required.")
 parser.add_argument('-m', '--mapping', type = str,
@@ -164,7 +164,7 @@ output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped",
 
 # if a pre-calculated host abundance file is created, will be added first
 # should be the most abundant taxid
-if args.host:
+if not args.host == "False":
     with open(args.host) as fl:
         next(fl)
         for line in fl:

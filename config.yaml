@@ -59,7 +59,7 @@ pipeline: [full]
 
 # single end (SE) or paired end (PE) reads?
 
-endedness: PE
+endedness: "PE"
 
 # -------------- pipeline parameters -------------- #
 
@@ -72,18 +72,25 @@ trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
 trimmomatic_minlen: 5
 
-## Assembly parameters ##
-
-draw_bandage: "True"
+## Ribosomal depletion parameters ##
+# probably want to leave this on almost all the time
+# maybe for DNA-Seq would save time by turning it off
+# CANT TURN THIS OFF AT THE MOMENT
+# WOULD NEED TO MODIFY THE OVERALL_ABUNDANCE PLOTS
+rRNA_depletion: True
 
 ## Host depletion parameters ##
-
-host_depletion: "True"
+# turn this off for cell-cultures / isolates
+host_depletion: True
 
 # Can't download more than 10 hosts because this relies
 # on the top 10 summary file. Even if more than 10 is given
 # below, only 10 will be downloaded.
 hosts_to_download: 1
+
+## Assembly parameters ##
+
+draw_bandage: True
 
 ## Annotation parameters ##
 
