@@ -26,7 +26,8 @@ rule diamond_nr:
         config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}.diamond_blastx"
     params:
         diamond_nr_db = config["diamond_nr"],
-        diamond_nr_evalue = config["diamond_nr_evalue"]
+        diamond_nr_evalue = config["diamond_nr_evalue"],
+        diamond_qcov = config["diamond_qcov"],
     log:
        "logs/diamond/{sample}.log"
     benchmark:
@@ -42,6 +43,7 @@ rule diamond_nr:
             -q {input} \
             -o {output} \
             -p {threads} \
+            --query-cover {params.diamond_qcov} \
             --evalue {params.diamond_nr_evalue} \
             -f 6 \
                 qseqid \
@@ -52,6 +54,7 @@ rule diamond_nr:
                 bitscore \
                 staxids \
                 stitle \
+                qcovhsp \
             2> {log}
         """
 

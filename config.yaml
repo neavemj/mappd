@@ -6,18 +6,15 @@
 # also should make sure sample is a string to avoid R interpreting it as an int
 
 samples:
-#    Lung10:
-#      - Lung10_1.2m.fastq
-#      - Lung10_2.2m.fastq
-#  prawn1:
-#    - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz
-#    - 18-2595-01-Prawn1_S6_L001_R2_001.fastq.gz
-#  prawn2:
-#    - 18-2595-02-Prawn2_S7_L001_R1_001.fastq.gz
-#    - 18-2595-02-Prawn2_S7_L001_R2_001.fastq.gz
-#  prawn3:
-#    - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
-#    - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
+  prawn1:
+    - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz
+    - 18-2595-01-Prawn1_S6_L001_R2_001.fastq.gz
+  prawn2:
+    - 18-2595-02-Prawn2_S7_L001_R1_001.fastq.gz
+    - 18-2595-02-Prawn2_S7_L001_R2_001.fastq.gz
+  prawn3:
+    - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
+    - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
 #    1201BrainLiver:
 #        - 18-1201-MagpieBrainLiverP_S3_L001_R1_001.fastq
 #        - 18-1201-MagpieBrainLiverP_S3_L001_R2_001.fastq
@@ -33,19 +30,31 @@ samples:
 #    1203Liver:
 #        - 18-1203-MagpieLiver_S7_L001_R1_001.fastq
 #        - 18-1203-MagpieLiver_S7_L001_R2_001.fastq
+#    Lung10:
+#      - Lung10_1.2m.fastq
+#      - Lung10_2.2m.fastq
 #    D:
 #      - D_R1.fastq
 #      - D_R2.fastq
-    BFV:
-        - BFV_S11_L001_R1_001.fastq.gz
-        - BFV_S11_L001_R2_001.fastq.gz
-    Peaton:
-        - PeatonV_S13_L001_R1_001.fastq.gz
-        - PeatonV_S13_L001_R2_001.fastq.gz
-    RRV:
-        - RRV_S12_L001_R1_001.fastq.gz
-        - RRV_S12_L001_R2_001.fastq.gz
-
+#    BFV:
+#        - BFV_S11_L001_R1_001.fastq.gz
+#        - BFV_S11_L001_R2_001.fastq.gz
+#    Peaton:
+#        - PeatonV_S13_L001_R1_001.fastq.gz
+#        - PeatonV_S13_L001_R2_001.fastq.gz
+#    RRV:
+#        - RRV_S12_L001_R1_001.fastq.gz
+#        - RRV_S12_L001_R2_001.fastq.gz
+#    lewand:
+#        # these are actually single-end reads
+#        - Table_1_Multiplex_reagent_1.fastq.gz
+#        - Table_1_Multiplex_reagent_2.fastq.gz
+#    wilcox15:
+#        - SRR8729124_edited_1.fastq
+#        - SRR8729124_edited_2.fastq
+#    wilcox0:
+#        - SRR8729125_edited_1.fastq
+#        - SRR8729125_edited_2.fastq
 
 
 # pipeline options
@@ -95,6 +104,9 @@ draw_bandage: True
 ## Annotation parameters ##
 
 diamond_nr_evalue: 0.00001
+# the minimum amount (%) that the query seq needs to aligned to be annotated
+# this helps remove spurious hits to bacteria
+diamond_qcov: 75
 # contigs smaller than this will be removed from further analysis
 min_contig_size: 500
 
@@ -110,7 +122,7 @@ silva_SSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/SILVA_132_SSUParc
 
 acc_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb.accession2taxid"
 nt_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nt.acc2taxid.txt"
-
+gb_wgs_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb_wgs.accession2taxid"
 
 # -------------- pipline data structure -------------- #
 

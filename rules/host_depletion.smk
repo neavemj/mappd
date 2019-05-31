@@ -176,7 +176,9 @@ rule associate_hostTaxid_genbank:
     output:
         config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.ids"
     params:
-        nt_to_taxids = config["nt_to_taxids"],
+        # nt_to_taxids doesn't get as much info as including the wgs stuff
+        # nt_to_taxids = config["nt_to_taxids"],
+        gb_wgs_taxids = config["gb_wgs_taxids"],
         hosts_to_download = config["hosts_to_download"]
     benchmark:
         "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/grep_nucl_gb_ids/generic.txt"
@@ -188,7 +190,7 @@ rule associate_hostTaxid_genbank:
         grep \
             -w \
             -f <(cut -f 1 {input} | tail -n +2 | head -n {params.hosts_to_download}) \
-            {params.nt_to_taxids} \
+            {params.gb_wgs_taxids} \
             > {output}
         """
 
@@ -217,7 +219,7 @@ rule extract_host_nucl:
         """
         blastdbcmd \
             -db {params.blast_nt} \
-            -entry_batch <(cut -f 1 -d " " {input}) \
+            -entry_batch <(cut -f 2 {input}) \
             > {output} 2> {log} || true
         """
 
