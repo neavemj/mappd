@@ -57,7 +57,7 @@ rule spades:
         graph_fl = config["sub_dirs"]["assembly_dir"] + "/spades/{"
             "sample}_assembly/K73/assembly_graph_with_scaffolds.gfa",
         out_dir = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly",
-        max_memory = 16
+        max_memory = config["spades_max_memory"],
     log:
         "logs/spades/{sample}.log"
     benchmark:

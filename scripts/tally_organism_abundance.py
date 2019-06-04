@@ -105,19 +105,19 @@ with open(args.blast) as fl:
         contig = cols[0]
         # diamond sometimes returns more than 1 taxid
         # split by a semi-colon
-        taxids = cols[6].split(";")
-        for taxid in taxids:
-            # for some reason taxid is occassionally blank
-            # and it still gets added as a dict key!
-            if taxid == "": continue
-            if taxid in blast_dict:
-                blast_dict[taxid]["mapped"] += idxstats_dict[contig]
-                blast_dict[taxid]["bases"] += depth_dict[contig]
-                abund_dict[taxid] += idxstats_dict[contig]
-            else:
-                blast_dict[taxid] = {"mapped": idxstats_dict[contig],
-                                     "bases": depth_dict[contig]}
-                abund_dict[taxid] = idxstats_dict[contig]
+        # initially I ran the below loop for each taxid
+        # however, this causes a doubling up of reads
+        # can only run each taxid once
+        taxid = cols[6].split(";")[0]
+
+        if taxid in blast_dict:
+            blast_dict[taxid]["mapped"] += idxstats_dict[contig]
+            blast_dict[taxid]["bases"] += depth_dict[contig]
+            abund_dict[taxid] += idxstats_dict[contig]
+        else:
+            blast_dict[taxid] = {"mapped": idxstats_dict[contig],
+                                 "bases": depth_dict[contig]}
+            abund_dict[taxid] = idxstats_dict[contig]
 
 # will now use the ete3 functions to get taxonomy info for the taxids
 

@@ -98,7 +98,7 @@ host_depletion: True
 hosts_to_download: 1
 
 ## Assembly parameters ##
-
+spades_max_memory: 16
 draw_bandage: True
 
 ## Annotation parameters ##
@@ -108,7 +108,7 @@ diamond_nr_evalue: 0.00001
 # this helps remove spurious hits to bacteria
 diamond_qcov: 75
 # contigs smaller than this will be removed from further analysis
-min_contig_size: 500
+min_contig_size: 200
 
 # location of reference databases
 
@@ -123,6 +123,9 @@ silva_SSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/SILVA_132_SSUParc
 acc_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb.accession2taxid"
 nt_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nt.acc2taxid.txt"
 gb_wgs_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb_wgs.accession2taxid"
+
+# location of ART installation (only required for validation module)
+art: "/datasets/work/AAHL_PDNGS_WORK/software/CAMISIM/tools/art_illumina-2.3.6/"
 
 # -------------- pipline data structure -------------- #
 
