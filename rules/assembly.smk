@@ -83,8 +83,7 @@ rule trinity:
         Assembling RNA-Seq reads with Trinity
         """
     input:
-        R1 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_1P.fastq",
-        R2 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_2P.fastq"
+        get_reads
     output:
         config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.fasta"
     log:
@@ -93,7 +92,7 @@ rule trinity:
         "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/trinity/{sample}.txt"
     params:
         out_dir = config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity",
-        max_memory = "16G"
+        max_memory = config["trinity_max_memory"],
     threads: 16
     shell:
         """
@@ -102,21 +101,40 @@ rule trinity:
             --CPU {threads} \
             --max_memory {params.max_memory} \
             --full_cleanup \
-            --left {input.R1} \
-            --right {input.R2} \
+            --left {input[0]} \
+            --right {input[1]} \
             --output {params.out_dir} > {log}
         """
 
-rule subset_spades_contigs:
+
+# here I'll add the ability to choose the assembler to use
+# whichever is required for the subset rule will force the correct assembler to run
+# options include spades or trinity
+def get_assembly(wildcards):
+    if config["assembler"] == "spades":
+        return([
+            config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
+        ])
+    # if host_depletion is not true, can still just do the rRNA_depletion bit
+    elif config["assembler"] == "trinity":
+        return([
+            config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.fasta"
+        ])
+    else:
+        print("\nError: In the config.yaml file, assembler must be either 'spades' or 'trinity'\n")
+        sys.exit()
+
+
+rule subset_contigs:
     message:
         """
         ** assembly **
-        Removing small contigs from the assembly
+        Removing contigs less than {params.min_contig_size} from the assembly
         """
     input:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta"
+        get_assembly
     output:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta"
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.fasta"
     params:
         min_contig_size = config["min_contig_size"]
     shell:
@@ -130,21 +148,21 @@ rule subset_spades_contigs:
             -o {output}
         """
 
-rule build_spades_bowtiedb:
+rule build_assembly_bowtiedb:
     message:
         """
         ** assembly **
-        Building a bowtie2 database for the SPAdes assembly
+        Building a bowtie2 database for the assembly
         """
     input:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta"
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.fasta"
     output:
         # bowtie2-build needs a basename for the database
         # usually I just give it the same name as the input
         # and it appends several *bt2 files
         # will trick snakemake by using this as an output even though
         # I won't use it in the shell command
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta.1.bt2"
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.fasta.1.bt2"
     threads: 8
     shell:
         # use the same name for basename reference database
@@ -155,26 +173,26 @@ rule build_spades_bowtiedb:
             {input} > /dev/null
         """
 
-rule bowtie_to_spades_assembly:
+rule bowtie_to_assembly:
     message:
         """
         ** assembly **
-        Mapping {wildcards.sample} reads back to SPAdes assembly
+        Mapping {wildcards.sample} reads back to assembly
         to get abundance estimates
         """
     input:
         # map either host_depleted reads or raw reads back to assembly
         # depending on config file requirements
         reads = get_reads,
-        db_trick = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta.1.bt2"
+        db_trick = config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.fasta.1.bt2"
     output:
-        sam_fl = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sam"
+        sam_fl = config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sam"
     params:
-        assembly_db = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta"
+        assembly_db = config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.fasta"
     log:
-        "logs/bowtie_spades_assembly/{sample}.log"
+        "logs/bowtie_assembly/{sample}.log"
     benchmark:
-        "benchmarks/" + config["sub_dirs"]["assembly_dir"] + "/bowtie_spades_assembly/{sample}.txt"
+        "benchmarks/" + config["sub_dirs"]["assembly_dir"] + "/bowtie_assembly/{sample}.txt"
     threads: 16
     shell:
         """
@@ -186,16 +204,16 @@ rule bowtie_to_spades_assembly:
             -S {output.sam_fl} 2> {log}
         """
 
-rule spades_sam_to_bam:
+rule assembly_sam_to_bam:
     message:
         """
         ** assembly **
-        Converting {wildcards.sample} SPAdes sam file to bam
+        Converting {wildcards.sample} assembly sam file to bam
         """
     input:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sam"
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sam"
     output:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.bam"
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.bam"
     threads: 8
     shell:
         """
@@ -205,19 +223,19 @@ rule spades_sam_to_bam:
             {input} > {output}
         """
 
-rule spades_mapping_stats:
+rule assembly_mapping_stats:
     message:
         """
         ** assembly **
-        Tallying statistics on {wildcards.sample} reads mapped to the SPAdes assembly
+        Tallying statistics on {wildcards.sample} reads mapped to the assembly
         """
     input:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.bam"
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.bam"
     output:
-        sorted_bam = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.bam",
-        stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
+        sorted_bam = config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.bam",
+        stats = config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.idxstats",
         # not including depth at this stage - could be used for calculating 'bases covered'
-        #depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
+        #depth = config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.depth",
     threads: 8
     shell:
         # this will sort > index > idxstats > sort by most mapped reads

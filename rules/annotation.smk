@@ -21,7 +21,7 @@ rule diamond_nr:
         using an evalue of {params.diamond_nr_evalue}
         """
     input:
-        config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.fasta"
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.fasta"
     output:
         config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}.diamond_blastx"
     params:
@@ -102,9 +102,9 @@ rule tally_diamond_organisms:
         """
     input:
         blast = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.best_hits",
-        stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
+        stats = config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.idxstats",
         # not including depth at this stage - this could be used for calculating 'bases covered' etc
-        #depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
+        #depth = config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.depth",
         mapping = "logs/rRNA_mapping_summary.tsv",
         # adding host-specific stats here to append onto the tax results if available
         host = get_host_reads
@@ -219,8 +219,8 @@ rule plot_overall_results:
 
 rule sort_contigs_taxid:
     input:
-        contigs = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
-        best_hits = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.best_hits"
+        contigs = config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.fasta",
+        best_hits = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.best_hits",
     output:
         directory(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_contigs_taxid/")
     shell:

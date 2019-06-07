@@ -1,4 +1,4 @@
-# -------------- project specific parameters to be changed -------------- #
+## -------------- project specific parameters to be changed -------------- ##
 
 # NOTE: can't include underscore in the sample name
 # I split by this somewhere
@@ -57,22 +57,17 @@ samples:
 #        - SRR8729125_edited_2.fastq
 
 
-# pipeline options
-# FULL = all assembly and annotation options
-# SD = spades assembly followed by diamond annotation
-# SDN = spades assembly followed by diamond and blastn annotation
-# TD = trinity assembly followed by diamond annotation
-# HSDN = host removal, spades assembly followed by diamond and blastn annotation
 
-pipeline: [full]
+## -------------- pipeline parameters -------------- ##
+
+# type of sequences (RNA or DNA)
+seq_type: "RNA"
 
 # single end (SE) or paired end (PE) reads?
-
 endedness: "PE"
 
-# -------------- pipeline parameters -------------- #
+# -------------- Trimming -------------- #
 
-## Trimming parameters ##
 # Trimmomatic is used for trimming the sequencing reads
 # The program requires an adapter file specific for the sequencing run
 # and a minimum quality score can be given
@@ -81,14 +76,16 @@ trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
 trimmomatic_minlen: 5
 
-## Ribosomal depletion parameters ##
+# -------------- rRNA depletion -------------- #
+
 # probably want to leave this on almost all the time
 # maybe for DNA-Seq would save time by turning it off
 # CANT TURN THIS OFF AT THE MOMENT
 # WOULD NEED TO MODIFY THE OVERALL_ABUNDANCE PLOTS
 rRNA_depletion: True
 
-## Host depletion parameters ##
+# -------------- host depletion -------------- #
+
 # turn this off for cell-cultures / isolates
 host_depletion: False
 
@@ -97,11 +94,16 @@ host_depletion: False
 # below, only 10 will be downloaded.
 hosts_to_download: 1
 
-## Assembly parameters ##
-spades_max_memory: 16
-draw_bandage: True
+# -------------- Assembly -------------- #
 
-## Annotation parameters ##
+# options for assembler include trinity or spades
+# if DNA-Seq is seleted above, then SPAdes will be run
+# if RNA-Seq and SPAdes is chosen spades --rna mode will run
+assembler: "trinity"
+spades_max_memory: 16
+trinity_max_memory: "16G"
+
+# -------------- Annotation -------------- #
 
 diamond_nr_evalue: 0.00001
 # the minimum amount (%) that the query seq needs to aligned to be annotated
@@ -110,7 +112,7 @@ diamond_qcov: 0
 # contigs smaller than this will be removed from further analysis
 min_contig_size: 200
 
-# location of reference databases
+## -------------- Location of databases -------------- ##
 
 blast_nt: "/OSM/CDC/BIOINFO_CORE/reference/bioref/blast/ncbi/nt"
 blast_nr: "/OSM/CDC/BIOINFO_CORE/reference/bioref/blast/ncbi/nr"
@@ -127,7 +129,7 @@ gb_wgs_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb_wgs.a
 # location of ART installation (only required for validation module)
 art: "/datasets/work/AAHL_PDNGS_WORK/software/CAMISIM/tools/art_illumina-2.3.6"
 
-# -------------- pipline data structure -------------- #
+## -------------- Pipline data structure -------------- ##
 
 # this allows the user to change folder names easily
 # include the final forward slash in dir name
