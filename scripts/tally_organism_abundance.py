@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Take idxstats and depth files from bam and blast / diamond results and species abundance
+Take idxstats files from bam and blast / diamond results and species abundance
 Only works with single samples - won't combine sample files
 Can take a pre-calculated host abundance file to add to the results calculated here
 The blast / diamond format should look like this:
@@ -29,8 +29,9 @@ parser.add_argument('-b', '--blast', type = str,
                     help = "best blast hists with outfmt 6 with particular items (see above)")
 parser.add_argument('-i', '--idxstats', type = str,
                     help = "samtools idxstats file from reads mapped back to assembly")
-parser.add_argument('-d', '--depth', type = str,
-                    help = "samtools depth file from reads mapped back to assembly")
+# not doing depth at this stage - could be used to calculate 'bases covered' etc
+#parser.add_argument('-d', '--depth', type = str,
+#                    help = "samtools depth file from reads mapped back to assembly")
 parser.add_argument('--host', type = str,
                     help = "a pre-calculated host abundance file to add to these stats. "
                             "Can leave blank if not required.")
@@ -51,11 +52,10 @@ args = parser.parse_args()
 
 if args.blast is None or \
         args.idxstats is None or \
-        args.depth is None or \
         args.mapping is None or \
         args.output is None:
     print("\n** a required input is missing\n"
-          "** a blast file, idxstats file, depth file, mapping file and output name are required\n")
+          "** a blast file, idxstats file, mapping file and output name are required\n")
     parser.print_help(sys.stderr)
     sys.exit(1)
 
@@ -75,21 +75,21 @@ with open(args.idxstats) as fl:
         idxstats_dict[contig] = mapped
 
 # create a dictionary of base depth from the depth file
-
-depth_dict = {}
-total_bases = 0
-
-with open(args.depth) as fl:
-    for line in fl:
-        line = line.strip()
-        cols = line.split("\t")
-        contig = cols[0]
-        depth = int(cols[2])
-        total_bases += depth
-        if contig in depth_dict:
-            depth_dict[contig] += depth
-        else:
-            depth_dict[contig] = depth
+#
+#depth_dict = {}
+#total_bases = 0
+#
+#with open(args.depth) as fl:
+#    for line in fl:
+#        line = line.strip()
+#        cols = line.split("\t")
+#        contig = cols[0]
+#        depth = int(cols[2])
+#        total_bases += depth
+#        if contig in depth_dict:
+#            depth_dict[contig] += depth
+#        else:
+#            depth_dict[contig] = depth
 
 # create a dictionary for the blast results
 # also keep a dictionary to seperately keep track of abundance
@@ -109,14 +109,15 @@ with open(args.blast) as fl:
         # however, this causes a doubling up of reads
         # can only run each taxid once
         taxid = cols[6].split(";")[0]
+        # sometimes taxid is empty for some reason
+        if taxid == "": continue
 
         if taxid in blast_dict:
             blast_dict[taxid]["mapped"] += idxstats_dict[contig]
-            blast_dict[taxid]["bases"] += depth_dict[contig]
+            #blast_dict[taxid]["bases"] += depth_dict[contig]
             abund_dict[taxid] += idxstats_dict[contig]
         else:
-            blast_dict[taxid] = {"mapped": idxstats_dict[contig],
-                                 "bases": depth_dict[contig]}
+            blast_dict[taxid] = {"mapped": idxstats_dict[contig]}
             abund_dict[taxid] = idxstats_dict[contig]
 
 # will now use the ete3 functions to get taxonomy info for the taxids
@@ -164,7 +165,7 @@ output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped",
 
 # if a pre-calculated host abundance file is created, will be added first
 # should be the most abundant taxid
-if not args.host == "False":
+if args.host != "no_host_depletion.txt":
     with open(args.host) as fl:
         next(fl)
         for line in fl:
@@ -178,7 +179,7 @@ for taxid in sorted_taxids:
     # then round to 4 decimal places
     mapped_perc = round((blast_dict[taxid]["mapped"] / overall_reads) * 100, 4)
     # note: not writing out bases covered at this stage
-    bases_perc = (blast_dict[taxid]["bases"] / total_bases) * 100
+    # bases_perc = (blast_dict[taxid]["bases"] / total_bases) * 100
     output.write("\t".join([taxid, tax_dict[taxid]["superkingdom"], tax_dict[taxid]["family"], \
     tax_dict[taxid]["species"], str(blast_dict[taxid]["mapped"]), str(mapped_perc)]) + "\n")
 

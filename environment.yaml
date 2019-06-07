@@ -33,3 +33,6 @@ dependencies:
 
 # reporting
   - sphinx
+
+# validation
+  - bbmap

@@ -1,3 +1,32 @@
+
+# can't get RNA simulation using rnftools to work properly
+
+import rnftools
+
+rnftools.mishmash.sample("simple_example",reads_in_tuple=2)
+
+fa="GCA_003024735.1_ASM302473v1_cds_from_genomic.fna"
+
+#contig_headers = [contig.strip().lstrip(">").split(" ")[0] for contig in open(fa) if contig.startswith(">")]
+
+reads_required = 10000
+
+# this doesn't work for some reason - weird 'pickling' error
+
+for i in [2, 3, 7]:
+    rnftools.mishmash.ArtIllumina(
+    	fasta=fa,
+    	#number_of_read_tuples=10000,
+        sequences=[i],
+        coverage=10,
+    	read_length_1=150,
+    	read_length_2=150,
+    )
+
+include: rnftools.include()
+rule: input: rnftools.input()
+
+
 # rRNA depletion rules no longer required
 
 rRNA_type = ["LSU", "SSU"]

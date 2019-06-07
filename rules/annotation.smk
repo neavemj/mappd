@@ -84,8 +84,15 @@ def get_host_reads(wildcards):
     if config["host_depletion"]:
         return(config["sub_dirs"]["depletion_dir"] + "/host/{}_host.blastn.abundance".format(wildcards.sample))
     else:
-        return(False)
+        return(config["sub_dirs"]["annotation_dir"] + "/diamond/no_host_depletion.txt")
 
+rule dummy_host_file:
+    output:
+        config["sub_dirs"]["annotation_dir"] + "/diamond/no_host_depletion.txt",
+    shell:
+        """
+        touch {output}
+        """
 
 rule tally_diamond_organisms:
     message:
@@ -96,22 +103,22 @@ rule tally_diamond_organisms:
     input:
         blast = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.best_hits",
         stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
-        depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
+        # not including depth at this stage - this could be used for calculating 'bases covered' etc
+        #depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
         mapping = "logs/rRNA_mapping_summary.tsv",
+        # adding host-specific stats here to append onto the tax results if available
+        host = get_host_reads
     output:
         # producing both wide and long format tables here
         # the wide will be used for the report, and the long for plotting in ggplot
         config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance",
     params:
-        # adding host-specific stats here to append onto the tax results if available
-        host = get_host_reads
     shell:
         """
         {config[program_dir]}/scripts/tally_organism_abundance.py \
             -b {input.blast} \
             -i {input.stats} \
-            -d {input.depth} \
-            --host {params.host} \
+            --host {input.host} \
             -m {input.mapping} \
             -o {output} \
         """

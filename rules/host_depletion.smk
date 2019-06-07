@@ -359,7 +359,8 @@ rule host_mapping_stats:
     output:
         sorted_bam = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.bam",
         stats = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.idxstats",
-        depth = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.depth",
+        # not including depth at this stage
+        #depth = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.depth",
     threads: 16
     shell:
         # this will sort > index > idxstats > sort by most mapped reads
@@ -374,10 +375,7 @@ rule host_mapping_stats:
             -@ {threads} \
             {output.sorted_bam} | \
             sort -nrk 3 \
-            > {output.stats} && \
-        samtools depth \
-            {output.sorted_bam} \
-            > {output.depth}
+            > {output.stats}
         """
 
 # required so that I can add the host reads onto my
@@ -393,7 +391,7 @@ rule summarise_host_abundance:
     input:
         wide = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide",
         stats = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.idxstats",
-        depth = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.depth",
+        #depth = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.depth",
         mapping = "logs/rRNA_mapping_summary.tsv",
     output:
         config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.blastn.abundance",
@@ -402,7 +400,6 @@ rule summarise_host_abundance:
         {config[program_dir]}/scripts/tally_host_abundance.py \
             -w {input.wide} \
             -i {input.stats} \
-            -d {input.depth} \
             -m {input.mapping} \
             -o {output} \
         """

@@ -216,7 +216,8 @@ rule spades_mapping_stats:
     output:
         sorted_bam = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.bam",
         stats = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.idxstats",
-        depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
+        # not including depth at this stage - could be used for calculating 'bases covered'
+        #depth = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts_subset.sorted.depth",
     threads: 8
     shell:
         # this will sort > index > idxstats > sort by most mapped reads
@@ -231,9 +232,6 @@ rule spades_mapping_stats:
             -@ {threads} \
             {output.sorted_bam} | \
             sort -nrk 3 \
-            > {output.stats} && \
-        samtools depth \
-            {output.sorted_bam} \
-            > {output.depth}
+            > {output.stats}
         """
 

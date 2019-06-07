@@ -90,7 +90,7 @@ rRNA_depletion: True
 
 ## Host depletion parameters ##
 # turn this off for cell-cultures / isolates
-host_depletion: True
+host_depletion: False
 
 # Can't download more than 10 hosts because this relies
 # on the top 10 summary file. Even if more than 10 is given
@@ -105,8 +105,8 @@ draw_bandage: True
 
 diamond_nr_evalue: 0.00001
 # the minimum amount (%) that the query seq needs to aligned to be annotated
-# this helps remove spurious hits to bacteria
-diamond_qcov: 75
+# turn this off for the moment - removes too many true viral hits
+diamond_qcov: 0
 # contigs smaller than this will be removed from further analysis
 min_contig_size: 200
 
@@ -125,7 +125,7 @@ nt_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nt.acc2taxid.t
 gb_wgs_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb_wgs.accession2taxid"
 
 # location of ART installation (only required for validation module)
-art: "/datasets/work/AAHL_PDNGS_WORK/software/CAMISIM/tools/art_illumina-2.3.6/"
+art: "/datasets/work/AAHL_PDNGS_WORK/software/CAMISIM/tools/art_illumina-2.3.6"
 
 # -------------- pipline data structure -------------- #
 

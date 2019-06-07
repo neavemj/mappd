@@ -19,8 +19,9 @@ parser.add_argument('-w', '--wide', type = str,
                     help = "most abundant host table in wide format")
 parser.add_argument('-i', '--idxstats', type = str,
                     help = "samtools idxstats file from reads mapped back to assembly")
-parser.add_argument('-d', '--depth', type = str,
-                    help = "samtools depth file from reads mapped back to assembly")
+# removed depth at this stage - could be used to calculate 'bases covered' etc
+#parser.add_argument('-d', '--depth', type = str,
+#                    help = "samtools depth file from reads mapped back to assembly")
 parser.add_argument('-m', '--mapping', type = str,
                     help = "mapping_summary.tsv file required to get overall read numbers")
 parser.add_argument('-o', '--output', type = str,
@@ -38,10 +39,9 @@ args = parser.parse_args()
 
 if args.wide is None or \
         args.idxstats is None or \
-        args.depth is None or \
         args.output is None:
     print("\n** a required input is missing\n"
-          "** a host table, idxstats file, depth file and output name are required\n")
+          "** a host table, idxstats file and output name are required\n")
     parser.print_help(sys.stderr)
     sys.exit(1)
 
@@ -59,16 +59,16 @@ with open(args.idxstats) as fl:
         total_mapped_reads += mapped
 
 # get base depth from the depth file
-
-total_bases = 0
-
-with open(args.depth) as fl:
-    for line in fl:
-        line = line.strip()
-        cols = line.split("\t")
-        contig = cols[0]
-        depth = int(cols[2])
-        total_bases += depth
+#
+#total_bases = 0
+#
+#with open(args.depth) as fl:
+#    for line in fl:
+#        line = line.strip()
+#        cols = line.split("\t")
+#        contig = cols[0]
+#        depth = int(cols[2])
+#        total_bases += depth
 
 # get overall mRNA read numbers from mapping_summary.tsv to calculate percentages
 # tricky thing is that this script runs once for each sample,
