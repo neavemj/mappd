@@ -129,7 +129,7 @@ rule subset_contigs:
     message:
         """
         ** assembly **
-        Removing contigs less than {params.min_contig_size} from the assembly
+        Removing contigs less than {params.min_contig_size} bp from the assembly
         """
     input:
         get_assembly

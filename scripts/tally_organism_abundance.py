@@ -32,7 +32,7 @@ parser.add_argument('-i', '--idxstats', type = str,
 # not doing depth at this stage - could be used to calculate 'bases covered' etc
 #parser.add_argument('-d', '--depth', type = str,
 #                    help = "samtools depth file from reads mapped back to assembly")
-parser.add_argument('--host', type = str,
+parser.add_argument('-s', '--host', type = str,
                     help = "a pre-calculated host abundance file to add to these stats. "
                             "Can leave blank if not required.")
 parser.add_argument('-m', '--mapping', type = str,
@@ -165,7 +165,7 @@ output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped",
 
 # if a pre-calculated host abundance file is created, will be added first
 # should be the most abundant taxid
-if args.host != "no_host_depletion.txt":
+if args.host:
     with open(args.host) as fl:
         next(fl)
         for line in fl:

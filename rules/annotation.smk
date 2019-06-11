@@ -84,7 +84,8 @@ def get_host_reads(wildcards):
     if config["host_depletion"]:
         return(config["sub_dirs"]["depletion_dir"] + "/host/{}_host.blastn.abundance".format(wildcards.sample))
     else:
-        return(config["sub_dirs"]["annotation_dir"] + "/diamond/no_host_depletion.txt")
+        return([])
+        #return(config["sub_dirs"]["annotation_dir"] + "/diamond/no_host_depletion.txt")
 
 rule dummy_host_file:
     output:
@@ -113,15 +114,20 @@ rule tally_diamond_organisms:
         # the wide will be used for the report, and the long for plotting in ggplot
         config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance",
     params:
-    shell:
-        """
-        {config[program_dir]}/scripts/tally_organism_abundance.py \
-            -b {input.blast} \
-            -i {input.stats} \
-            --host {input.host} \
-            -m {input.mapping} \
-            -o {output} \
-        """
+    run:
+        if input.host:
+            host_flag = "--host {}".format(input.host)
+        else:
+            host_flag = ""
+        shell(
+            """
+            {config[program_dir]}/scripts/tally_organism_abundance.py \
+                -b {input.blast} \
+                -i {input.stats} \
+                {host_flag} \
+                -m {input.mapping} \
+                -o {output} \
+            """)
 
 # making this rule a 'checkpoint'
 # because we don't know if all supertaxa will be detected in every sample

@@ -61,6 +61,7 @@ samples:
 ## -------------- pipeline parameters -------------- ##
 
 # type of sequences (RNA or DNA)
+# this will change the assembler parameters
 seq_type: "RNA"
 
 # single end (SE) or paired end (PE) reads?
@@ -74,7 +75,7 @@ endedness: "PE"
 
 trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
-trimmomatic_minlen: 5
+trimmomatic_minlen: 50
 
 # -------------- rRNA depletion -------------- #
 
@@ -99,7 +100,7 @@ hosts_to_download: 1
 # options for assembler include trinity or spades
 # if DNA-Seq is seleted above, then SPAdes will be run
 # if RNA-Seq and SPAdes is chosen spades --rna mode will run
-assembler: "trinity"
+assembler: "spades"
 spades_max_memory: 16
 trinity_max_memory: "16G"
 
@@ -111,6 +112,9 @@ diamond_nr_evalue: 0.00001
 diamond_qcov: 0
 # contigs smaller than this will be removed from further analysis
 min_contig_size: 200
+# take unannotated reads and do a diamond blastx on the reads
+# may significantly increase the time required
+analyse_singletons: True
 
 ## -------------- Location of databases -------------- ##
 

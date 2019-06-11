@@ -62,15 +62,15 @@ plot_overall <- function(trim, rRNA, abund, pdf_file, png_file) {
 
   # figure out the total number of annotated / unannotated reads from these numbers
   # should verify this by looking at:
-    # 1) reads that didn't map to the contigs
-    # 2) plus reads that didn't form contigs or small contigs
+    # 1) reads that didn't map to the contigs (ie. didn't form contigs)
+    # 2) plus reads that mapped to contigs that didn't get annotated
     # the sum of these two things should equal the Unannotated calcs below
   unannot_df <- overall_df %>%
     group_by(Sample) %>%
     summarise(Total_Annotated = sum(Reads))
 
   unannot_df <- merge(trim_df, unannot_df, by="Sample")
-  
+
   unannot_df$Reads <- (unannot_df$input_pairs * 2) - unannot_df$Total_Annotated
   # if most of the reads have been annotated, this can sometimes be less than 0
   # due to paired end calculations in the bowtie output files
@@ -78,7 +78,7 @@ plot_overall <- function(trim, rRNA, abund, pdf_file, png_file) {
   if(unannot_df$Reads < 0){
     unannot_df$Reads <- 0
   }
-  
+
   unannot_df$Type <- "Unannotated"
   unannot_df <- unannot_df[,c("Sample", "Type", "Reads")]
 

@@ -108,7 +108,7 @@ rule LSU_get_unmapped:
             {input} > {output}
         """
 
-rule LSU_sam_to_fastq:
+rule LSU_bam_to_fastq:
     message:
         """
         ** rRNA_depletion **
