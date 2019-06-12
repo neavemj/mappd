@@ -3,9 +3,70 @@ Ribosomal RNA depletion rules
 
 These rules will map reads to the SILVA LSU and SSU rRNA databases
 and split the reads into those that match and those that don't
-It will also guess the host species based on rRNA matches
 
 """
+
+rule bbmap_to_LSU:
+    message:
+        """
+        ** rRNA_depletion **
+        Mapping cleaned {wildcards.sample} reads to the SILVA LSU rRNA database
+        """
+    input:
+        R1 = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
+        R2 = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz"
+    output:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_2P.fastq"
+    params:
+        silva_LSU_db = config['silva_LSU_db']
+    log:
+        "logs/bbmap_LSU/{sample}.log"
+    benchmark:
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/bbmap_LSU/{sample}.txt"
+    threads: 16
+    shell:
+        """
+        bbmap.sh \
+            in1={input.R1} \
+            in2={input.R2} \
+            outu1={output.R1} \
+            outu2={output.R2} \
+            threads={threads} \
+            ref={params.silva_LSU_db} > {log}
+        """
+
+rule bbmap_to_SSU:
+    message:
+        """
+        ** rRNA_depletion **
+        Mapping LSU-depleted {wildcards.sample} reads to the SILVA SSU rRNA database
+        """
+    input:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_2P.fastq"
+    output:
+        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_2P.fastq"
+    params:
+        silva_SSU_db = config['silva_SSU_db']
+    log:
+        "logs/bbmap_SSU/{sample}.log"
+    benchmark:
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/bbmap_SSU/{sample}.txt"
+    threads: 16
+    shell:
+        """
+        bbmap.sh \
+            in1={input.R1} \
+            in2={input.R2} \
+            outu1={output.R1} \
+            outu2={output.R2} \
+            threads={threads} \
+            ref={params.silva_SSU_db} > {log}
+        """
+
+
 
 rule bowtie_to_LSU:
     message:
