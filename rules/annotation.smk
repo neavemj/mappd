@@ -58,6 +58,50 @@ rule diamond_nr:
             2> {log}
         """
 
+rule diamond_nr_unmapped:
+    message:
+        """
+        ** annotation **
+        Using Diamond blastx to compare {wildcards.sample} unmapped reads to the nr database
+        using an evalue of {params.diamond_nr_evalue}
+        """
+    input:
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.unmapped.fastq",
+    output:
+        config["sub_dirs"]["annotation_dir"] + "/diamond_unmapped/{sample}.unmapped.diamond_blastx"
+    params:
+        diamond_nr_db = config["diamond_nr"],
+        diamond_nr_evalue = config["diamond_nr_evalue"],
+        diamond_qcov = config["diamond_qcov"],
+    log:
+       "logs/diamond_unmapped/{sample}.log"
+    benchmark:
+        "benchmarks/" + config["sub_dirs"]["annotation_dir"] + "/diamond_unmapped/{sample}.txt"
+    threads: 16
+    shell:
+        # note: diamond messages go to stderr
+        # in the output fmt, cols 6 and 7 need to be bitscore and taxid
+        # for the scripts subset_blast.py and tally_abundant_hosts.py
+        """
+        diamond blastx \
+            -d {params.diamond_nr_db} \
+            -q {input} \
+            -o {output} \
+            -p {threads} \
+            --evalue {params.diamond_nr_evalue} \
+            -f 6 \
+                qseqid \
+                sseqid \
+				pident \
+                length \
+                evalue \
+                bitscore \
+                staxids \
+                stitle \
+                qcovhsp \
+            2> {log}
+        """
+
 rule subset_diamond:
     message:
         """
@@ -76,24 +120,42 @@ rule subset_diamond:
             -o {output}
         """
 
+rule subset_diamond_unmapped:
+    message:
+        """
+        ** annotation **
+        Retieving the 'best' hits for each {wildcards.sample} unmapped read
+        using the maximum bitscore
+        """
+    input:
+        config["sub_dirs"]["annotation_dir"] + "/diamond_unmapped/{sample}.unmapped.diamond_blastx"
+    output:
+        config["sub_dirs"]["annotation_dir"] + "/diamond_unmapped/{sample}_unmapped_diamond_blastx.best_hits"
+    shell:
+        """
+        {config[program_dir]}/scripts/subset_blast.py \
+            -b {input} \
+            -o {output}
+        """
+
 # if the host_depletion module was run, want to add those reads
 # to the overall abundance tables here
 # however, I don't want the host abundance file as a required input
-# because then all the host_depletion rules will run even If not required
+# because then all the host_depletion rules will run even if not required
+# returning an empty list to snakemake, makes the variable empty
 def get_host_reads(wildcards):
     if config["host_depletion"]:
         return(config["sub_dirs"]["depletion_dir"] + "/host/{}_host.blastn.abundance".format(wildcards.sample))
     else:
         return([])
-        #return(config["sub_dirs"]["annotation_dir"] + "/diamond/no_host_depletion.txt")
 
-rule dummy_host_file:
-    output:
-        config["sub_dirs"]["annotation_dir"] + "/diamond/no_host_depletion.txt",
-    shell:
-        """
-        touch {output}
-        """
+# this will make the extra unmapped diamond blastx run if required
+def get_unmapped_results(wildcards):
+    if config["analyse_unmapped"]:
+        return(config["sub_dirs"]["annotation_dir"] + "/diamond_unmapped/{}_unmapped_diamond_blastx.best_hits".format(wildcards.sample))
+    else:
+        return([])
+
 
 rule tally_diamond_organisms:
     message:
@@ -108,23 +170,31 @@ rule tally_diamond_organisms:
         #depth = config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.depth",
         mapping = "logs/rRNA_mapping_summary.tsv",
         # adding host-specific stats here to append onto the tax results if available
-        host = get_host_reads
+        host = get_host_reads,
+        # add the unmapped read diamond results here if required
+        unmapped = get_unmapped_results,
     output:
         # producing both wide and long format tables here
         # the wide will be used for the report, and the long for plotting in ggplot
         config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance",
     params:
     run:
+        # the get_host_reads function returns an empty list which snakemake interprets as null
         if input.host:
             host_flag = "--host {}".format(input.host)
         else:
             host_flag = ""
+        if input.unmapped:
+            unmapped_flag = "-u {}".format(input.unmapped)
+        else:
+            unmapped_flag = ""
         shell(
             """
             {config[program_dir]}/scripts/tally_organism_abundance.py \
                 -b {input.blast} \
                 -i {input.stats} \
                 {host_flag} \
+                {unmapped_flag} \
                 -m {input.mapping} \
                 -o {output} \
             """)

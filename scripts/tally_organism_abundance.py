@@ -35,6 +35,9 @@ parser.add_argument('-i', '--idxstats', type = str,
 parser.add_argument('-s', '--host', type = str,
                     help = "a pre-calculated host abundance file to add to these stats. "
                             "Can leave blank if not required.")
+parser.add_argument('-u', '--unmapped', type = str,
+                    help = "best diamond hits from unmapped / unannotated reads"
+                            "Can leave blank if not required.")
 parser.add_argument('-m', '--mapping', type = str,
                     help = "mapping_summary.tsv file required to get overall read numbers")
 parser.add_argument('-o', '--output', type = str,
@@ -120,6 +123,45 @@ with open(args.blast) as fl:
             blast_dict[taxid] = {"mapped": idxstats_dict[contig]}
             abund_dict[taxid] = idxstats_dict[contig]
 
+# if the remove_host option is true in the config file
+# add that info here
+
+if args.host:
+    with open(args.host) as fl:
+        next(fl)
+        for line in fl:
+            line = line.strip()
+            cols = line.split("\t")
+            taxid = cols[0]
+            reads_mapped = int(cols[4])
+            if taxid in blast_dict:
+                blast_dict[taxid]["mapped"] += reads_mapped
+                #blast_dict[taxid]["bases"] += depth_dict[contig]
+                abund_dict[taxid] += reads_mapped
+            else:
+                blast_dict[taxid] = {"mapped": reads_mapped}
+                abund_dict[taxid] = reads_mapped
+
+# if the analyse_unmapped option is true in the contig file
+# I'll add these extra annotations here
+
+if args.unmapped:
+    with open(args.unmapped) as fl:
+        for line in fl:
+            line = line.strip()
+            cols = line.split("\t")
+            contig = cols[0]
+            taxid = cols[6].split(";")[0]
+            if taxid == "": continue
+            if taxid in blast_dict:
+                # each of these hits are a single read
+                # so just add 1 onto the total
+                blast_dict[taxid]["mapped"] += 1
+                abund_dict[taxid] += 1
+            else:
+                blast_dict[taxid] = {"mapped": 1}
+                abund_dict[taxid] = 1
+
 # will now use the ete3 functions to get taxonomy info for the taxids
 
 tax_dict = {}
@@ -162,14 +204,6 @@ if not overall_reads:
 # now write results
 output = open(args.output, "w")
 output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", "Reads_Mapped_percent"]) + "\n")
-
-# if a pre-calculated host abundance file is created, will be added first
-# should be the most abundant taxid
-if args.host:
-    with open(args.host) as fl:
-        next(fl)
-        for line in fl:
-            output.write(line)
 
 # now add other taxids in order of abundance
 

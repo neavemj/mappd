@@ -253,3 +253,46 @@ rule assembly_mapping_stats:
             > {output.stats}
         """
 
+rule assembly_get_unmapped:
+    message:
+        """
+        ** assembly **
+        Extracting {wildcards.sample} unannotated reads for further analysis
+        """
+    input:
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.bam",
+    output:
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.unmapped.bam",
+    threads: 8
+    shell:
+        """
+        samtools view \
+            -@ {threads} \
+            -h \
+            -f 4 \
+            {input} > {output}
+        """
+
+rule unmapped_to_fastq:
+    input:
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.unmapped.bam",
+    output:
+        config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.sorted.unmapped.fastq",
+    threads: 8
+    shell:
+        """
+        samtools fastq \
+            -@ {threads} \
+            -F 0x900 \
+            {input} > {output}
+        """
+
+
+
+
+
+
+
+
+
+

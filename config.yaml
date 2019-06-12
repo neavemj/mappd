@@ -114,7 +114,7 @@ diamond_qcov: 0
 min_contig_size: 200
 # take unannotated reads and do a diamond blastx on the reads
 # may significantly increase the time required
-analyse_singletons: True
+analyse_unmapped: True
 
 ## -------------- Location of databases -------------- ##
 
