@@ -59,9 +59,15 @@ with open(args.abundance) as fl:
     for line in fl:
         line = line.strip()
         cols = line.split("\t")
+        taxid = cols[0]
         taxid_list.append(cols[0])
-        # put this ReST syntax around taxid to make it link to contigs
-        taxid = "`" + sample + "_" + cols[0] + "`_"
+        # sometimes a taxid doesn't have any assembled sequence
+        # e.g. if it's the host or identified using single read blasting
+        if os.path.isfile("{}/{}.fasta".format(args.taxid_contig_dir, taxid)):
+            # put this ReST syntax around taxid to make it link to contigs
+            taxid = "`" + sample + "_" + taxid + "`_"
+        else:
+            taxid = sample + "_" + taxid + "*"
         cols[0] = taxid
         kingdom = cols[1]
         if kingdom == "Viruses":
@@ -123,9 +129,11 @@ taxa_out = euk_out + bac_out + vir_out
 link_str = ""
 
 for taxid in taxid_list:
-    link_str += """
+    # only add link if the fasta is present
+    if os.path.isfile("{}/{}.fasta".format(args.taxid_contig_dir, taxid)):
+        link_str += """
 .. _{}: {}/{}.fasta
-""".format(sample + "_" + taxid, args.taxid_contig_dir, taxid)
+    """.format(sample + "_" + taxid, args.taxid_contig_dir, taxid)
 
 
 output = open(args.output, "w")
