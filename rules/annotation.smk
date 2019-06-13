@@ -145,7 +145,8 @@ rule subset_diamond_unmapped:
 # returning an empty list to snakemake, makes the variable empty
 def get_host_reads(wildcards):
     if config["host_depletion"]:
-        return(config["sub_dirs"]["depletion_dir"] + "/host/{}_host.blastn.abundance".format(wildcards.sample))
+        #return(config["sub_dirs"]["depletion_dir"] + "/host/{}_host.blastn.abundance".format(wildcards.sample))
+        return("logs/host_summary/{}_host_mapping_summary.tsv".format(wildcards.sample))
     else:
         return([])
 

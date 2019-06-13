@@ -223,188 +223,66 @@ rule extract_host_nucl:
             > {output} 2> {log} || true
         """
 
-rule build_host_bowtiedb:
+rule bbmap_to_host:
     message:
         """
         ** host_depletion **
-        Building a bowtie2 database from host nucleotide sequence
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta"
-    output:
-        # bowtie2-build needs a basename for the database
-        # usually I just give it the same name as the input
-        # and it appends several *bt2 files
-        # will trick snakemake by using this as an output even though
-        # I won't use it in the shell command
-        config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta.1.bt2"
-    threads: 8
-    shell:
-        # use the same name for basename reference database
-        """
-        bowtie2-build \
-            --threads {threads} \
-            {input} \
-            {input} > /dev/null
-        """
-
-rule bowtie_to_host:
-    message:
-        """
-        ** host_depletion **
-        Mapping {wildcards.sample} mRNA reads to host database
+        Mapping mRNA {wildcards.sample} reads to host database
         """
     input:
         R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
         R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_2P.fastq",
-        db_trick = config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta.1.bt2"
-    output:
-        sam_fl = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sam"
-    params:
-        host_db = config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta"
-    log:
-        "logs/bowtie_host/{sample}.log"
-    benchmark:
-        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/bowtie_host/{sample}.txt"
-    threads:
-        16
-    shell:
-        """
-        bowtie2 \
-            -x {params.host_db} \
-            -1 {input.R1} \
-            -2 {input.R2} \
-            -p {threads} \
-            -S {output.sam_fl} 2> {log}
-        """
-
-rule host_sam_to_bam:
-    message:
-        """
-        ** host_depletion **
-        Converting {wildcards.sample} host sam file to bam
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sam"
-    output:
-        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.bam"
-    threads: 8
-    shell:
-        """
-        samtools view \
-            -@ {threads} \
-            -S -b \
-            {input} > {output}
-        """
-
-rule host_get_unmapped:
-    message:
-        """
-        ** host_depletion **
-        Collecting {wildcards.sample} reads that did not map to host sequences
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.bam"
-    output:
-        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted.bam"
-    threads: 8
-    shell:
-        # -f 13 should get reads where neither pair mapped (UNMAP & MUNMAP)
-        """
-        samtools view \
-            -@ {threads} \
-            -b \
-            -f 13 \
-            {input} > {output}
-        """
-
-rule host_sam_to_fastq:
-    message:
-        """
-        ** host_depletion **
-        Converting {wildcards.sample} host depleted sam file to fastq files
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted.bam"
+        db = config["sub_dirs"]["depletion_dir"] + "/host/host_nucl_nt.fasta",
     output:
         R1 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_1P.fastq",
-        R2 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_2P.fastq"
-    threads: 8
-    shell:
-    # the dev null bit discards unpaired reads
-    # the -F bit ensures the mates are paired
-        """
-        samtools fastq \
-            -@ {threads} \
-            -1 {output.R1} \
-            -2 {output.R2} \
-            -0 /dev/null \
-            -s /dev/null \
-            -n \
-            -F 0x900 \
-            {input} 2> /dev/null
-        """
-
-
-# this rule was copied over from the assembly.smk rules
-# need to do this so I can add the host stats to the overall tax stats
-rule host_mapping_stats:
-    message:
-        """
-        ** host_depletion **
-        Tallying statistics on {wildcards.sample} reads mapped to the host
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.bam"
-    output:
-        sorted_bam = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.bam",
-        stats = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.idxstats",
-        # not including depth at this stage
-        #depth = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.depth",
+        R2 = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_2P.fastq",
+    params:
+        max_memory = config['bbmap_max_memory'],
+    log:
+        "logs/bbmap_host/{sample}.log"
+    benchmark:
+        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/bbmap_host/{sample}.txt"
     threads: 16
     shell:
-        # this will sort > index > idxstats > sort by most mapped reads
         """
-        samtools sort \
-            -@ {threads} \
-            {input} > {output.sorted_bam} && \
-        samtools index \
-            -@ {threads} \
-            {output.sorted_bam} && \
-        samtools idxstats \
-            -@ {threads} \
-            {output.sorted_bam} | \
-            sort -nrk 3 \
-            > {output.stats}
+        bbmap.sh \
+            in1={input.R1} \
+            in2={input.R2} \
+            outu1={output.R1} \
+            outu2={output.R2} \
+            threads={threads} \
+            {params.max_memory} \
+            ref={input.db} > {log}
         """
 
-# required so that I can add the host reads onto my
-# tax barcharts in the report
-# had to modify the 'tally_organism_abundance.py' script here
-# because I'm not adding reads per contig - rather per host taxid
-rule summarise_host_abundance:
+
+rule summarise_host_mapping:
     message:
         """
         ** host_depletion **
-        summarise abundance stats for the host species
+        Calculating number of reads mapped to host sequence
         """
     input:
         wide = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide",
-        stats = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.idxstats",
-        #depth = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.sorted.depth",
-        mapping = "logs/rRNA_mapping_summary.tsv",
+        LSU_depleted = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
+        host_depleted = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_1P.fastq",
     output:
-        config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host.blastn.abundance",
+        "logs/host_summary/{sample}_host_mapping_summary.tsv"
+        #return(config["sub_dirs"]["depletion_dir"] + "/host/{}_host.blastn.abundance".format(wildcards.sample))
     shell:
+        # first calculates how many reads in each file (divide by 2 gives all reads; divide by 4 to get pairs)
+        # then uses these numbers to calculated actual LSU and SSU values
+        # then gets taxid for the host from the wide format table above
+        # then write this info to file
         """
-        {config[program_dir]}/scripts/tally_host_abundance.py \
-            -w {input.wide} \
-            -i {input.stats} \
-            -m {input.mapping} \
-            -o {output} \
+        LSU_depleted_reads=$(expr $(cat {input.LSU_depleted} | wc -l) / 2)
+        host_depleted_reads=$(expr $(cat {input.host_depleted} | wc -l) / 2)
+
+        host_reads=$(expr $LSU_depleted_reads - $host_depleted_reads)
+
+        taxid=$(cut -f 1 {input.wide} | tail -n +2 | head -n 1)
+
+        echo -e \
+            {wildcards.sample}'\t'${{taxid}}'\t'${{host_reads}} \
+                > {output}
         """
-
-
-
-
-

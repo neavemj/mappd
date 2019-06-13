@@ -17,7 +17,7 @@ parser.add_argument('-l', '--lsu', type = str,
 parser.add_argument('-s', '--ssu', type = str,
                     nargs = "*", help = "SSU log files")
 parser.add_argument('-o', '--output', type = str,
-                    help = "summary ofrRNA mapping")
+                    help = "summary of rRNA mapping")
 
 # if no args given, print help and exit
 

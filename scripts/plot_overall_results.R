@@ -24,11 +24,10 @@ plot_overall <- function(trim, rRNA, abund, pdf_file, png_file) {
   trim_long =  gather(trim_df, Type, Reads, low_quality)
   trim_long <- trim_long[,c("Sample", "Type", "Reads")]
 
-  rRNA_df = read.csv(rRNA, sep="\t", header=T)
+  rRNA_df = read.csv(rRNA, sep="\t", header=F)
   # make headers match for later rbind
-  rRNA_df$Reads <- rRNA_df$Paired_Reads * 2
-  rRNA_df <- rRNA_df[,c("Sample", "Type", "Reads")]
-  rRNA_df <- subset(rRNA_df, Type!="mRNA_pairs")
+  colnames(rRNA_df) <- c("Sample", "Type", "Reads")
+  rRNA_df <- subset(rRNA_df, Type!="mRNA_reads")
 
   abund_df = read.csv(abund, sep="\t", header=T)
 

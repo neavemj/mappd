@@ -6,15 +6,18 @@
 # also should make sure sample is a string to avoid R interpreting it as an int
 
 samples:
-  prawn1:
-    - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz
-    - 18-2595-01-Prawn1_S6_L001_R2_001.fastq.gz
-  prawn2:
-    - 18-2595-02-Prawn2_S7_L001_R1_001.fastq.gz
-    - 18-2595-02-Prawn2_S7_L001_R2_001.fastq.gz
-  prawn3:
-    - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
-    - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
+  sim1:
+    - 00_simulated/combined_sim_shuf.R1.fq
+    - 00_simulated/combined_sim_shuf.R2.fq
+#  prawn1:
+#    - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz
+#    - 18-2595-01-Prawn1_S6_L001_R2_001.fastq.gz
+#  prawn2:
+#    - 18-2595-02-Prawn2_S7_L001_R1_001.fastq.gz
+#    - 18-2595-02-Prawn2_S7_L001_R2_001.fastq.gz
+#  prawn3:
+#    - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
+#    - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
 #    1201BrainLiver:
 #        - 18-1201-MagpieBrainLiverP_S3_L001_R1_001.fastq
 #        - 18-1201-MagpieBrainLiverP_S3_L001_R2_001.fastq
@@ -84,11 +87,12 @@ trimmomatic_minlen: 50
 # CANT TURN THIS OFF AT THE MOMENT
 # WOULD NEED TO MODIFY THE OVERALL_ABUNDANCE PLOTS
 rRNA_depletion: True
+bbmap_max_memory: "-Xmx16g"
 
 # -------------- host depletion -------------- #
 
 # turn this off for cell-cultures / isolates
-host_depletion: False
+host_depletion: True
 
 # Can't download more than 10 hosts because this relies
 # on the top 10 summary file. Even if more than 10 is given
@@ -123,8 +127,8 @@ blast_nr: "/OSM/CDC/BIOINFO_CORE/reference/bioref/blast/ncbi/nr"
 # note: had to use this specific database for latest diamond version
 diamond_nr: "/OSM/CDC/BIOINFO_CORE/reference/bioref/diamond_db/nr_190301_v0924"
 
-silva_LSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/LSU/SILVA_132_LSUParc_tax_silva.DNA.fasta"
-silva_SSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/SSU/SILVA_132_SSUParc_tax_silva.DNA.fasta"
+silva_LSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/LSU"
+silva_SSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/SSU"
 
 acc_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb.accession2taxid"
 nt_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nt.acc2taxid.txt"

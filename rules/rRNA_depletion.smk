@@ -2,7 +2,9 @@
 Ribosomal RNA depletion rules
 
 These rules will map reads to the SILVA LSU and SSU rRNA databases
-and split the reads into those that match and those that don't
+and split the reads that don't match
+Another advantage of bbmap is that the fastq headers remain intact
+This is important for downstream tools, such as trinity
 
 """
 
@@ -19,7 +21,8 @@ rule bbmap_to_LSU:
         R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
         R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_2P.fastq"
     params:
-        silva_LSU_db = config['silva_LSU_db']
+        silva_LSU_db = config['silva_LSU_db'],
+        max_memory = config['bbmap_max_memory'],
     log:
         "logs/bbmap_LSU/{sample}.log"
     benchmark:
@@ -33,7 +36,9 @@ rule bbmap_to_LSU:
             outu1={output.R1} \
             outu2={output.R2} \
             threads={threads} \
-            ref={params.silva_LSU_db} > {log}
+            {params.max_memory} \
+            path={params.silva_LSU_db} \
+            > {log}
         """
 
 rule bbmap_to_SSU:
@@ -49,7 +54,8 @@ rule bbmap_to_SSU:
         R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
         R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_2P.fastq"
     params:
-        silva_SSU_db = config['silva_SSU_db']
+        silva_SSU_db = config['silva_SSU_db'],
+        max_memory = config['bbmap_max_memory'],
     log:
         "logs/bbmap_SSU/{sample}.log"
     benchmark:
@@ -63,279 +69,58 @@ rule bbmap_to_SSU:
             outu1={output.R1} \
             outu2={output.R2} \
             threads={threads} \
-            ref={params.silva_SSU_db} > {log}
+            {params.max_memory} \
+            path={params.silva_SSU_db} > {log}
         """
 
-
-
-rule bowtie_to_LSU:
+rule summarise_sample_rRNA:
     message:
         """
         ** rRNA_depletion **
-        Mapping cleaned {wildcards.sample} reads to the SILVA LSU rRNA database
+        Calculating number of reads mapped to LSU and SSU databases
         """
     input:
-        R1_P = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
-        R2_P = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz"
+        trimmed = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
+        LSU_depleted = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
+        SSU_depleted = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
     output:
-        # can mark these large sam files with temp() and they will be
-        # deleted when no other rules need them anymore
-        sam_fl = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.sam"
-    params:
-        silva_LSU_db = config['silva_LSU_db']
-    log:
-        "logs/bowtie_LSU/{sample}.log"
-    benchmark:
-        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/bowtie_LSU/{sample}.txt"
-    threads: 16
+        "logs/rRNA_summary/{sample}_rRNA_mapping_summary.tsv"
     shell:
-        # NOTE: need to use 2> because bowtie outputs to stderr
+        # first calculates how many reads in each file (divide by 2 gives all reads)
+        # then uses these numbers to calculated actual LSU and SSU values
+        # then write this info to file
+        # have to do it ugly like this because echo inserts a space otherwise
         """
-        bowtie2 \
-            -x {params.silva_LSU_db} \
-            -1 {input.R1_P} \
-            -2 {input.R2_P} \
-            -p {threads} \
-            -S {output.sam_fl} 2> {log}
-        """
+        trimmed_reads=$(expr $(zcat {input.trimmed} | wc -l) / 2)
+        LSU_depleted_reads=$(expr $(cat {input.LSU_depleted} | wc -l) / 2)
+        mRNA=$(expr $(cat {input.SSU_depleted} | wc -l) / 2)
 
-rule LSU_sam_to_bam:
-    message:
-        """
-        ** rRNA_depletion **
-        Converting {wildcards.sample} LSU sam file to bam
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.sam"
-    output:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.bam"
-    threads: 8
-    shell:
-        """
-        samtools view \
-            -@ {threads} \
-            -S -b \
-            {input} > {output}
-        """
+        LSU_reads=$(expr $trimmed_reads - $LSU_depleted_reads)
+        SSU_reads=$(expr $LSU_depleted_reads - $mRNA)
 
-rule LSU_stats:
-    message:
-        """
-        ** rRNA_depletion **
-        Tallying statistics on {wildcards.sample} reads mapped to the LSU database
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.bam"
-    output:
-        sorted_bam = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.sorted.bam",
-        stats = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.idxstats"
-    threads: 8
-    shell:
-        # this will sort > index > idxstats >
-        # sort by number of mapped reads > only output contigs with at least 3 read mapped
-        # i.e. more than a singleton pair
-        """
-        samtools sort \
-            -@ {threads} \
-            {input} > {output.sorted_bam} && \
-        samtools index \
-            -@ {threads} \
-            {output.sorted_bam} && \
-        samtools idxstats \
-            -@ {threads} \
-            {output.sorted_bam} | \
-            sort -nrk 3 | \
-            awk '$3 > 2' > {output.stats}
-        """
-
-rule LSU_get_unmapped:
-    message:
-        """
-        ** rRNA_depletion **
-        Collecting {wildcards.sample} reads that did not map to the LSU database
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU.bam"
-    output:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted.bam"
-    threads: 8
-    shell:
-        # -f 13 should get reads where neither pair mapped (UNMAP & MUNMAP)
-        # will turn into a bam file to save space
-        """
-        samtools view \
-            -@ {threads} \
-            -f 13 \
-            {input} > {output}
-        """
-
-rule LSU_bam_to_fastq:
-    message:
-        """
-        ** rRNA_depletion **
-        Converting {wildcards.sample} LSU depleted sam file to fastq files
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted.bam"
-    output:
-        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
-        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_2P.fastq"
-    threads: 8
-    shell:
-    # the dev null bit discards unpaired reads
-    # the -F bit ensures the mates are paired
-        """
-        samtools fastq \
-            -@ {threads} \
-            -1 {output.R1} \
-            -2 {output.R2} \
-            -0 /dev/null \
-            -s /dev/null \
-            -n \
-            -F 0x900 \
-            {input} 2> /dev/null
-        """
-
-rule bowtie_to_SSU:
-    message:
-        """
-        ** rRNA_depletion **
-        Mapping {wildcards.sample} LSU-depleted reads to the SILVA SSU rRNA database
-        """
-    input:
-        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
-        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_2P.fastq"
-    output:
-        sam_fl = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.sam"
-    params:
-        silva_SSU_db = config['silva_SSU_db']
-    log:
-        "logs/bowtie_SSU/{sample}.log"
-    benchmark:
-        "benchmarks/" + config["sub_dirs"]["depletion_dir"] + "/bowtie_SSU/{sample}.txt"
-    threads: 16
-    shell:
-        """
-        bowtie2 \
-            -x {params.silva_SSU_db} \
-            -1 {input.R1} \
-            -2 {input.R2} \
-            -p {threads} \
-            -S {output.sam_fl} 2> {log}
-        """
-
-rule SSU_sam_to_bam:
-    message:
-        """
-        ** rRNA_depletion **
-        Converting {wildcards.sample} SSU sam file to bam
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.sam"
-    output:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.bam"
-    threads: 8
-    shell:
-        """
-        samtools view \
-            -@ {threads} \
-            -S -b \
-            {input} > {output}
-        """
-
-rule SSU_stats:
-    message:
-        """
-        ** rRNA_depletion **
-        Tallying {wildcards.sample} statistics on reads mapped to the SSU database
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.bam"
-    output:
-        sorted_bam = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.sorted.bam",
-        stats = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.idxstats"
-    threads: 8
-    shell:
-        # this will sort > index > idxstats >
-        # sort by number of mapped reads > only output contigs with at least 3 read mapped
-        # i.e. more than a singleton pair
-        """
-        samtools sort \
-            -@ {threads} \
-            {input} > {output.sorted_bam} && \
-        samtools index \
-            -@ {threads} \
-            {output.sorted_bam} && \
-        samtools idxstats \
-            -@ {threads} \
-            {output.sorted_bam} | \
-            sort -nrk 3 | \
-            awk '$3 > 2' > {output.stats}
-        """
-
-rule SSU_get_unmapped:
-    message:
-        """
-        ** rRNA_depletion **
-        Collecting {wildcards.sample} reads that did not map to either the LSU or SSU database
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_SSU.bam"
-    output:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_rRNA_depleted.bam"
-    threads: 8
-    shell:
-        # -f 13 should get reads where neither pair mapped (UNMAP & MUNMAP)
-        """
-        samtools view \
-            -@ {threads} \
-            -f 13 \
-            -b \
-            {input} > {output}
-        """
-
-rule mRNA_sam_to_fastq:
-    message:
-        """
-        ** rRNA_depletion **
-        Converting {wildcards.sample} rRNA depleted sam file to mRNA fastq files
-        """
-    input:
-        config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_rRNA_depleted.bam"
-    output:
-        R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
-        R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_2P.fastq"
-    threads: 8
-    shell:
-    # the dev null bit discards unpaired reads
-    # the -F bit ensures the mates are paired
-        """
-        samtools fastq \
-            -@ {threads} \
-            -1 {output.R1} \
-            -2 {output.R2} \
-            -0 /dev/null \
-            -s /dev/null \
-            -n \
-            -F 0x900 \
-            {input} 2> /dev/null
+        echo -e \
+            {wildcards.sample}'\trRNA_LSU\t'${{LSU_reads}}'\n'{wildcards.sample}'\trRNA_SSU\t'${{SSU_reads}}'\n'{wildcards.sample}'\tmRNA_reads\t'${{mRNA}}'\n'\
+                > {output}
         """
 
 rule summarise_rRNA_mapping:
-    message:
-        """
-        ** rRNA_depletion **
-        Summarising number of reads mapped to rRNA databases
-        """
     input:
-        lsu = expand("logs/bowtie_LSU/{sample}.log", sample=config["samples"]),
-        ssu = expand("logs/bowtie_SSU/{sample}.log", sample=config["samples"]),
+        expand("logs/rRNA_summary/{sample}_rRNA_mapping_summary.tsv", sample=config["samples"])
     output:
         "logs/rRNA_mapping_summary.tsv"
     shell:
         """
-        {config[program_dir]}/scripts/summarise_rRNA_mapping.py \
-            -l {input.lsu} \
-            -s {input.ssu} \
-            -o {output}
+        cat {input} > {output}
         """
+
+
+
+
+
+
+
+
+
+
+
+

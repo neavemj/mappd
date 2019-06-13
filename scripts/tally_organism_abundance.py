@@ -128,19 +128,20 @@ with open(args.blast) as fl:
 
 if args.host:
     with open(args.host) as fl:
-        next(fl)
         for line in fl:
-            line = line.strip()
-            cols = line.split("\t")
-            taxid = cols[0]
-            reads_mapped = int(cols[4])
-            if taxid in blast_dict:
-                blast_dict[taxid]["mapped"] += reads_mapped
-                #blast_dict[taxid]["bases"] += depth_dict[contig]
-                abund_dict[taxid] += reads_mapped
-            else:
-                blast_dict[taxid] = {"mapped": reads_mapped}
-                abund_dict[taxid] = reads_mapped
+            # make sure line is not empty
+            if line.strip():
+                line = line.strip()
+                cols = line.split("\t")
+                taxid = cols[1].strip()
+                reads_mapped = int(cols[2].strip())
+                if taxid in blast_dict:
+                    blast_dict[taxid]["mapped"] += reads_mapped
+                    #blast_dict[taxid]["bases"] += depth_dict[contig]
+                    abund_dict[taxid] += reads_mapped
+                else:
+                    blast_dict[taxid] = {"mapped": reads_mapped}
+                    abund_dict[taxid] = reads_mapped
 
 # if the analyse_unmapped option is true in the contig file
 # I'll add these extra annotations here
@@ -188,13 +189,15 @@ sorted_taxids = sorted([(value, key) for (key,value) in abund_dict.items()], rev
 with open(args.mapping) as fl:
     sample = os.path.basename(args.output).split("_")[0]
     for line in fl:
-        line = line.strip()
-        cols = line.split("\t")
-        name = cols[0]
-        type = cols[1]
-        paired_reads = cols[2]
-        if name == sample and type == "mRNA_pairs":
-            overall_reads = int(paired_reads) * 2
+        # make sure line is not empty
+        if line.strip():
+            line = line.strip()
+            cols = line.split("\t")
+            name = cols[0]
+            type = cols[1]
+            reads = cols[2]
+            if name == sample and type == "mRNA_reads":
+                overall_reads = int(reads)
 
 if not overall_reads:
     print("could not determine overall reads from mapping_summary.tsv file")
