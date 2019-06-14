@@ -43,48 +43,61 @@ if args.abundance is None or \
 
 # read abundance file and sort by Viruses first, then Bacteria then Eukaryotes
 # should already be sorted by abundance overall
+# set mapped to false in this original dict
+# to avoid missing key error if a kingdom is absent
 
-vir_list = []
-bac_list = []
-euk_list = []
+king_dict = {"vir": {"lst": [], "mapped": False, "contigs": True},
+             "bac": {"lst": [], "mapped": False, "contigs": True},
+             "euk": {"lst": [], "mapped": False, "contigs": True}}
 taxid_list = []
 
 with open(args.abundance) as fl:
     header = next(fl).strip().split("\t")
     # tidying up some of the headers
     header[0] = "Sequences"
-    header[4] = "Reads"
-    header[5] = "Reads (%)"
+    header[4] = "Identity (%)"
+    header[5] = "Reads"
+    header[6] = "Reads (%)"
     sample = os.path.basename(args.abundance).split("_")[0]
     for line in fl:
         line = line.strip()
         cols = line.split("\t")
         taxid = cols[0]
         taxid_list.append(cols[0])
+        # if the pident is 'mapped' means that no pident is available
+        # check that here so I can add a note to the table
+        pident = cols[4]
+        if pident == "mapped^":
+            cols[4] = "mapped [#]_"
+            mapped = True
+        else:
+            mapped = False
         # sometimes a taxid doesn't have any assembled sequence
         # e.g. if it's the host or identified using single read blasting
         if os.path.isfile("{}/{}.fasta".format(args.taxid_contig_dir, taxid)):
             # put this ReST syntax around taxid to make it link to contigs
             taxid = "`" + sample + "_" + taxid + "`_"
+            contigs = True
         else:
-            taxid = sample + "_" + taxid + "*"
+            taxid = sample + "_" + taxid + " [#]_ "
+            contigs = False
         cols[0] = taxid
         kingdom = cols[1]
         if kingdom == "Viruses":
-            vir_list.append(cols)
+            king_dict["vir"]["lst"].append(cols)
+            king_dict["vir"]["mapped"] = mapped
+            king_dict["vir"]["contigs"] = contigs
         elif kingdom == "Bacteria":
-            bac_list.append(cols)
+            king_dict["bac"]["lst"].append(cols)
+            king_dict["bac"]["mapped"] = mapped
+            king_dict["bac"]["contigs"] = contigs
         elif kingdom == "Eukaryota":
-            euk_list.append(cols)
-
-# sometimes the sorting gets a bit out due to the host addition
-# sort the taxa lists by the 5th element (number of reads)
-vir_list = sorted(vir_list, key=lambda x: int(x[4]), reverse=True)
-bac_list = sorted(bac_list, key=lambda x: int(x[4]), reverse=True)
-euk_list = sorted(euk_list, key=lambda x: int(x[4]), reverse=True)
+            king_dict["euk"]["lst"].append(cols)
+            king_dict["euk"]["mapped"] = mapped
+            king_dict["euk"]["contigs"] = contigs
 
 
-def create_rest(name, hdr, king_list):
+def create_rest(name, hdr, king_list, contigs, mapped_note):
     # if this kingdom is detected, only need to add the header line
     # and create the ReST table
     if king_list:
@@ -97,7 +110,23 @@ def create_rest(name, hdr, king_list):
 +++++++++++++++++++++++++++++++
 
 """.format(name)
-        complete_str = header_str + rest_table + """
+        complete_str = header_str + rest_table
+
+        if not contigs:
+            complete_str += """
+
+.. [#] Organisms identified through mapping do not produce assembled contigs
+
+"""
+
+        if mapped_note:
+            complete_str += """
+
+.. [#] Mapped reads do not have an exact percent identity, although it will be high (>99%)
+
+"""
+
+        complete_str += """
 
 |
 
@@ -118,9 +147,9 @@ NONE DETECTED.
     return(complete_str)
 
 
-euk_out = create_rest("Eukaryotes", header, euk_list)
-bac_out = create_rest("Bacteria", header, bac_list)
-vir_out = create_rest("Viruses", header, vir_list)
+euk_out = create_rest("Eukaryotes", header, king_dict["euk"]["lst"], king_dict["euk"]["contigs"], king_dict["euk"]["mapped"])
+bac_out = create_rest("Bacteria", header, king_dict["bac"]["lst"], king_dict["bac"]["contigs"], king_dict["bac"]["mapped"])
+vir_out = create_rest("Viruses", header, king_dict["vir"]["lst"], king_dict["vir"]["contigs"], king_dict["vir"]["mapped"])
 
 taxa_out = euk_out + bac_out + vir_out
 

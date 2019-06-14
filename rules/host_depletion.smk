@@ -3,12 +3,8 @@ Host depletion rules
 
 These rules will map reads to host genetic data
 and split the reads into those that match and those that don't
-Using results from the rRNA mapping wasn't working particularly
-well. Mainly because the SSU gene is too similar across species.
-E.g. sheep and human are very similar, so the host species
-gets mixed up.
 
-Decided instead to do a small assembly on a subset of the data
+Does a small assembly on a subset of the data
 and blast the results to find host.
 """
 
@@ -264,7 +260,7 @@ rule summarise_host_mapping:
         """
     input:
         wide = config["sub_dirs"]["depletion_dir"] + "/host/largest_contigs.blastn.tax.wide",
-        LSU_depleted = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
+        SSU_depleted = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
         host_depleted = config["sub_dirs"]["depletion_dir"] + "/host/{sample}_host_depleted_1P.fastq",
     output:
         "logs/host_summary/{sample}_host_mapping_summary.tsv"
@@ -275,10 +271,10 @@ rule summarise_host_mapping:
         # then gets taxid for the host from the wide format table above
         # then write this info to file
         """
-        LSU_depleted_reads=$(expr $(cat {input.LSU_depleted} | wc -l) / 2)
+        SSU_depleted_reads=$(expr $(cat {input.SSU_depleted} | wc -l) / 2)
         host_depleted_reads=$(expr $(cat {input.host_depleted} | wc -l) / 2)
 
-        host_reads=$(expr $LSU_depleted_reads - $host_depleted_reads)
+        host_reads=$(expr $SSU_depleted_reads - $host_depleted_reads)
 
         taxid=$(cut -f 1 {input.wide} | tail -n +2 | head -n 1)
 

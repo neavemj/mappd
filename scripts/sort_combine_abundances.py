@@ -67,7 +67,7 @@ for abund_fl in args.abundance:
 
 # create a combined output as well
 output = open(args.output, "w")
-output.write("\t".join(["Sample", "Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", \
+output.write("\t".join(["Sample", "Taxid", "Kingdom", "Family", "Species", "Pident", "Reads_Mapped", \
                             "Reads_Mapped_percent"]) + "\n")
 
 # zip goes through two lists in parallel
@@ -75,7 +75,7 @@ for results, name in zip([euk_list, bac_list, vir_list], [".euk", ".bac", ".vir"
     # only write if something in the list
     if results:
         fl = open(args.stem + name, "w")
-        fl.write("\t".join(["Sample", "Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", \
+        fl.write("\t".join(["Sample", "Taxid", "Kingdom", "Family", "Species", "Pident", "Reads_Mapped", \
                             "Reads_Mapped_percent"]) + "\n")
         for result in results:
             fl.write(result)

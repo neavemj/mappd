@@ -19,6 +19,7 @@ The blast / diamond format should look like this:
 import sys, os
 import argparse
 import pandas as pd
+import numpy as np
 import ete3_functions # used to get taxonomy info for taxids
 
 # use argparse to grab command line arguments
@@ -114,13 +115,15 @@ with open(args.blast) as fl:
         taxid = cols[6].split(";")[0]
         # sometimes taxid is empty for some reason
         if taxid == "": continue
+        pident = float(cols[2])
 
         if taxid in blast_dict:
             blast_dict[taxid]["mapped"] += idxstats_dict[contig]
+            blast_dict[taxid]["pident"].append(pident)
             #blast_dict[taxid]["bases"] += depth_dict[contig]
             abund_dict[taxid] += idxstats_dict[contig]
         else:
-            blast_dict[taxid] = {"mapped": idxstats_dict[contig]}
+            blast_dict[taxid] = {"mapped": idxstats_dict[contig], "pident": [pident]}
             abund_dict[taxid] = idxstats_dict[contig]
 
 # if the remove_host option is true in the config file
@@ -134,6 +137,7 @@ if args.host:
                 line = line.strip()
                 cols = line.split("\t")
                 taxid = cols[1].strip()
+                pident = float(cols[2])
                 reads_mapped = int(cols[2].strip())
                 if taxid in blast_dict:
                     blast_dict[taxid]["mapped"] += reads_mapped
@@ -158,10 +162,23 @@ if args.unmapped:
                 # each of these hits are a single read
                 # so just add 1 onto the total
                 blast_dict[taxid]["mapped"] += 1
+                blast_dict[taxid]["pident"].append(pident)
                 abund_dict[taxid] += 1
             else:
-                blast_dict[taxid] = {"mapped": 1}
+                blast_dict[taxid] = {"mapped": 1, "pident": [pident]}
                 abund_dict[taxid] = 1
+
+# want to get the median and standard deviation of the pident values
+
+for taxid in blast_dict:
+    if "pident" in blast_dict[taxid]:
+        median = np.median(blast_dict[taxid]["pident"])
+        std = round(np.std(blast_dict[taxid]["pident"]), 2)
+        pident_label = str(median) + " [+-" + str(std) + "]"
+        blast_dict[taxid]["pident_label"] = pident_label
+        # for the host, reads are mapped and thus don't have a pident
+    else:
+        blast_dict[taxid]["pident_label"] = "mapped^"
 
 # will now use the ete3 functions to get taxonomy info for the taxids
 
@@ -206,7 +223,7 @@ if not overall_reads:
 
 # now write results
 output = open(args.output, "w")
-output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Reads_Mapped", "Reads_Mapped_percent"]) + "\n")
+output.write("\t".join(["Taxid", "Kingdom", "Family", "Species", "Pident", "Reads_Mapped", "Reads_Mapped_percent"]) + "\n")
 
 # now add other taxids in order of abundance
 
@@ -218,7 +235,7 @@ for taxid in sorted_taxids:
     # note: not writing out bases covered at this stage
     # bases_perc = (blast_dict[taxid]["bases"] / total_bases) * 100
     output.write("\t".join([taxid, tax_dict[taxid]["superkingdom"], tax_dict[taxid]["family"], \
-    tax_dict[taxid]["species"], str(blast_dict[taxid]["mapped"]), str(mapped_perc)]) + "\n")
+    tax_dict[taxid]["species"], blast_dict[taxid]["pident_label"], str(blast_dict[taxid]["mapped"]), str(mapped_perc)]) + "\n")
 
 
 

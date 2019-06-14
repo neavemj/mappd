@@ -15,7 +15,7 @@ plot_overall <- function(trim, rRNA, abund, pdf_file, png_file) {
   #abund <- "/datasets/work/AAHL_PDNGS_WORK/test_data/evag_RRV/04_annotation/diamond/diamond_blastx_abundance.all"
 
   trim_df = read.csv(trim, sep="\t", header=T)
-  # I'm not using reads if they're mate is discarded
+  # I'm not using reads if their mate is discarded
   # will combine these results into the 'dropped' category and convert to reads, not pairs
   trim_df$low_quality <- (trim_df$input_pairs - trim_df$both_surviving) * 2
   colnames(trim_df) <- c("Sample", "input_pairs", "both_surviving", "forward_only", "reverse_only", "dropped", "low_quality")
@@ -24,12 +24,12 @@ plot_overall <- function(trim, rRNA, abund, pdf_file, png_file) {
   trim_long =  gather(trim_df, Type, Reads, low_quality)
   trim_long <- trim_long[,c("Sample", "Type", "Reads")]
 
-  rRNA_df = read.csv(rRNA, sep="\t", header=F)
+  rRNA_df = read.csv(rRNA, sep="\t", header=F, row.names=NULL)
   # make headers match for later rbind
   colnames(rRNA_df) <- c("Sample", "Type", "Reads")
   rRNA_df <- subset(rRNA_df, Type!="mRNA_reads")
 
-  abund_df = read.csv(abund, sep="\t", header=T)
+  abund_df = read.csv(abund, sep="\t", header=T, row.names=NULL)
 
   euk_df = subset(abund_df, Kingdom=="Eukaryota")
   bac_df = subset(abund_df, Kingdom=="Bacteria")
