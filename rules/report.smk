@@ -42,4 +42,6 @@ rule test_report:
                                      sample_abundances=input.sample_abundances,
                                      )
         report(sphinx_str, output[0], stylesheet=input.report_css, metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
+        test = open("sphinx_str.txt", "w")
+        test.write(sphinx_str)
 

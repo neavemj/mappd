@@ -38,7 +38,7 @@ rule bbmap_to_LSU:
             threads={threads} \
             {params.max_memory} \
             path={params.silva_LSU_db} \
-            > {log}
+            1> {log} 2> &1
         """
 
 rule bbmap_to_SSU:
@@ -70,7 +70,8 @@ rule bbmap_to_SSU:
             outu2={output.R2} \
             threads={threads} \
             {params.max_memory} \
-            path={params.silva_SSU_db} > {log}
+            path={params.silva_SSU_db} \
+            1> {log} 2> &1
         """
 
 rule summarise_sample_rRNA:

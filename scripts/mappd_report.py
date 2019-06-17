@@ -115,11 +115,7 @@ files analysed, start and end times, and software versions.
         tech_string = fl.read()
     report += tech_string + """
 
-
 |
-|
-
-________
 
 """
 

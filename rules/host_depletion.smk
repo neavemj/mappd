@@ -248,7 +248,8 @@ rule bbmap_to_host:
             outu2={output.R2} \
             threads={threads} \
             {params.max_memory} \
-            ref={input.db} > {log}
+            ref={input.db} \
+            1> {log} 2> &1
         """
 
 

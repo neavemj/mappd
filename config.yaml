@@ -87,7 +87,7 @@ trimmomatic_minlen: 50
 # CANT TURN THIS OFF AT THE MOMENT
 # WOULD NEED TO MODIFY THE OVERALL_ABUNDANCE PLOTS
 rRNA_depletion: True
-bbmap_max_memory: "-Xmx16g"
+bbmap_max_memory: "-Xmx32g"
 
 # -------------- host depletion -------------- #
 
@@ -104,7 +104,7 @@ hosts_to_download: 1
 # options for assembler include trinity or spades
 # if DNA-Seq is seleted above, then SPAdes will be run
 # if RNA-Seq and SPAdes is chosen spades --rna mode will run
-assembler: "spades"
+assembler: "trinity"
 spades_max_memory: 16
 trinity_max_memory: "16G"
 
