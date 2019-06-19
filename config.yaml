@@ -87,7 +87,8 @@ trimmomatic_minlen: 50
 # CANT TURN THIS OFF AT THE MOMENT
 # WOULD NEED TO MODIFY THE OVERALL_ABUNDANCE PLOTS
 rRNA_depletion: True
-bbmap_max_memory: "-Xmx32g"
+# set this at 1G lower than total
+bbmap_max_memory: "-Xmx15g"
 
 # -------------- host depletion -------------- #
 
@@ -127,8 +128,8 @@ blast_nr: "/OSM/CDC/BIOINFO_CORE/reference/bioref/blast/ncbi/nr"
 # note: had to use this specific database for latest diamond version
 diamond_nr: "/OSM/CDC/BIOINFO_CORE/reference/bioref/diamond_db/nr_190301_v0924"
 
-silva_LSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/LSU"
-silva_SSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/SSU"
+silva_LSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/LSU/SILVA_132_LSUParc_tax_silva.DNA.fasta"
+silva_SSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/SSU/SILVA_132_SSUParc_tax_silva.DNA.fasta"
 
 acc_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb.accession2taxid"
 nt_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nt.acc2taxid.txt"

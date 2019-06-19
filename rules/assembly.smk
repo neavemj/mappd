@@ -80,7 +80,7 @@ rule trinity:
     message:
         """
         ** assembly **
-        Assembling RNA-Seq reads with Trinity
+        Assembling {wildcards.sample} RNA-Seq reads with Trinity
         """
     input:
         get_reads

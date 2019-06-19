@@ -144,7 +144,7 @@ if args.host:
                     #blast_dict[taxid]["bases"] += depth_dict[contig]
                     abund_dict[taxid] += reads_mapped
                 else:
-                    blast_dict[taxid] = {"mapped": reads_mapped}
+                    blast_dict[taxid] = {"mapped": reads_mapped, "pident": []}
                     abund_dict[taxid] = reads_mapped
 
 # if the analyse_unmapped option is true in the contig file
@@ -158,6 +158,8 @@ if args.unmapped:
             contig = cols[0]
             taxid = cols[6].split(";")[0]
             if taxid == "": continue
+            pident = float(cols[2])
+
             if taxid in blast_dict:
                 # each of these hits are a single read
                 # so just add 1 onto the total
@@ -168,11 +170,12 @@ if args.unmapped:
                 blast_dict[taxid] = {"mapped": 1, "pident": [pident]}
                 abund_dict[taxid] = 1
 
+
 # want to get the median and standard deviation of the pident values
 
 for taxid in blast_dict:
     if "pident" in blast_dict[taxid]:
-        median = np.median(blast_dict[taxid]["pident"])
+        median = round(np.median(blast_dict[taxid]["pident"]), 2)
         std = round(np.std(blast_dict[taxid]["pident"]), 2)
         pident_label = str(median) + " [+-" + str(std) + "]"
         blast_dict[taxid]["pident_label"] = pident_label
@@ -193,7 +196,9 @@ for taxid in blast_dict:
         species = ete3_functions.get_desired_rank(taxid, "species")
     except:
         print("taxid {} not found".format(taxid))
-        continue
+        superkingdom = "<taxid not found>"
+        family = "<taxid not found>"
+        species = "<taxid not found>"
     tax_dict[taxid] = {"superkingdom": superkingdom, "family": family, "species": species}
 
 # sort taxids by their abundance (mapped reads) for writing out
@@ -218,7 +223,7 @@ with open(args.mapping) as fl:
 
 if not overall_reads:
     print("could not determine overall reads from mapping_summary.tsv file")
-    print("outputting 0")
+    print("using 0")
     overall_reads = 0
 
 # now write results

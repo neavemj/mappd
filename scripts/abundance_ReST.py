@@ -68,7 +68,6 @@ with open(args.abundance) as fl:
         # check that here so I can add a note to the table
         pident = cols[4]
         if pident == "mapped^":
-            cols[4] = "mapped [#]_"
             mapped = True
         else:
             mapped = False
@@ -79,7 +78,7 @@ with open(args.abundance) as fl:
             taxid = "`" + sample + "_" + taxid + "`_"
             contigs = True
         else:
-            taxid = sample + "_" + taxid + " [#]_ "
+            taxid = sample + "_" + taxid + "*"
             contigs = False
         cols[0] = taxid
         kingdom = cols[1]
@@ -115,14 +114,14 @@ def create_rest(name, hdr, king_list, contigs, mapped_note):
         if not contigs:
             complete_str += """
 
-.. [#] Organisms identified through mapping do not produce assembled contigs
+* Assembled contigs not produced
 
 """
 
         if mapped_note:
             complete_str += """
 
-.. [#] Mapped reads do not have an exact percent identity, although it will be high (>99%)
+^ Mapped reads do not have an exact percent identity, although it will be high (>99%)
 
 """
 

@@ -30,15 +30,15 @@ rule bbmap_to_LSU:
     threads: 16
     shell:
         """
-        bbmap.sh \
+        bbduk.sh \
             in1={input.R1} \
             in2={input.R2} \
             outu1={output.R1} \
             outu2={output.R2} \
             threads={threads} \
             {params.max_memory} \
-            path={params.silva_LSU_db} \
-            1> {log} 2> &1
+            ref={params.silva_LSU_db} \
+            1>{log} 2>&1
         """
 
 rule bbmap_to_SSU:
@@ -63,15 +63,15 @@ rule bbmap_to_SSU:
     threads: 16
     shell:
         """
-        bbmap.sh \
+        bbduk.sh \
             in1={input.R1} \
             in2={input.R2} \
             outu1={output.R1} \
             outu2={output.R2} \
             threads={threads} \
             {params.max_memory} \
-            path={params.silva_SSU_db} \
-            1> {log} 2> &1
+            ref={params.silva_SSU_db} \
+            1>{log} 2>&1
         """
 
 rule summarise_sample_rRNA:

@@ -241,7 +241,7 @@ rule bbmap_to_host:
     threads: 16
     shell:
         """
-        bbmap.sh \
+        bbduk.sh \
             in1={input.R1} \
             in2={input.R2} \
             outu1={output.R1} \
@@ -249,7 +249,7 @@ rule bbmap_to_host:
             threads={threads} \
             {params.max_memory} \
             ref={input.db} \
-            1> {log} 2> &1
+            1>{log} 2>&1
         """
 
 
