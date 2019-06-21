@@ -158,8 +158,19 @@ rule tally_abundant_subspecies:
             -l {output.long}
         """
 
+# TODO: if no hits are returned (happened once), stop host-depletion step
 # TODO: If the host is identified as a virus or bacteria (maybe because the sample is a cell-culture)
 # TODO: should stop the host-depletion and go direct to assembly.smk
+
+# is this allowed?
+
+#def check_host_results:
+#    read tax.wide file
+#    if host is not a eukaryote or if host not found:
+#        config["host_depletion"] == False
+
+
+
 
 rule associate_hostTaxid_genbank:
     message:

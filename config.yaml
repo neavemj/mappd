@@ -80,6 +80,8 @@ trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
 trimmomatic_minlen: 50
 
+phix_genome: "config/phix174_ill.ref.fa"
+
 # -------------- rRNA depletion -------------- #
 
 # probably want to leave this on almost all the time

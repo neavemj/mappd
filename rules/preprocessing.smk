@@ -58,6 +58,38 @@ rule trimmomatic_PE:
             2> {log}
         """
 
+rule phix_screen:
+    message:
+        """
+        ** preprocessing **
+        Removing phiX reads from {wildcards.sample}
+        """
+    input:
+        R1 = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
+        R2 = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz",
+    output:
+        R1 = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.phiX.fastq.gz",
+        R2 = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.phiX.fastq.gz",
+    log:
+        "logs/phix_removal/{sample}.log"
+    params:
+        phix_genome = config["program_dir"] + config["phix_genome"]
+    threads: 4
+    shell:
+        """
+        bbduk.sh \
+            in1={input.R1} \
+            in2={input.R2} \
+            outu1={output.R1} \
+            outu2={output.R2} \
+            threads={threads} \
+            ref={params.phix_genome} \
+            k=31 \
+            hdist=1 \
+            1>{log} 2>&1
+        """
+
+
 rule summarise_trimmomatic_log:
     input:
         expand("logs/trimmomatic_PE/{sample}.log", sample=config["samples"])

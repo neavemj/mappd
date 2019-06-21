@@ -15,8 +15,8 @@ rule bbmap_to_LSU:
         Mapping cleaned {wildcards.sample} reads to the SILVA LSU rRNA database
         """
     input:
-        R1 = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
-        R2 = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.fastq.gz"
+        R1 = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.phiX.fastq.gz",
+        R2 = config["sub_dirs"]["trim_dir"] + "/{sample}_2P.phiX.fastq.gz",
     output:
         R1 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
         R2 = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_2P.fastq"

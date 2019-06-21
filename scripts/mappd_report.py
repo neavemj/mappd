@@ -69,7 +69,16 @@ in the NCBI databases (might get missed in the classification steps).
 
     report = """
 
+.. raw:: html
+
+    <div id="nav">
+
+
 .. contents:: MAPPD: Metagenomic Analysis Pipeline for Pathogen Discovery
+
+.. raw:: html
+
+    </div>
 
 |
 |
