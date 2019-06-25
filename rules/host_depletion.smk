@@ -163,6 +163,7 @@ rule tally_abundant_subspecies:
 # TODO: should stop the host-depletion and go direct to assembly.smk
 
 # is this allowed?
+# don't think this will work because snakemake would need to re-evaluate the DAG
 
 #def check_host_results:
 #    read tax.wide file

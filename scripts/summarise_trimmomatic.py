@@ -44,7 +44,7 @@ for log_fl in args.trimmomatic_input:
         for line in fl:
             line = line.strip()
             if line.startswith("Input"):
-                name = os.path.basename(log_fl).rstrip(".log")
+                name = os.path.basename(log_fl).replace(".log", "")
                 cols = line.split(":")
                 input_pairs = cols[1].strip().split(" ")[0]
                 both_surviving = cols[2].strip().split(" ")[0]
