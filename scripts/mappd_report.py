@@ -149,7 +149,7 @@ processes are shown as the grey 'Unannotated' bar below.
 .. _Trimmomatic: http://www.usadellab.org/cms/?page=trimmomatic
 
     """
-    report += "\t.. image:: " + data_uri_from_file(overall_figure)[0] + "\n"
+    report += "\t.. image:: " + data_uri_from_file(overall_figure) + "\n"
 
     if spades_bandage:
         report += """
@@ -167,7 +167,7 @@ The figure below gives a representation of the scaffolds with at least 10x cover
 """
         # NOTE: spades_bandage is a 'named list' due to wildcard expansion
         # thus, have to take first element of list to get str for data_uri
-        report += "\t.. image:: " + data_uri_from_file(spades_bandage[0])[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(spades_bandage[0]) + "\n"
 
     if trinity_bandage:
         report += """
@@ -177,7 +177,7 @@ The figure below gives a representation of the scaffolds with at least 10x cover
 """
         # NOTE: spades_bandage is a 'named list' due to wildcard expansion
         # thus, have to take first element of list to get str for data_uri
-        report += "\t.. image:: " + data_uri_from_file(trinity_bandage[0])[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(trinity_bandage[0]) + "\n"
 
     if "euk_figure" in taxa_files:
         report += """
@@ -203,7 +203,7 @@ The figure below shows the top 10 most abundant Eukaryotic organisms,
 including how many reads mapped to each organism from each sample.
 
 """
-        report += "\t.. image:: " + data_uri_from_file(taxa_files["euk_figure"])[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(taxa_files["euk_figure"]) + "\n"
 
         report += """
 
@@ -231,7 +231,7 @@ The figure below shows the top 10 most abundant bacteria,
 including how many reads mapped to each organism from each sample.
 
 """
-        report += "\t.. image:: " + data_uri_from_file(taxa_files["bac_figure"])[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(taxa_files["bac_figure"]) + "\n"
 
         report += """
 
@@ -258,7 +258,7 @@ The figure below shows the top 10 most abundant viruses (if at least 10 were det
 including how many reads mapped to each organism from each sample.
 
 """
-        report += "\t.. image:: " + data_uri_from_file(taxa_files["vir_figure"])[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(taxa_files["vir_figure"]) + "\n"
 
         report += """
 
@@ -337,7 +337,7 @@ Detailed DAG graph of pipeline structure
 A Directed Acyclic Graph (DAG) graph of the steps carried out in this pipeline is given below
 
 """
-        report += "\t.. image:: " + data_uri_from_file(dag_graph)[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(dag_graph) + "\n"
 
     if bench_time:
         report += """
@@ -352,7 +352,7 @@ Benchmarks
 The time taken for each process, and each sample, is given below
 
 """
-        report += "\t.. image:: " + data_uri_from_file(bench_time)[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(bench_time) + "\n"
 
     if bench_mem:
         report += """
@@ -362,6 +362,6 @@ The time taken for each process, and each sample, is given below
 The maximum memory required for each process, and each sample, is given below
 
 """
-        report += "\t.. image:: " + data_uri_from_file(bench_mem)[0] + "\n"
+        report += "\t.. image:: " + data_uri_from_file(bench_mem) + "\n"
 
     return(report)
