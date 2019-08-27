@@ -42,6 +42,29 @@ rule test_report:
                                      sample_abundances=input.sample_abundances,
                                      )
         report(sphinx_str, output[0], stylesheet=input.report_css, metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
-        test = open("sphinx_str.txt", "w")
-        test.write(sphinx_str)
 
+
+rule test_Rmarkdown:
+    input:
+        dag_graph = "benchmarks/dag.png",
+        bench_time = "benchmarks/bench_time.png",
+        bench_mem = "benchmarks/bench_mem.png",
+        technical_summary = "logs/technical_summary.ReST",
+        overall_figure = "logs/overall_results.png",
+        # this will make the taxa plotting run, although only graphs
+        # for taxa found will be created. I'll check this in mapped_report.py
+        taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
+        sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.ReST", sample=config["samples"]),
+    output:
+        "test_Rmarkdown.html"
+    shell:
+    """
+        {config[program_dir]}/scripts/rmarkdown_report.R \
+            config \
+            input.dag_graph \
+            input.bench_mem \
+            input.bench_time \
+            input.technical_summary \
+            input.overall_figure \
+            input.sample_abundances
+      """
