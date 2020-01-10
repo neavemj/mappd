@@ -37,8 +37,37 @@ def get_reads(wildcards):
             config["sub_dirs"]["trim_dir"] + "/{}_2P.fastq.gz".format(wildcards.sample)
         ])
 
+rule spades_DNA:
+    message:
+        """
+        ** assembly **
+        Assembling {wildcards.sample} reads with spades PE mode
+        Using spades DNA mode
+        """
+    input:
+        get_reads
+    output:
+        out_contigs = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/contigs.fasta",
+    params:
+        out_dir = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly",
+        max_memory = config["spades_max_memory"],
+    log:
+        "logs/spades/{sample}.log"
+    benchmark:
+        "benchmarks/" + config["sub_dirs"]["assembly_dir"] + "/spades/{sample}.txt"
+    threads: 16
+    shell:
+        """
+        spades.py \
+            -1 {input[0]} \
+            -2 {input[1]} \
+            -t {threads} \
+            -k 73 \
+            -m {params.max_memory} \
+            -o {params.out_dir} > {log}
+        """
 
-rule spades:
+rule spades_RNA:
     message:
         """
         ** assembly **
@@ -111,7 +140,13 @@ rule trinity:
 # whichever is required for the subset rule will force the correct assembler to run
 # options include spades or trinity
 def get_assembly(wildcards):
-    if config["assembler"] == "spades":
+    # if it's DNA, then only have the spades assembler implemented
+    if config["seq_type"] == "DNA":
+        return([
+            config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/contigs.fasta"
+        ])
+    # if it's RNA, then we have two assembler options
+    elif config["assembler"] == "spades":
         return([
             config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
         ])
