@@ -42,7 +42,7 @@ rule spades_DNA:
         """
         ** assembly **
         Assembling {wildcards.sample} reads with spades PE mode
-        Using spades DNA mode
+        Using spades metagenome DNA mode
         """
     input:
         get_reads
@@ -62,7 +62,7 @@ rule spades_DNA:
             -1 {input[0]} \
             -2 {input[1]} \
             -t {threads} \
-            -k 73 \
+            --meta \
             -m {params.max_memory} \
             -o {params.out_dir} > {log}
         """

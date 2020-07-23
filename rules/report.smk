@@ -58,13 +58,13 @@ rule test_Rmarkdown:
     output:
         "test_Rmarkdown.html"
     shell:
-    """
-        {config[program_dir]}/scripts/rmarkdown_report.R \
-            config \
-            input.dag_graph \
-            input.bench_mem \
-            input.bench_time \
-            input.technical_summary \
-            input.overall_figure \
-            input.sample_abundances
-      """
+        """
+            {config[program_dir]}/scripts/rmarkdown_report.R \
+                config \
+                input.dag_graph \
+                input.bench_mem \
+                input.bench_time \
+                input.technical_summary \
+                input.overall_figure \
+                input.sample_abundances
+          """
