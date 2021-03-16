@@ -88,15 +88,15 @@ blast_nr: "/datasets/work/bioinfo-core/reference/bioref/blast/ncbi/nr"
 # note: using the 'latest' shortcut - would need to check folder for actual db version
 diamond_nr: "/datasets/work/bioinfo-core/reference/bioref/diamond_db_archive/nr_190301_v0924"
 
-silva_LSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/LSU/SILVA_132_LSUParc_tax_silva.DNA.fasta"
-silva_SSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/SSU/SILVA_132_SSUParc_tax_silva.DNA.fasta"
+silva_LSU_db: "/datasets/work/aahl-pdngs/work/db/silva_rRNA_db/LSU/SILVA_132_LSUParc_tax_silva.DNA.fasta"
+silva_SSU_db: "/datasets/work/aahl-pdngs/work/db/silva_rRNA_db/SSU/SILVA_132_SSUParc_tax_silva.DNA.fasta"
 
-acc_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb.accession2taxid"
-nt_to_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nt.acc2taxid.txt"
-gb_wgs_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb_wgs.accession2taxid"
+acc_to_taxids: "/datasets/work/aahl-pdngs/work/db/ncbi_conversions/nucl_gb.accession2taxid"
+nt_to_taxids: "/datasets/work/aahl-pdngs/work/db/ncbi_conversions/nt.acc2taxid.txt"
+gb_wgs_taxids: "/datasets/work/aahl-pdngs/work/db/ncbi_conversions/nucl_gb_wgs.accession2taxid"
 
 # location of ART installation (only required for validation module)
-art: "/datasets/work/AAHL_PDNGS_WORK/software/CAMISIM/tools/art_illumina-2.3.6"
+art: "/datasets/work/aahl-pdngs/work/software/CAMISIM/tools/art_illumina-2.3.6"
 
 
 ## -------------- Pipline data structure -------------- ##
