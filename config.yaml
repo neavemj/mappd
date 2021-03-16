@@ -6,58 +6,15 @@
 # also should make sure sample is a string to avoid R interpreting it as an int
 
 samples:
-  sim1:
-    - 00_simulated/combined_sim_shuf.R1.fq
-    - 00_simulated/combined_sim_shuf.R2.fq
-#  prawn1:
-#    - 18-2595-01-Prawn1_S6_L001_R1_001.fastq.gz
-#    - 18-2595-01-Prawn1_S6_L001_R2_001.fastq.gz
-#  prawn2:
-#    - 18-2595-02-Prawn2_S7_L001_R1_001.fastq.gz
-#    - 18-2595-02-Prawn2_S7_L001_R2_001.fastq.gz
-#  prawn3:
-#    - 18-2595-03-Prawn3_S8_L001_R1_001.fastq.gz
-#    - 18-2595-03-Prawn3_S8_L001_R2_001.fastq.gz
-#    1201BrainLiver:
-#        - 18-1201-MagpieBrainLiverP_S3_L001_R1_001.fastq
-#        - 18-1201-MagpieBrainLiverP_S3_L001_R2_001.fastq
-#    1202Brain:
-#        - 18-1202-MagpieBrainP_S5_L001_R1_001.fastq
-#        - 18-1202-MagpieBrainP_S5_L001_R2_001.fastq
-#    1202Liver:
-#        - 18-1202-MagpieLiverP_S4_L001_R1_001.fastq
-#        - 18-1202-MagpieLiverP_S4_L001_R2_001.fastq
-#    1203Brain:
-#        - 18-1203-MagpieBrainP_S6_L001_R1_001.fastq
-#        - 18-1203-MagpieBrainP_S6_L001_R2_001.fastq
-#    1203Liver:
-#        - 18-1203-MagpieLiver_S7_L001_R1_001.fastq
-#        - 18-1203-MagpieLiver_S7_L001_R2_001.fastq
-#    Lung10:
-#      - Lung10_1.2m.fastq
-#      - Lung10_2.2m.fastq
-#    D:
-#      - D_R1.fastq
-#      - D_R2.fastq
-#    BFV:
-#        - BFV_S11_L001_R1_001.fastq.gz
-#        - BFV_S11_L001_R2_001.fastq.gz
-#    Peaton:
-#        - PeatonV_S13_L001_R1_001.fastq.gz
-#        - PeatonV_S13_L001_R2_001.fastq.gz
-#    RRV:
-#        - RRV_S12_L001_R1_001.fastq.gz
-#        - RRV_S12_L001_R2_001.fastq.gz
-#    lewand:
-#        # these are actually single-end reads
-#        - Table_1_Multiplex_reagent_1.fastq.gz
-#        - Table_1_Multiplex_reagent_2.fastq.gz
-#    wilcox15:
-#        - SRR8729124_edited_1.fastq
-#        - SRR8729124_edited_2.fastq
-#    wilcox0:
-#        - SRR8729125_edited_1.fastq
-#        - SRR8729125_edited_2.fastq
+  MS2008-01-1002:
+    - ../1.raw/MS2008-01-1002-H7N7_S2_L001_R1_001.fastq.gz
+    - ../1.raw/MS2008-01-1002-H7N7_S2_L001_R2_001.fastq.gz
+  MS2008-15-0502:
+    - ../1.raw/MS2008-15-0502-H5N2_S1_L001_R1_001.fastq.gz
+    - ../1.raw/MS2008-15-0502-H5N2_S1_L001_R2_001.fastq.gz
+  MS2008-28-1706:
+    - ../1.raw/MS2008-28-1706-H7N6_S3_L001_R1_001.fastq.gz
+    - ../1.raw/MS2008-28-1706-H7N6_S3_L001_R2_001.fastq.gz
 
 
 
@@ -76,7 +33,7 @@ endedness: "PE"
 # The program requires an adapter file specific for the sequencing run
 # and a minimum quality score can be given
 
-trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
+trimmomatic_adapters: "config/NexteraPE-PE.fa"
 trimmomatic_quality: 20
 trimmomatic_minlen: 50
 
@@ -95,7 +52,7 @@ bbmap_max_memory: "-Xmx15g"
 # -------------- host depletion -------------- #
 
 # turn this off for cell-cultures / isolates
-host_depletion: True
+host_depletion: False
 
 # Can't download more than 10 hosts because this relies
 # on the top 10 summary file. Even if more than 10 is given
@@ -121,14 +78,15 @@ diamond_qcov: 0
 min_contig_size: 200
 # take unannotated reads and do a diamond blastx on the reads
 # may significantly increase the time required
-analyse_unmapped: True
+analyse_unmapped: False
 
 ## -------------- Location of databases -------------- ##
 
-blast_nt: "/OSM/CDC/BIOINFO_CORE/reference/bioref/blast/ncbi/nt"
-blast_nr: "/OSM/CDC/BIOINFO_CORE/reference/bioref/blast/ncbi/nr"
-# note: had to use this specific database for latest diamond version
-diamond_nr: "/OSM/CDC/BIOINFO_CORE/reference/bioref/diamond_db/nr_190301_v0924"
+
+blast_nt: "/datasets/work/bioinfo-core/reference/bioref/blast/ncbi/nt"
+blast_nr: "/datasets/work/bioinfo-core/reference/bioref/blast/ncbi/nr"
+# note: using the 'latest' shortcut - would need to check folder for actual db version
+diamond_nr: "/datasets/work/bioinfo-core/reference/bioref/diamond_db_archive/nr_190301_v0924"
 
 silva_LSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/LSU/SILVA_132_LSUParc_tax_silva.DNA.fasta"
 silva_SSU_db: "/datasets/work/AAHL_PDNGS_WORK/db/silva_rRNA_db/SSU/SILVA_132_SSUParc_tax_silva.DNA.fasta"
@@ -140,12 +98,13 @@ gb_wgs_taxids: "/datasets/work/AAHL_PDNGS_WORK/db/ncbi_conversions/nucl_gb_wgs.a
 # location of ART installation (only required for validation module)
 art: "/datasets/work/AAHL_PDNGS_WORK/software/CAMISIM/tools/art_illumina-2.3.6"
 
+
 ## -------------- Pipline data structure -------------- ##
 
 # this allows the user to change folder names easily
 # include the final forward slash in dir name
 
-program_dir: "/datasets/work/AAHL_PDNGS_WORK/mappd/"
+program_dir: "/datasets/work/aahl-pdngs/work/mappd/"
 
 sub_dirs:
   trim_dir: "01_trimmomatic"
