@@ -10,6 +10,7 @@ library(RColorBrewer)
 plot_abund <- function(abund_summary, tsv_file, pdf_file, png_file) {
 
   #abund_summary <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/04_annotation/diamond/diamond_blastx_abundance_taxa.euk"
+  abund_summary <- "/flush5/nea040/62.OsHV1_AFDL/2.mappd/04_annotation/diamond/diamond_blastx_abundance_taxa.vir"
 
   summary_df = read.csv(abund_summary, sep="\t", header=T)
 
@@ -39,7 +40,8 @@ plot_abund <- function(abund_summary, tsv_file, pdf_file, png_file) {
   summary_table <- species_summary_wide %>%
     mutate(Total = rowSums(.[3:ncol(species_summary_wide)])) %>%
     arrange(wt = -Total) %>%
-    top_n(10, wt = Total)
+    top_n(10, wt = Total) %>%
+    filter(row_number() <=10)
   
   # write wide format table
   write.table(summary_table, tsv_file, quote=F, sep="\t", row.names = F)
