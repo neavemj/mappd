@@ -10,7 +10,7 @@ library(RColorBrewer)
 plot_abund <- function(abund_summary, tsv_file, pdf_file, png_file) {
 
   #abund_summary <- "/datasets/work/AAHL_PDNGS_WORK/test_data/abalone/04_annotation/diamond/diamond_blastx_abundance_taxa.euk"
-  abund_summary <- "/flush5/nea040/62.OsHV1_AFDL/2.mappd/04_annotation/diamond/diamond_blastx_abundance_taxa.vir"
+  #abund_summary <- "/flush5/nea040/62.OsHV1_AFDL/2.mappd/04_annotation/diamond/diamond_blastx_abundance_taxa.vir"
 
   summary_df = read.csv(abund_summary, sep="\t", header=T)
 
