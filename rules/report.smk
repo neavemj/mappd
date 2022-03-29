@@ -33,7 +33,7 @@ rule test_report:
         sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.ReST", sample=config["samples"]),
         report_css = config["program_dir"] + "config/report.css",
     output:
-        "test_report.html"
+        "mappd_report.html"
     run:
         sphinx_str = generate_report(config=config, dag_graph=input.dag_graph,
                                      bench_mem=input.bench_mem, bench_time=input.bench_time,
