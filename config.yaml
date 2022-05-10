@@ -61,8 +61,7 @@ hosts_to_download: 1
 
 # -------------- Assembly -------------- #
 
-# options for assembler include trinity or spades
-# if DNA-Seq is seleted above, then SPAdes will be run
+# options for assembler include trinity, spades or megahit
 # if RNA-Seq and SPAdes is chosen spades --rna mode will run
 assembler: "trinity"
 spades_max_memory: 16

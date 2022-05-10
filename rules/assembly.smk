@@ -105,6 +105,32 @@ rule spades_RNA:
             mv {params.graph_fl} {params.out_dir}
         """
 
+rule megahit:
+    message:
+        """
+        ** assembly **
+        Assembling {wildcards.sample} reads with megahit
+        """
+    input:
+        get_reads
+    output:
+        out_contigs = config["sub_dirs"]["assembly_dir"] + "/megahit/{sample}_assembly/final.contigs.fa",
+    params:
+        out_dir = config["sub_dirs"]["assembly_dir"] + "/megahit/{sample}_assembly",
+    log:
+        "logs/megahit/{sample}.log"
+    benchmark:
+        "benchmarks/" + config["sub_dirs"]["assembly_dir"] + "/megahit/{sample}.txt"
+    threads: 16
+    shell:
+        """
+        megahit \
+            -1 {input[0]} \
+            -2 {input[1]} \
+            -t {threads} \
+            -o {params.out_dir} > {log}
+        """
+
 rule trinity:
     message:
         """
@@ -140,23 +166,28 @@ rule trinity:
 # whichever is required for the subset rule will force the correct assembler to run
 # options include spades or trinity
 def get_assembly(wildcards):
-    # if it's DNA, then only have the spades assembler implemented
-    if config["seq_type"] == "DNA":
+    # if it's DNA and spades, return a configs file
+    if config["assembler"] == "spades" and config["seq_type"] == "DNA":
         return([
             config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/contigs.fasta"
         ])
-    # if it's RNA, then we have two assembler options
-    elif config["assembler"] == "spades":
+    # if it's RNA and spades, return a transcripts file
+    elif config["assembler"] == "spades" and config["seq_type"] == "RNA":
         return([
             config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
         ])
-    # if host_depletion is not true, can still just do the rRNA_depletion bit
+    # if it's megahit
+    elif config["assembler"] == "megahit":
+        return([
+            config["sub_dirs"]["assembly_dir"] + "/megahit/{sample}_assembly/final.contigs.fa",
+        ])
+    # if it's trinity
     elif config["assembler"] == "trinity":
         return([
             config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.fasta"
         ])
     else:
-        print("\nError: In the config.yaml file, assembler must be either 'spades' or 'trinity'\n")
+        print("\nError: In the config.yaml file, assembler must be either 'spades', 'trinity' or 'megahit'\n")
         sys.exit()
 
 
