@@ -102,4 +102,56 @@ rule summarise_trimmomatic_log:
         """
 
 
+rule porechop:
+    message:
+        """
+        ** preprocessing **
+        Trimming {wildcards.sample} MinION reads for adapters using Porechop
+        """
+    input:
+        reads = getFastq
+    output:
+        config["sub_dirs"]["trim_dir"] + "/{sample}.porechop.fastq"
+    params:
+ 
+    threads: 8
+    log:
+        "logs/porechop/{sample}.log"
+    benchmark:
+        "benchmarks/porechop/{sample}.txt"
+    shell:
+        """
+        porechop \
+            -t {threads} \
+            -i {input} \
+            -o {output} \
+            > {log}
+        """
+        
+        
+rule nanofilt:
+    message:
+        """
+        ** preprocessing **
+        Trimming {wildcards.sample} MinION reads for quality using NanoFilt
+        """
+    input:
+        config["sub_dirs"]["trim_dir"] + "/{sample}.porechop.fastq",
+    output:
+        config["sub_dirs"]["trim_dir"] + "/{sample}.porechop.nanofilt.fastq",
+    params:
+        nanofilt_quality = config["nanofilt_quality"]
+    threads: 1
+    log:
+        "logs/nanofilt/{sample}.log"
+    benchmark:
+        "benchmarks/nanofilt/{sample}.txt"
+    shell:
+        """
+        NanoFilt \
+            --quality {params.nanofilt_quality} \
+            --logfile {log} \
+            {input} \
+            > {output}
+        """
 

@@ -123,7 +123,12 @@ rule megahit:
         "benchmarks/" + config["sub_dirs"]["assembly_dir"] + "/megahit/{sample}.txt"
     threads: 16
     shell:
+    # note: need the rm -rf because snakemake creates the output directory first
+    # because it's listed in the 'output' bit
+    # however, megahit wants to create its own directory (can't be already existing)
         """
+        rm -rf {params.out_dir}
+
         megahit \
             -1 {input[0]} \
             -2 {input[1]} \
@@ -205,12 +210,12 @@ rule subset_contigs:
         min_contig_size = config["min_contig_size"]
     shell:
         # extract contigs larger than 500 bps for annotation
-        # stop at 100,000 contigs? Presumably there won't be many more that this?
+        # stop at 1,000,000 contigs? Presumably there won't be many more that this?
         """
         {config[program_dir]}/scripts/gather_contigs.py \
             -c {input} \
             -s {params.min_contig_size} \
-            -n 100000 \
+            -n 1000000 \
             -o {output}
         """
 
