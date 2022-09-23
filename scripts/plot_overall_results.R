@@ -117,6 +117,7 @@ plot_overall <- function(trim, rRNA, abund, pdf_file, png_file) {
 
   ggsave(pdf_file, p, width=8, height=ht)
   ggsave(png_file, width=8, height=ht, dpi=300)
+  write.table(overall_df, "overall_counts.txt", sep="\t", quote=F, row.names=F)
 
 }
 

@@ -37,6 +37,8 @@ trimmomatic_adapters: "config/NexteraPE-PE.fa"
 trimmomatic_quality: 20
 trimmomatic_minlen: 50
 
+nanofilt_quality: 10
+
 phix_genome: "config/phix174_ill.ref.fa"
 
 # -------------- rRNA depletion -------------- #

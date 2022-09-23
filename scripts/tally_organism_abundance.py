@@ -220,11 +220,14 @@ with open(args.mapping) as fl:
             reads = cols[2]
             if name == sample and type == "mRNA_reads":
                 overall_reads = int(reads)
+            else:
+                overall_reads = None
 
 if not overall_reads:
     print("could not determine overall reads from mapping_summary.tsv file")
-    print("using 0")
-    overall_reads = 0
+    print("using 1")
+    print("all these calculations will be wrong")
+    overall_reads = 1
 
 # now write results
 output = open(args.output, "w")
