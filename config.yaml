@@ -6,15 +6,9 @@
 # also should make sure sample is a string to avoid R interpreting it as an int
 
 samples:
-  MS2008-01-1002:
-    - ../1.raw/MS2008-01-1002-H7N7_S2_L001_R1_001.fastq.gz
-    - ../1.raw/MS2008-01-1002-H7N7_S2_L001_R2_001.fastq.gz
-  MS2008-15-0502:
-    - ../1.raw/MS2008-15-0502-H5N2_S1_L001_R1_001.fastq.gz
-    - ../1.raw/MS2008-15-0502-H5N2_S1_L001_R2_001.fastq.gz
-  MS2008-28-1706:
-    - ../1.raw/MS2008-28-1706-H7N6_S3_L001_R1_001.fastq.gz
-    - ../1.raw/MS2008-28-1706-H7N6_S3_L001_R2_001.fastq.gz
+  s23-00347-10:
+    - ../1.raw/23-00347-10_S15_L001_R1_001.fastq.gz
+    - ../1.raw/23-00347-10_S15_L001_R2_001.fastq.gz
 
 
 
@@ -32,8 +26,9 @@ endedness: "PE"
 # Trimmomatic is used for trimming the sequencing reads
 # The program requires an adapter file specific for the sequencing run
 # and a minimum quality score can be given
+# NexteraPE-PE.fa  TruSeq2-PE.fa  TruSeq2-SE.fa  TruSeq3-PE-2.fa  TruSeq3-PE.fa  TruSeq3-SE.fa
 
-trimmomatic_adapters: "config/NexteraPE-PE.fa"
+trimmomatic_adapters: "config/TruSeq3-PE-2.fa"
 trimmomatic_quality: 20
 trimmomatic_minlen: 50
 
@@ -49,7 +44,7 @@ phix_genome: "config/phix174_ill.ref.fa"
 # WOULD NEED TO MODIFY THE OVERALL_ABUNDANCE PLOTS
 rRNA_depletion: True
 # set this at 1G lower than total
-bbmap_max_memory: "-Xmx15g"
+bbmap_max_memory: "-Xmx64g"
 
 # -------------- host depletion -------------- #
 
@@ -66,8 +61,8 @@ hosts_to_download: 1
 # options for assembler include trinity, spades or megahit
 # if RNA-Seq and SPAdes is chosen spades --rna mode will run
 assembler: "trinity"
-spades_max_memory: 16
-trinity_max_memory: "16G"
+spades_max_memory: 64
+trinity_max_memory: "64G"
 
 # -------------- Annotation -------------- #
 
