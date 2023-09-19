@@ -155,12 +155,14 @@ rule trinity:
         max_memory = config["trinity_max_memory"],
     threads: 16
     shell:
+    # adding the --no_salmon parameter to avoid version conflicts
         """
         Trinity \
             --seqType fq \
             --CPU {threads} \
             --max_memory {params.max_memory} \
             --full_cleanup \
+            --no_salmon \
             --left {input[0]} \
             --right {input[1]} \
             --output {params.out_dir} > {log}

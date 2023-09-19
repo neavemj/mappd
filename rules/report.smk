@@ -46,25 +46,41 @@ rule test_report:
 
 rule test_Rmarkdown:
     input:
+        config_file = "config.yaml",
         dag_graph = "benchmarks/dag.png",
         bench_time = "benchmarks/bench_time.png",
         bench_mem = "benchmarks/bench_mem.png",
-        technical_summary = "logs/technical_summary.ReST",
-        overall_figure = "logs/overall_results.png",
+        tech_summary = "logs/technical_summary.ReST",
+        time_log = "logs/time_log.txt",
+        software_list = "logs/software_versions.txt",
+        trim = "logs/trimmomatic_PE/trim_logs.summary",
+        rRNA = "logs/rRNA_mapping_summary.tsv",
+        abund = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.all",
         # this will make the taxa plotting run, although only graphs
-        # for taxa found will be created. I'll check this in mapped_report.py
+        # for taxa found will be created. I'll check this in rmardown_report.Rmd
         taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
-        sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.ReST", sample=config["samples"]),
+        # instead of the below (which passes a variable number of files) could take care of this in the rmd file
+        # like the summary graphs, use a eval command in the chunks depending on what is produced?
+        #sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.ReST", sample=config["samples"]),
+        rmarkdown = config["program_dir"] + "scripts/rmarkdown_report.Rmd",
     output:
-        "test_Rmarkdown.html"
+        report = "test_Rmarkdown.html"
     shell:
         """
-            {config[program_dir]}/scripts/rmarkdown_report.R \
-                config \
-                input.dag_graph \
-                input.bench_mem \
-                input.bench_time \
-                input.technical_summary \
-                input.overall_figure \
-                input.sample_abundances
-          """
+        Rscript {config[program_dir]}/scripts/run_markdown.R \
+            --config_file {input.config_file} \
+            --dag {input.dag_graph} \
+            --software_list {input.software_list} \
+            --bench_time {input.bench_time} \
+            --bench_mem {input.bench_mem} \
+            --tech_summary {input.tech_summary} \
+            --trim {input.trim} \
+            --rRNA {input.rRNA} \
+            --abund {input.abund} \
+            --taxa_figures {input.taxa_pngs} \
+            --sample_abundances "NA" \
+            --output {output.report} \
+            --output_dir . \
+            --rmarkdown {input.rmarkdown}
+        """
+  

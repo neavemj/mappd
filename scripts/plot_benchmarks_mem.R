@@ -6,9 +6,9 @@ library(ggplot2)
 
 plot_bench_mem <- function(bench_summary, pdf_file, png_file) {
 
-  #bench_summary <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/benchmarks/tmp_benchmarks/tmp.txt"
+  #bench_summary <- "../test_data/freshwater_prawn/benchmarks/benchmarks.summary"
 
-  bench_fl = read.table(bench_summary, sep="\t", header=T)
+  bench_fl = read.table(bench_summary, sep="\t", header=T, fill=T)
 
   ggplot(bench_fl, aes(x=max_vms, y=process, color=sample)) +
     geom_point(size=2) +

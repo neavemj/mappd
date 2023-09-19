@@ -82,7 +82,8 @@ analyse_unmapped: False
 blast_nt: "/datasets/work/bioinfo-core/reference/bioref/blast/ncbi/nt"
 blast_nr: "/datasets/work/bioinfo-core/reference/bioref/blast/ncbi/nr"
 # note: using the 'latest' shortcut - would need to check folder for actual db version
-diamond_nr: "/datasets/work/bioinfo-core/reference/bioref/diamond_db_archive/nr_190301_v0924"
+# note: Ond said best to use the below path, which is on scratch - faster than the bowen paths
+diamond_nr: "/data/bioref/diamond_db/nr.dmnd"
 
 silva_LSU_db: "/datasets/work/aahl-pdngs/work/db/silva_rRNA_db/LSU/SILVA_132_LSUParc_tax_silva.DNA.fasta"
 silva_SSU_db: "/datasets/work/aahl-pdngs/work/db/silva_rRNA_db/SSU/SILVA_132_SSUParc_tax_silva.DNA.fasta"

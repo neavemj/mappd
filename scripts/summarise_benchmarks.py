@@ -55,7 +55,7 @@ def read_benchmark(fl):
 
 output = open(args.output, "w")
 output.write("\t".join(["module", "process", "sample", "s", "h:m:s", "max_rss", "max_vms", "max_uss", "max_pss", "io_in",
-                        "io_out", "mean_load"]) + "\n")
+                        "io_out", "mean_load", "cpu_time"]) + "\n")
 
 for walk in os.walk(args.benchmark_directory):
     # will ignore the current directory (with no files)

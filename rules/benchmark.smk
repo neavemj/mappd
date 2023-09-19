@@ -56,12 +56,15 @@ rule record_end:
     input:
         # need to 'trick' snakemake into only running this at the end
         # ideally this will be, for example,  "annotation_summary.txt"
-        config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
+        start = "logs/start_time.txt",
+        dummy = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
     output:
-        "logs/end_time.txt"
+        end = "logs/end_time.txt",
+        times = "logs/time_log.txt"
     shell:
         """
-        echo "End time_"$(date) > {output}
+        echo -e "end time\t"$(date) > {output.end}
+        cat {input.start} {output.end} > {output.times}
         """
 
 rule get_package_versions:

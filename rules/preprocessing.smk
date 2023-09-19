@@ -14,7 +14,7 @@ rule record_start:
         "logs/start_time.txt"
     shell:
         """
-        echo "Start time_"$(date) > {output}
+        echo -e "start time\t"$(date) > {output}
         """
 
 # for some reason I have put this function here to get wildcards to work

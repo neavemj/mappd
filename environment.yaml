@@ -43,7 +43,7 @@ dependencies:
   - datrie=0.7.1=py37h7b6447c_1
   - dbus=1.13.6=h746ee38_0
   - decorator=4.4.0=py37_1
-  - diamond=0.9.24=ha888412_1
+  - diamond>=2.1
   - docutils=0.14=py37_0
   - dropbox=9.4.0=py37_0
   - entrez-direct=11.0=pl526_0

@@ -71,12 +71,13 @@ plot_overall <- function(trim, rRNA, abund, pdf_file, png_file) {
   unannot_df <- merge(trim_df, unannot_df, by="Sample")
 
   unannot_df$Reads <- (unannot_df$input_pairs * 2) - unannot_df$Total_Annotated
+  print(unannot_df)
   # if most of the reads have been annotated, this can sometimes be less than 0
   # due to paired end calculations in the bowtie output files
   # could improve this by using a SQL database and tracking individual reads
-  if(unannot_df$Reads < 0){
-    unannot_df$Reads <- 0
-  }
+  #if(unannot_df$Reads < 0){
+  #  unannot_df$Reads <- 0
+  #}
 
   unannot_df$Type <- "Unannotated"
   unannot_df <- unannot_df[,c("Sample", "Type", "Reads")]

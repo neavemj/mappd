@@ -8,7 +8,7 @@ plot_bench_time <- function(bench_summary, pdf_file, png_file) {
 
   #bench_summary <- "/datasets/work/AAHL_PDNGS_WORK/test_data/freshwater_prawn/benchmarks/tmp_benchmarks/tmp.txt"
 
-  bench_fl = read.table(bench_summary, sep="\t", header=T)
+  bench_fl = read.table(bench_summary, sep="\t", header=T, fill=T)
 
   # not summarising like this at the moment
   ## this bit just gets total time values for all samples, and all processes ##
