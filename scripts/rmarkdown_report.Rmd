@@ -1,0 +1,449 @@
+---
+title: "MAPPD report"
+author: "DSR Sequencing Laboratory"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    theme: flatly
+    toc: false
+    toc_float: false
+    smooth_scroll: false
+params:
+  config_file: "NA"
+  dag: "NA"
+  software_list: "NA"
+  bench_time: "NA"
+  bench_mem: "NA"
+  tech_summary: "NA"
+  trim: "NA"
+  rRNA: "NA"
+  abund: "NA"
+  taxa_figures: "NA"
+  sample_abundances: "NA"
+  output: "NA"
+  output_dir: "NA"
+---
+
+
+<!-- set-up code including library loading here -->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+knitr::opts_knit$set(root.dir = working_dir)
+
+library(ggplot2)
+library(tidyr)
+require(scales)
+library(knitr)
+library(kableExtra)
+library(yaml)
+library(RColorBrewer)
+library(tidyverse)
+library(plotly)
+
+```
+
+```{r dynamic_setup}
+
+# dynamically change figure height depending on number of samples
+# although, it has to be at least 3 inches high for the legend
+# add 1 inch for every additional sample
+
+trim_df = read.csv(params$trim, sep="\t", header=T)
+
+if(length(unique(trim_df$sample)) < 4.1){
+    ht = 4.1
+  } else {
+    ht = 1 * (length(unique(overall_df$Sample)))
+  }
+
+# Dynamically add text depending on which kingdoms were detected
+# For example, sometimes no viruses are detected an no plots are produced
+# need to account for this in the report
+# can get this information from the dummy file 'png_file_names.txt'
+
+taxa_df <- scan(params$taxa_figures, character(), quote = " ")
+
+#taxa_df <- scan("/datasets/work/aahl-pdngs/work/test_data/evag2/2.mappd/04_annotation/diamond/png_file_names.txt", character(), quote = " ")
+
+show_euk = FALSE
+show_bac = FALSE
+show_vir = FALSE
+
+for (f in taxa_df){
+  if (grepl("euk", f)){
+    show_euk = TRUE
+  }
+  if (grepl("bac", f)){
+    show_bac = TRUE
+  }
+  if (grepl("vir", f)){
+    show_vir = TRUE
+  }
+}
+
+not_found_string = "NONE DETECTED.
+
+No sequences were detected with the parameters, software, strategy and
+databases used here. This does not necessary mean that they are not present,
+only that they were not detected with this particular pipeline.
+
+Organisms are more likely to escape detection if they are low in abundance
+(might get dropped in the assembly steps) or if they don't have close matches
+in the NCBI databases (might get missed in the classification steps)."
+
+# need a function to change the legend order in ggplotly
+# looks fine in normal ggplot but need to be tricky with ggplotly
+# https://stackoverflow.com/questions/59611914/reverse-the-legend-order-when-using-ggplotly
+reverse_legend_labels <- function(plotly_plot) {
+  n_labels <- length(plotly_plot$x$data)
+  plotly_plot$x$data[1:n_labels] <- plotly_plot$x$data[n_labels:1]
+  plotly_plot
+}
+
+```
+
+
+<!-- functions for plotting, tables, etc. should go here -->
+
+```{r plot_functions, warning=FALSE}
+
+# function to plot the top 10 most abundant organisms from each kingdom
+# need to pass the abundance summary file, eg., "diamond_blastx_abundance_taxa.vir"
+# plus saves the plots as pdf and summary table as txt
+
+#plot_abund <- function(abund_summary, tsv_file, pdf_file, png_file) {
+plot_abund <- function(abund_summary) {
+
+  summary_df = read.csv(abund_summary, sep="\t", header=T)
+
+  # the summarise bit keeps family as a column - gets dropped otherwise
+  # because family is repeated for a species, this forces it 
+  # to choose just the one with the most reads (should all be the same anyway)
+  species_summary <- summary_df %>%
+    group_by(Sample, Species) %>%
+    summarise(Sum_Mapped = sum(Reads_Mapped), 
+              max_reads = which.max(Reads_Mapped),
+              Family = Family[max_reads]) %>%
+    arrange(desc(Sum_Mapped)) %>%
+    filter(row_number() <=10)
+  
+
+  species_summary <- subset(species_summary, Species != "<not present>")
+  # dummy variable created to avoid doubling up on family names - will remove now
+  species_summary <- species_summary[, !(names(species_summary) %in% c("max_reads"))]
+  
+  # if a species is not in a particular sample, ggplot draws a wide column
+  # want to have a 0 in this case so the column width is constant
+  # also want to create a table in wide format
+  species_summary_wide = spread(species_summary, Sample, Sum_Mapped, fill=0)
+  
+  # this calculates rowsums for the samples
+  # sorts them by the total and gets just the top 10
+  summary_table <- species_summary_wide %>%
+    mutate(Total = rowSums(.[3:ncol(species_summary_wide)])) %>%
+    arrange(wt = -Total) %>%
+    top_n(10, wt = Total) %>%
+    filter(row_number() <=10)
+  
+  # write wide format table
+  # write.table(summary_table, tsv_file, quote=F, sep="\t", row.names = F)
+  
+  species_summary_long =  gather(summary_table, Sample, Sum_Mapped, 3:ncol(species_summary_wide))
+  
+  # flip everything around due to my coord_flip() in ggplot call
+  species_summary_long$Sample <- as.factor(species_summary_long$Sample)
+  species_summary_long$Sample <- factor(species_summary_long$Sample, levels=rev(levels(species_summary_long$Sample)))
+  
+  # brewer pallete colours - Paired or Set3 for 10 samples max
+  cols <- rev(brewer.pal(length(unique(summary_table$Species)), "Paired"))
+
+  p <- ggplot(species_summary_long, aes(x=Sample, y=Sum_Mapped, fill=reorder(Species, Sum_Mapped))) +
+    geom_bar(stat='identity') +
+    theme_bw() +
+    theme(axis.title.y = element_blank()) +
+    scale_y_continuous(labels = comma) +
+    scale_fill_manual(values=cols) +
+    ylab("Reads") +
+    guides(fill = guide_legend(title="Species", reverse=T)) +
+    coord_flip()
+  
+  # return both the plot and table from the function
+  
+  return(list("plot" = p, "table" = summary_table))
+  
+}
+
+
+```
+
+<!-- report layout goes here -->
+
+# {.tabset .tabset-fade}
+
+## Technical Summary
+
+MAPPD is a general pipeline for the identification of organisms in a metagenomic sample, although it is targeted toward the identification of pathogens. The pipeline uses a strategy of read quality trimming, host identification, read assembly, and annotation using various blast and diamond searches. MAPPD does not require prior information about the sample (e.g. host), as this information is determined by classifying read sub-sets.
+
+
+### Important 
+
+Metagenomic analysis can be a useful technology for screening samples in cases where a pathogen is unknown. However, the classification of sequence fragments based on the highest identity in a database does not necessarily mean that a pathogen is present, only that this is the ‘best’ match. This report provides the percent identity of database hits and the location of the particular contigs. It is necessary to check important classifications manually. Additional laboratory tests are required to confirm pathogen identification.
+
+
+### Run metrics and software versions
+
+```{r}
+# note the rule get_package_versions in benchmark.smk grep specifically for the main versions
+# would be possible to list more software versions by changing the file config/software_list.txt
+# could also exhaustively list software verions if that's better for QA
+
+software_df <- read.csv(params$software_list, sep="\t", header = F)
+colnames(software_df) <- c("Software", "Version")
+
+kbl(software_df) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+## Overall Classifications
+
+### Data Quality and Overall Classifications
+
+The raw data were trimmed for quality and adapters using Trimmomatic. The cleaned reads were then aligned to the SILVA ribosomal RNA databases, including the Long Sub Unit (LSU) and Small Sub Unit (SSU) categories, and matching reads were removed.
+
+The remaining reads were then classified using iterative assemblies, blasts and diamond searches. Reads that could not be classified after these processes are shown as the grey ‘Unannotated’ bar below.
+
+
+```{r overall_plots, fig.width=8, fig.height=ht, warning=TRUE}
+
+
+  #trim_df <- read.csv("/datasets/work/aahl-pdngs/work/test_data/freshwater_prawn/logs/trimmomatic_PE/trim_logs.summary", sep="\t", header=T)
+  #rRNA_df <- read.csv("/datasets/work/aahl-pdngs/work/test_data/freshwater_prawn/logs/rRNA_mapping_summary.tsv", sep="\t", header=F, row.names=NULL)
+  #abund_df <- read.csv("/datasets/work/aahl-pdngs/work/test_data/freshwater_prawn/04_annotation/diamond/diamond_blastx_abundance.all", sep="\t", header=T, row.names=NULL)
+
+  trim_df = read.csv(params$trim, sep="\t", header=T)
+  
+  # I'm not using reads if their mate is discarded
+  # will combine these results into the 'dropped' category and convert to reads, not pairs
+  trim_df$low_quality <- (trim_df$input_pairs - trim_df$both_surviving) * 2
+  colnames(trim_df) <- c("Sample", "input_pairs", "both_surviving", "forward_only", "reverse_only", "dropped", "low_quality")
+
+  # make long format
+  trim_long =  gather(trim_df, Type, Reads, low_quality)
+  trim_long <- trim_long[,c("Sample", "Type", "Reads")]
+
+  rRNA_df = read.csv(params$rRNA, sep="\t", header=F, row.names=NULL)
+  # make headers match for later rbind
+  colnames(rRNA_df) <- c("Sample", "Type", "Reads")
+  rRNA_df <- subset(rRNA_df, Type!="mRNA_reads")
+
+  abund_df = read.csv(params$abund, sep="\t", header=T, row.names=NULL)
+
+  euk_df = subset(abund_df, Kingdom=="Eukaryota")
+  bac_df = subset(abund_df, Kingdom=="Bacteria")
+  vir_df = subset(abund_df, Kingdom=="Viruses")
+
+  # function to check that taxa dataframes have something in them
+  # return a dataframe with 0 reads if not
+  process_taxa <- function(taxa_df, name){
+    if(length(taxa_df$Sample) > 0){
+      summary <- taxa_df %>%
+        group_by(Sample) %>%
+        summarise(Reads = sum(Reads_Mapped))
+      summary["Type"] <- name
+    } else {
+      num = length(unique(abund_df$Sample))
+      summary <- data.frame(Sample <- unique(abund_df$Sample),
+                            Reads <- rep(0, num),
+                            Type <- rep(name, num))
+      colnames(summary) <- c("Sample", "Reads", "Type")
+    }
+    return(summary)
+  }
+
+  euk_summary <- process_taxa(euk_df, "Eukaryote")
+  bac_summary <- process_taxa(bac_df, "Bacteria")
+  vir_summary <- process_taxa(vir_df, "Virus")
+
+  overall_df <- rbind(trim_long, rRNA_df, euk_summary, bac_summary, vir_summary)
+
+  # figure out the total number of annotated / unannotated reads from these numbers
+  # should verify this by looking at:
+    # 1) reads that didn't map to the contigs (ie. didn't form contigs)
+    # 2) plus reads that mapped to contigs that didn't get annotated
+    # the sum of these two things should equal the Unannotated calcs below
+  unannot_df <- overall_df %>%
+    group_by(Sample) %>%
+    summarise(Total_Annotated = sum(Reads))
+
+  unannot_df <- merge(trim_df, unannot_df, by="Sample")
+
+  unannot_df$Reads <- (unannot_df$input_pairs * 2) - unannot_df$Total_Annotated
+  # if most of the reads have been annotated, this can sometimes be less than 0
+  # due to paired end calculations in the bowtie output files
+  # could improve this by using a SQL database and tracking individual reads
+  #if(unannot_df$Reads < 0){
+  #  unannot_df$Reads <- 0
+  #}
+
+  unannot_df$Type <- "Unannotated"
+  unannot_df <- unannot_df[,c("Sample", "Type", "Reads")]
+
+  overall_df <- rbind(overall_df, unannot_df)
+
+  # make the colours a bit more sensible
+  cols <- c("low_quality" = "#a6761d", "rRNA_LSU" = "#FDBF6F", "rRNA_SSU" = "#FF7F00", "Eukaryote" = "#1b9e77", "Bacteria" = "#7570b3", "Virus" = "#e7298a", "Unannotated" = "#666666")
+
+  # order the categories
+  # flip everything around due to my coord_flip() in ggplot call
+
+  overall_df$Type <- factor(overall_df$Type, levels=rev(c("Virus", "Bacteria", "Eukaryote", "rRNA_LSU", "rRNA_SSU", "low_quality", "Unannotated")))
+
+  overall_df$Sample <- as.factor(overall_df$Sample)
+  overall_df$Sample <- factor(overall_df$Sample, levels=rev(levels(overall_df$Sample)))
+
+    # plot the summary table
+  p <- ggplot(overall_df, aes(x=Sample, y=Reads, fill=Type)) +
+    geom_bar(stat='identity') +
+    theme_bw() +
+    scale_fill_manual(values=cols) +
+    theme(axis.title.y = element_blank()) +
+    scale_y_continuous(labels = comma) +
+    ylab("Reads") +
+    guides(fill = guide_legend(title="Type", reverse=T)) +
+    coord_flip()
+
+  ggplotly(p) %>%
+    reverse_legend_labels()
+  
+  #ggsave(pdf_file, p, width=8, height=ht)
+  #ggsave(png_file, width=8, height=ht, dpi=300)
+  #write.table(overall_df, "overall_counts.txt", sep="\t", quote=F, row.names=F)
+  
+# also include the overall table in the report
+# need to put the sample factor back in original order so columns are ordered correctly
+overall_df$Sample <- factor(overall_df$Sample, levels=rev(levels(overall_df$Sample)))
+
+# convert this table into a wide format and kable plotting
+# the arrange bit reverses the row order so that viruses are at the top
+# then bind_rows creates a 'total' column
+overall_df %>%
+  spread(Sample, Reads) %>%
+  arrange(-row_number()) %>%
+  bind_rows(summarise_all(., ~if(is.numeric(.)) sum(.) else "Total")) %>%
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+
+### Summary Classifications
+
+The figures and tables below provide summary classifications for all samples that were analysed in this run. Usually this includes the most abundant 10 organisms from Eukaryotes, Bacteria and Viruses. If you would like more detailed information on individual classifications, or to download sequence data associated with particular organisms, see the Per Sample Classification section.
+
+
+### Eukaryotes
+
+```{r euk_summary_plots, fig.width=8, fig.height=ht, message=FALSE, warning=FALSE, eval=show_euk, results = "asis"}
+# fig.height allows dynamic sizing of the figure depending on how many samples there are
+# eval=show_euk means that the block will only run if at least one organism from the kingdom was detected
+# otherwise the not_found_string will be printed outside of the block as below
+# results="asis" makes the below cat command print the text nicely
+
+cat("Top 10 most abundant eukaryotes, including how many reads mapped to each organism from each sample.")
+
+euk_d = plot_abund("04_annotation/diamond/diamond_blastx_abundance_taxa.euk")
+
+ggplotly(euk_d$plot) %>%
+    reverse_legend_labels()
+
+kbl(euk_d$table) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+`r if(!show_euk){not_found_string}`
+
+
+### Bacteria
+
+```{r bac_summary_plots, fig.width=8, fig.height=ht, message=FALSE, warning=FALSE, eval=show_bac, results = "asis"}
+
+cat("Top 10 most abundant bacteria, including how many reads mapped to each organism from each sample.")
+
+bac_d = plot_abund("04_annotation/diamond/diamond_blastx_abundance_taxa.bac")
+
+ggplotly(bac_d$plot) %>%
+  reverse_legend_labels()
+
+kbl(bac_d$table) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+`r if(!show_bac){not_found_string}`
+
+
+### Viruses
+
+```{r vir_summary_plots, fig.width=8, fig.height=ht, message=FALSE, warning=FALSE, eval=show_vir, results = "asis"}
+
+cat("Top 10 most abundant viruses, including how many reads mapped to each organism from each sample.")
+
+vir_d = plot_abund("04_annotation/diamond/diamond_blastx_abundance_taxa.vir")
+
+ggplotly(vir_d$plot) %>%
+ reverse_legend_labels()
+
+kbl(vir_d$table) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+`r if(!show_vir){not_found_string}`
+
+
+## Per Sample Classifications
+
+This section contains the complete classification reports for each sample. Again, they are divided into eukaryotes, bacteria and viruses. The tables show the classification of each sequence at the kingdom, family and species level, and provide the number of reads that were classified to that taxa. This number is also used to calculate the percentage of reads mapped as a fraction of all high-quality reads in the dataset. In addition, the "Sequences" column provides a download link for all sequences classified to that particular organism (often there will be several).
+
+
+```{r testing_table_links}  
+
+sample <- c("samp1", "samp2", "samp3")
+link <- c("[l1](https://www.rstudio.com)", "[clnk](04_annotation/diamond/sRRV_contigs_taxid/11029.fasta)", "[clnk](04_annotation/diamond/sRRV_contigs_taxid/9597.fasta)")
+
+df <- data.frame(sample, link)
+
+kbl(df)
+
+dummy <- read.csv("/datasets/work/aahl-pdngs/work/test_data/evag2/2.mappd/dummy_links.txt", sep="\t", header=T)
+
+kbl(dummy)
+
+```
+
+
+```{r per_sample, fig.width=8, fig.height=ht, warning=FALSE}
+
+
+```
+
+
+
+## Configuration file
+
+```{r config_tab, warning=FALSE}
+
+config_lines <- readLines(params$config_file)
+
+for(line in config_lines){
+    print(line, quote=FALSE)
+}
+
+```
+
+
+## DAG
+
+
