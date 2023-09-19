@@ -36,9 +36,6 @@ option_list <- list(
   make_option(c("--taxa_figures"), type="character", default=NULL,
               help="file containing which taxa figures were produced", metavar="character"),
 
-  make_option(c("--sample_abundances"), type="character", default=NULL,
-              help="taxa abundance tables for each sample", metavar="character"),
-
   make_option(c("--output"), type="character", default=NULL,
               help="name and file path for html report", metavar="character"),
 
@@ -52,7 +49,14 @@ option_list <- list(
 
 
 opt_parser <- OptionParser(option_list=option_list)
-opt <- parse_args(opt_parser)
+# need to specify positional_arguments as true because of the sample abundances files
+# this allows me to pass a variable number of multiple files (don't know how many samples beforehand)
+opt <- parse_args(opt_parser, positional_arguments=TRUE)
+
+# the normal options go into a opt$options variable
+# positional arguments (i.e. sample abundance files) go into opt$args
+#print(opt$options)
+#print(opt$args)
 
 # need to grab the working project directory here
 # otherwise rmarkdown uses the directory where the markdown document
@@ -62,20 +66,20 @@ working_dir <- getwd()
 
 # now read data for making the report
 
-render(opt$rmarkdown,
+render(opt$options$rmarkdown,
     params = list(
-    config_file = opt$config_file,
-    dag = opt$dag,
-    software_list = opt$software_list,
-    bench_time = opt$bench_time,
-    bench_mem = opt$bench_mem,
-    tech_summary = opt$tech_summary,
-    trim = opt$trim,
-    rRNA = opt$rRNA,
-    abund = opt$abund,
-    taxa_figures = opt$taxa_figures,
-    sample_abundances = opt$sample_abundances
+    config_file = opt$options$config_file,
+    dag = opt$options$dag,
+    software_list = opt$options$software_list,
+    bench_time = opt$options$bench_time,
+    bench_mem = opt$options$bench_mem,
+    tech_summary = opt$options$tech_summary,
+    trim = opt$options$trim,
+    rRNA = opt$options$rRNA,
+    abund = opt$options$abund,
+    taxa_figures = opt$options$taxa_figures,
+    sample_abundances = opt$args
     ),
-    output_file = opt$output,
-    output_dir = opt$output_dir)
+    output_file = opt$options$output,
+    output_dir = opt$options$output_dir)
 

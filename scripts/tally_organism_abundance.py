@@ -220,6 +220,8 @@ with open(args.mapping) as fl:
             reads = cols[2]
             if name == sample and type == "mRNA_reads":
                 overall_reads = int(reads)
+                # need to break here so that the variable is not overwritten by non-matching lines
+                break
             else:
                 overall_reads = None
 

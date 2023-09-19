@@ -61,8 +61,12 @@ rule test_Rmarkdown:
         taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
         # instead of the below (which passes a variable number of files) could take care of this in the rmd file
         # like the summary graphs, use a eval command in the chunks depending on what is produced?
-        #sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.ReST", sample=config["samples"]),
         rmarkdown = config["program_dir"] + "scripts/rmarkdown_report.Rmd",
+        # passing sample_abundances as a arg not an option
+        # in R optparse this allows me to pass a variable number of multiple files
+        # note there is no flag in the shell directive below
+        sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.rmarkdown", sample=config["samples"]),
+
     output:
         report = "test_Rmarkdown.html"
     shell:
@@ -78,9 +82,9 @@ rule test_Rmarkdown:
             --rRNA {input.rRNA} \
             --abund {input.abund} \
             --taxa_figures {input.taxa_pngs} \
-            --sample_abundances "NA" \
             --output {output.report} \
             --output_dir . \
-            --rmarkdown {input.rmarkdown}
+            --rmarkdown {input.rmarkdown} \
+            {input.sample_abundances} \
         """
   

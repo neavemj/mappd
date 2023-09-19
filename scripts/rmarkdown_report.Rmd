@@ -408,26 +408,41 @@ kbl(vir_d$table) %>%
 This section contains the complete classification reports for each sample. Again, they are divided into eukaryotes, bacteria and viruses. The tables show the classification of each sequence at the kingdom, family and species level, and provide the number of reads that were classified to that taxa. This number is also used to calculate the percentage of reads mapped as a fraction of all high-quality reads in the dataset. In addition, the "Sequences" column provides a download link for all sequences classified to that particular organism (often there will be several).
 
 
-```{r testing_table_links}  
 
-sample <- c("samp1", "samp2", "samp3")
-link <- c("[l1](https://www.rstudio.com)", "[clnk](04_annotation/diamond/sRRV_contigs_taxid/11029.fasta)", "[clnk](04_annotation/diamond/sRRV_contigs_taxid/9597.fasta)")
+```{r per_sample, warning=T, results='asis'}
 
-df <- data.frame(sample, link)
+for (l in params$sample_abundances){
+  # first get sample name from the input file
+  # difficult with R but this seems to work
+  filename <- sapply(strsplit(l, split="/"), `[`, 3)
+  sample <- sapply(strsplit(filename, split="_"), `[`, 1)
+  
+  # add the sample name as a new rmarkdown header
+  cat('\n###', sample, '\n')
 
-kbl(df)
+  cat('\n### Eukaryotes\n')
+  euk_tabl <- read.table(paste0(l, ".euk"), sep=",", header=T)
+  print(kbl(euk_tabl) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), font_size = 12) %>%
+    scroll_box(height='400px'))
 
-dummy <- read.csv("/datasets/work/aahl-pdngs/work/test_data/evag2/2.mappd/dummy_links.txt", sep="\t", header=T)
+  cat('\n### Bacteria\n')
+  bac_tabl <- read.table(paste0(l, ".bac"), sep=",", header=T)
+  print(kbl(bac_tabl) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), font_size = 12) %>%
+    scroll_box(height='400px'))
 
-kbl(dummy)
+  cat('\n### Viruses\n')
+  vir_tabl <- read.table(paste0(l, ".vir"), sep=",", header=T)
+  print(kbl(vir_tabl) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), font_size = 12) %>%
+    scroll_box(height='400px'))
+
+}
 
 ```
 
 
-```{r per_sample, fig.width=8, fig.height=ht, warning=FALSE}
-
-
-```
 
 
 

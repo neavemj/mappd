@@ -322,7 +322,19 @@ rule create_abund_ReST_table:
             -o {output}
         """
 
-
+rule create_abund_rmarkdown_table:
+    input:
+        abund = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance",
+        contig_dir = config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_contigs_taxid/"
+    output:
+        config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.rmarkdown"
+    shell:
+        """
+        {config[program_dir]}/scripts/abundance_rmarkdown.py \
+            -a {input.abund} \
+            -d {input.contig_dir} \
+            -o {output}
+        """
 
 
 
