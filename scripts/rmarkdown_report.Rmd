@@ -411,6 +411,21 @@ This section contains the complete classification reports for each sample. Again
 
 ```{r per_sample, warning=T, results='asis'}
 
+# function to dynamically change height of kable scrollable tables 
+dyn_ht <- function(t) {
+  if(nrow(t) > 12){
+    px_ht <- 400
+  } else {
+    px_ht <- (30 * (nrow(t))) + 30
+  } 
+  return(paste0(px_ht, "px"))
+  }
+
+#test <- read.table("../../test_data/freshwater_prawn/04_annotation/diamond/prawn1_diamond_blastx.abundance.rmarkdown.vir", sep=",", header=T)
+#m = dyn_ht(test)
+
+
+
 for (l in params$sample_abundances){
   # first get sample name from the input file
   # difficult with R but this seems to work
@@ -422,21 +437,24 @@ for (l in params$sample_abundances){
 
   cat('\n### Eukaryotes\n')
   euk_tabl <- read.table(paste0(l, ".euk"), sep=",", header=T)
+  euk_px <- dyn_ht(euk_tabl)
   print(kbl(euk_tabl) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), font_size = 12) %>%
-    scroll_box(height='400px'))
+    scroll_box(height=euk_px))
 
   cat('\n### Bacteria\n')
   bac_tabl <- read.table(paste0(l, ".bac"), sep=",", header=T)
+  bac_px <- dyn_ht(bac_tabl)
   print(kbl(bac_tabl) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), font_size = 12) %>%
-    scroll_box(height='400px'))
+    scroll_box(height=bac_px))
 
   cat('\n### Viruses\n')
   vir_tabl <- read.table(paste0(l, ".vir"), sep=",", header=T)
+  vir_px <- dyn_ht(vir_tabl)
   print(kbl(vir_tabl) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), font_size = 12) %>%
-    scroll_box(height='400px'))
+    scroll_box(height=vir_px))
 
 }
 
@@ -448,17 +466,20 @@ for (l in params$sample_abundances){
 
 ## Configuration file
 
-```{r config_tab, warning=FALSE}
+```{r config_tab, warning=FALSE, comment=""}
 
-config_lines <- readLines(params$config_file)
-
-for(line in config_lines){
-    print(line, quote=FALSE)
-}
+cat(readLines(params$config_file), sep = "\n")
 
 ```
 
 
 ## DAG
+
+```{r dag_graph}
+
+knitr::include_graphics(params$dag)
+
+```
+
 
 

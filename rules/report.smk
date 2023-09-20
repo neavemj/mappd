@@ -20,31 +20,7 @@ from snakemake.utils import report
 from mappd_report import generate_report
 
 
-rule test_report:
-    input:
-        dag_graph = "benchmarks/dag.png",
-        bench_time = "benchmarks/bench_time.png",
-        bench_mem = "benchmarks/bench_mem.png",
-        technical_summary = "logs/technical_summary.ReST",
-        overall_figure = "logs/overall_results.png",
-        # this will make the taxa plotting run, although only graphs
-        # for taxa found will be created. I'll check this in mapped_report.py
-        taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
-        sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.ReST", sample=config["samples"]),
-        report_css = config["program_dir"] + "config/report.css",
-    output:
-        "mappd_report.html"
-    run:
-        sphinx_str = generate_report(config=config, dag_graph=input.dag_graph,
-                                     bench_mem=input.bench_mem, bench_time=input.bench_time,
-                                     technical_summary=input.technical_summary,
-                                     overall_figure=input.overall_figure,
-                                     sample_abundances=input.sample_abundances,
-                                     )
-        report(sphinx_str, output[0], stylesheet=input.report_css, metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
-
-
-rule test_Rmarkdown:
+rule rmarkdown_report:
     input:
         config_file = "config.yaml",
         dag_graph = "benchmarks/dag.png",
@@ -68,7 +44,7 @@ rule test_Rmarkdown:
         sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.rmarkdown", sample=config["samples"]),
 
     output:
-        report = "test_Rmarkdown.html"
+        report = "mappd_report.html"
     shell:
         """
         Rscript {config[program_dir]}/scripts/run_markdown.R \
@@ -88,3 +64,30 @@ rule test_Rmarkdown:
             {input.sample_abundances} \
         """
   
+
+
+
+rule old_sphinx_report:
+    input:
+        dag_graph = "benchmarks/dag.png",
+        bench_time = "benchmarks/bench_time.png",
+        bench_mem = "benchmarks/bench_mem.png",
+        technical_summary = "logs/technical_summary.ReST",
+        overall_figure = "logs/overall_results.png",
+        # this will make the taxa plotting run, although only graphs
+        # for taxa found will be created. I'll check this in mapped_report.py
+        taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
+        sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.ReST", sample=config["samples"]),
+        report_css = config["program_dir"] + "config/report.css",
+    output:
+        "mappd_sphinx_report.html"
+    run:
+        sphinx_str = generate_report(config=config, dag_graph=input.dag_graph,
+                                     bench_mem=input.bench_mem, bench_time=input.bench_time,
+                                     technical_summary=input.technical_summary,
+                                     overall_figure=input.overall_figure,
+                                     sample_abundances=input.sample_abundances,
+                                     )
+        report(sphinx_str, output[0], stylesheet=input.report_css, metadata="Author: Matthew Neave (matthew.neave@csiro.au)")
+
+
