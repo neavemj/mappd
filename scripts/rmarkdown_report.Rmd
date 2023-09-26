@@ -197,7 +197,7 @@ Metagenomic analysis can be a useful technology for screening samples in cases w
 ```{r}
 # note the rule get_package_versions in benchmark.smk grep specifically for the main versions
 # would be possible to list more software versions by changing the file config/software_list.txt
-# could also exhaustively list software verions if that's better for QA
+# could also exhaustively list software versions if that's better for QA
 
 software_df <- read.csv(params$software_list, sep="\t", header = F)
 colnames(software_df) <- c("Software", "Version")

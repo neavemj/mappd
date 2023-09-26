@@ -101,7 +101,7 @@ art: "/datasets/work/aahl-pdngs/work/software/CAMISIM/tools/art_illumina-2.3.6"
 # this allows the user to change folder names easily
 # include the final forward slash in dir name
 
-program_dir: "/datasets/work/aahl-pdngs/work/mappd/"
+program_dir: "/datasets/work/aahl-pdngs/work/pipelines/mappd/"
 
 sub_dirs:
   trim_dir: "01_trimmomatic"
