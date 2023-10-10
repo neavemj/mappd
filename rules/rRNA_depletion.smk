@@ -91,6 +91,8 @@ rule summarise_sample_rRNA:
         # then uses these numbers to calculated actual LSU and SSU values
         # then write this info to file
         # have to do it ugly like this because echo inserts a space otherwise
+        # I want it to keep running even if some accessions weren't found
+        # so the '|| true' bit ensures it returns a successful exit code
         """
         trimmed_reads=$(expr $(zcat {input.trimmed} | wc -l) / 2)
         LSU_depleted_reads=$(expr $(cat {input.LSU_depleted} | wc -l) / 2)
@@ -101,7 +103,7 @@ rule summarise_sample_rRNA:
 
         echo -e \
             {wildcards.sample}'\trRNA_LSU\t'${{LSU_reads}}'\n'{wildcards.sample}'\trRNA_SSU\t'${{SSU_reads}}'\n'{wildcards.sample}'\tmRNA_reads\t'${{mRNA}}'\n'\
-                > {output}
+                > {output} || true
         """
 
 rule summarise_rRNA_mapping:

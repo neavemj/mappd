@@ -44,7 +44,7 @@ library(plotly)
 
 ```
 
-```{r dynamic_setup}
+```{r dynamic_setup, include=FALSE}
 
 # dynamically change figure height depending on number of samples
 # although, it has to be at least 3 inches high for the legend
@@ -52,11 +52,12 @@ library(plotly)
 
 trim_df = read.csv(params$trim, sep="\t", header=T)
 
-if(length(unique(trim_df$sample)) < 4.1){
-    ht = 4.1
-  } else {
-    ht = 1 * (length(unique(overall_df$Sample)))
-  }
+if(length(unique(trim_df$sample)) < 4){
+  ht = 4.1
+} else {
+  ht = 1 * (length(unique(trim_df$sample)))
+}
+
 
 # Dynamically add text depending on which kingdoms were detected
 # For example, sometimes no viruses are detected an no plots are produced
