@@ -104,12 +104,6 @@ def create_markdown(name, hdr, king_list, contigs, mapped_note):
 
         table_list = [hdr] + king_list
 
-        if not contigs:
-            table_list += "* Assembled contigs not produced"
-
-        if mapped_note:
-            table_list += "^ Mapped reads do not have an exact percent identity, although it will be high (>99%)"
-
     # if the kingdom is absent
     else:
         table_list = ["\nNONE DETECTED."]

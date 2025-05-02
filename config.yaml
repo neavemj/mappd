@@ -64,6 +64,9 @@ assembler: "trinity"
 spades_max_memory: 64
 trinity_max_memory: "64G"
 
+Use_memory_as_storage: 'yes'
+Memory_directory_location: $MEMDIR
+
 # -------------- Annotation -------------- #
 
 diamond_nr_evalue: 0.00001
@@ -95,6 +98,8 @@ gb_wgs_taxids: "/datasets/work/aahl-pdngs/work/db/ncbi_conversions/nucl_gb_wgs.a
 # location of ART installation (only required for validation module)
 art: "/datasets/work/aahl-pdngs/work/software/CAMISIM/tools/art_illumina-2.3.6"
 
+# Used by the ETE3 NCBITaxa class
+taxon_db: "/datasets/work/aahl-pdngs/work/db/taxondb/taxa"
 
 ## -------------- Pipline data structure -------------- ##
 

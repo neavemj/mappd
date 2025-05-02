@@ -191,6 +191,7 @@ rule tally_diamond_organisms:
             unmapped_flag = ""
         shell(
             """
+			ETE3_TAXONDB={config[taxon_db]} \
             {config[program_dir]}/scripts/tally_organism_abundance.py \
                 -b {input.blast} \
                 -i {input.stats} \

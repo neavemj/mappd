@@ -153,19 +153,22 @@ rule trinity:
     params:
         out_dir = config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity",
         max_memory = config["trinity_max_memory"],
+        memstore = config["Use_memory_as_storage"],
+        memdir = config["Memory_directory_location"],
+        memdirsampnum = "/{sample}/read_partitions"
+
     threads: 16
     shell:
     # adding the --no_salmon parameter to avoid version conflicts
         """
-        Trinity \
-            --seqType fq \
-            --CPU {threads} \
-            --max_memory {params.max_memory} \
-            --full_cleanup \
-            --no_salmon \
-            --left {input[0]} \
-            --right {input[1]} \
-            --output {params.out_dir} > {log}
+        Trinity --left {input[0]} --right {input[1]} \
+        --seqType fq \
+        --full_cleanup \
+        --no_salmon \
+        --CPU {threads} \
+        --max_memory {params.max_memory} \
+        --normalize_reads \
+        --output {params.out_dir}
         """
 
 

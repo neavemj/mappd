@@ -2,11 +2,19 @@
 # this is used in the host depletion step and for summarising the annotations
 
 # the first time this is used, it will download the NCBI taxonomy database into your home directory
+import os
 from ete3 import NCBITaxa
+
+# Custom location of the ete3 taxon database
+# Default locaition is the ~/.etetoolkit directory
+taxadb = os.getenv('ETE3_TAXONDB')
+print("=== dbname ===")
+print(taxadb)
+ncbi = NCBITaxa(taxadb)
+
 
 # helper function to return the desired rank from a taxid
 
-ncbi = NCBITaxa()
 
 def get_desired_rank(taxid, desired_rank):
     lineage = ncbi.get_lineage(taxid)

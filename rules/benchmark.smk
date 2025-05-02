@@ -50,7 +50,11 @@ rule draw_dag:
     output:
         "benchmarks/dag.png"
     shell:
-        "snakemake -s {input} --rulegraph 2> /dev/null | dot -T png > {output}"
+        """
+		module load graphviz/2.47.0
+		
+		snakemake -s {input} --rulegraph 2> /dev/null | dot -T png > {output}
+		"""
 
 rule record_end:
     input:
