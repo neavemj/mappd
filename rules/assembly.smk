@@ -14,28 +14,26 @@ Current assemblers include:
 # first need to decide which reads to assemble based on the config file
 # options include rRNA depletion or host depletion
 # the host depletion happens last so the following elif order should work
-def get_reads(wildcards):
-    # if host_depletion is true then rRNA_depletion will also be true because
-    # the host_depletion rules use rRNA depleted fastq files
+def get_processed_reads(wildcards=None, sample=None):
+    # determine the sample name from either argument
+    sample_name = sample if sample is not None else wildcards.sample
+
     if config["host_depletion"]:
         return([
-            config["sub_dirs"]["depletion_dir"] + "/host/{}_host_depleted_1P.fastq".format(wildcards.sample),
-            config["sub_dirs"]["depletion_dir"] + "/host/{}_host_depleted_2P.fastq".format(wildcards.sample)
+            f"{config['sub_dirs']['depletion_dir']}/host/{sample_name}_host_depleted_1P.fastq",
+            f"{config['sub_dirs']['depletion_dir']}/host/{sample_name}_host_depleted_2P.fastq"
         ])
-    # if host_depletion is not true, can still just do the rRNA_depletion bit
     elif config["rRNA_depletion"]:
         return([
-            config["sub_dirs"]["depletion_dir"] + "/rRNA/{}_mRNA_1P.fastq".format(wildcards.sample),
-            config["sub_dirs"]["depletion_dir"] + "/rRNA/{}_mRNA_2P.fastq".format(wildcards.sample)
+            f"{config['sub_dirs']['depletion_dir']}/rRNA/{sample_name}_mRNA_1P.fastq",
+            f"{config['sub_dirs']['depletion_dir']}/rRNA/{sample_name}_mRNA_2P.fastq"
         ])
-    # if neither host_depletion or rRNA_depletion are true, just returned trimmed reads
-    # NOTE: At this stage, rRNA_depletion will be run regardless due to downstream requirements
-    # need to modify overall_abundance plot (required by report) to make this work
     else:
         return([
-            config["sub_dirs"]["trim_dir"] + "/{}_1P.fastq.gz".format(wildcards.sample),
-            config["sub_dirs"]["trim_dir"] + "/{}_2P.fastq.gz".format(wildcards.sample)
+            f"{config['sub_dirs']['trim_dir']}/{sample_name}_1P.fastq.gz",
+            f"{config['sub_dirs']['trim_dir']}/{sample_name}_2P.fastq.gz"
         ])
+        
 
 rule spades_DNA:
     message:
@@ -45,7 +43,7 @@ rule spades_DNA:
         Using spades metagenome DNA mode
         """
     input:
-        get_reads
+        get_processed_reads
     output:
         out_contigs = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/contigs.fasta",
     params:
@@ -75,7 +73,7 @@ rule spades_RNA:
         Using spades RNA mode
         """
     input:
-        get_reads
+        get_processed_reads
     output:
         out_trans = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/transcripts.fasta",
         out_gfa = config["sub_dirs"]["assembly_dir"] + "/spades/{sample}_assembly/assembly_graph_with_scaffolds.gfa"
@@ -112,7 +110,7 @@ rule megahit:
         Assembling {wildcards.sample} reads with megahit
         """
     input:
-        get_reads
+        get_processed_reads
     output:
         out_contigs = config["sub_dirs"]["assembly_dir"] + "/megahit/{sample}_assembly/final.contigs.fa",
     params:
@@ -143,7 +141,7 @@ rule trinity:
         Assembling {wildcards.sample} RNA-Seq reads with Trinity
         """
     input:
-        get_reads
+        get_processed_reads
     output:
         config["sub_dirs"]["assembly_dir"] + "/trinity/{sample}_trinity/{sample}_trinity.Trinity.fasta"
     log:

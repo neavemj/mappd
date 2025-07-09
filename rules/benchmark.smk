@@ -98,15 +98,16 @@ rule compile_technical_summary:
         start = "logs/start_time.txt",
         end = "logs/end_time.txt",
         software = "logs/software_versions.txt",
+        config = rules.create_sample_config.output[0]
     output:
         "logs/technical_summary.ReST"
     shell:
         # note: will pass sample info directly in from the config file
         """
         {config[program_dir]}/scripts/technical_ReST.py \
-            -c "{config[samples]}" \
             -s {input.start} \
             -e {input.end} \
+			-c {input.config} \
             -f {input.software} \
             -o {output}
         """

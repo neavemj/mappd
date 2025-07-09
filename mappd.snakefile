@@ -8,8 +8,19 @@ by altering the config.yaml file
 """
 
 import os, sys
-
+from os.path import join
+from snakemake.io import glob_wildcards
 configfile: "config.yaml"
+
+sys.path.insert(0, config["program_dir"] + "scripts")
+import shared_vars
+
+
+# getting the list of samples here so it's available to all rules
+
+RAW_DIR = config["raw_dir"]
+
+SAMPLES = shared_vars.get_samples(RAW_DIR, config["illumina_machine"])
 
 rules_dir = os.path.join(os.path.expanduser(config["program_dir"]), "rules")
 

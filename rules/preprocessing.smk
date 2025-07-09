@@ -7,6 +7,13 @@ The outputs are:
     - cleaned Illumina sequencing reads
 """
 
+import os, sys
+from os.path import join
+import json
+import glob
+
+config: "config.yaml"
+
 # record start time of the run
 
 rule record_start:
@@ -17,11 +24,54 @@ rule record_start:
         echo -e "start time\t"$(date) > {output}
         """
 
-# for some reason I have put this function here to get wildcards to work
-# it wont work if directly in the rule
-def getFastq(wildcards):
-    return config['samples'][wildcards.sample]
+# 2025-07-07 updated to get sample names from directly from raw file directory
+RAW_DIR = config["raw_dir"]
 
+# need to differentiate between Nextseq or MiSeq data
+# due to slight differences in the file naming
+# using a regex so that the run sample number is not captured "i.e, S2"
+if config["illumina_machine"] == "nextseq":
+    SAMPLES, = glob_wildcards(join(RAW_DIR, "{sample,[^_]+(?:-[^_]+)*}_S[0-9]+_R1_001.fastq.gz"))
+elif config["illumina_machine"] == "miseq":
+    SAMPLES, = glob_wildcards(join(RAW_DIR, "{sample,[^_]+(?:-[^_]+)*}_S[0-9]+_L001_R1_001.fastq.gz"))
+
+
+# need a function here to differentiate nextseq from miseq dataset
+# also need to add back in the S* that I omitted earlier
+def get_reads(wildcards=None, sample=None):
+    # Safely resolve sample name
+    if sample is not None:
+        sample_prefix = sample
+    elif hasattr(wildcards, "sample"):
+        sample_prefix = wildcards.sample
+    elif isinstance(wildcards, str):
+        sample_prefix = wildcards
+    else:
+        raise ValueError("get_reads() must be called with a 'sample' or 'wildcards.sample'")
+
+    # Match files based on machine type
+    if config["illumina_machine"] == "nextseq":
+        r1 = glob.glob(join(RAW_DIR, f"{sample_prefix}_S*_R1_001.fastq.gz"))[0]
+        r2 = glob.glob(join(RAW_DIR, f"{sample_prefix}_S*_R2_001.fastq.gz"))[0]
+    elif config["illumina_machine"] == "miseq":
+        r1 = glob.glob(join(RAW_DIR, f"{sample_prefix}_S*_L001_R1_001.fastq.gz"))[0]
+        r2 = glob.glob(join(RAW_DIR, f"{sample_prefix}_S*_L001_R2_001.fastq.gz"))[0]
+    else:
+        raise ValueError(f"Unknown illumina_machine: {config['illumina_machine']}")
+        
+    return [r1, r2]
+    
+# want to create a sample config file for the reporting of samples / paths
+rule create_sample_config:
+    output:
+        "logs/sample_config.json"
+    run:
+        sample_dict = {
+            sample: get_reads(sample)
+            for sample in SAMPLES
+        }
+        with open(output[0], "w") as f:
+            json.dump(sample_dict, f, indent=2)
 
 # TODO: might need a trimmomatic SE mode
 rule trimmomatic_PE:
@@ -31,7 +81,7 @@ rule trimmomatic_PE:
         Trimming {wildcards.sample} for quality and Illumina adapters using Trimmomatic
         """
     input:
-        reads = getFastq,
+        reads = get_reads,
         # trick to get date recorded at this first step
         date = "logs/start_time.txt"
     output:
@@ -92,7 +142,7 @@ rule phix_screen:
 
 rule summarise_trimmomatic_log:
     input:
-        expand("logs/trimmomatic_PE/{sample}.log", sample=config["samples"])
+        lambda wildcards: expand("logs/trimmomatic_PE/{sample}.log", sample=SAMPLES)
     output:
         "logs/trimmomatic_PE/trim_logs.summary"
     shell:
@@ -109,7 +159,7 @@ rule porechop:
         Trimming {wildcards.sample} MinION reads for adapters using Porechop
         """
     input:
-        reads = getFastq
+        reads = get_reads
     output:
         config["sub_dirs"]["trim_dir"] + "/{sample}.porechop.fastq"
     params:

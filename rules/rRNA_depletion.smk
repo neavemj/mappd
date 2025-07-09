@@ -81,7 +81,7 @@ rule summarise_sample_rRNA:
         Calculating number of reads mapped to LSU and SSU databases
         """
     input:
-        trimmed = config["sub_dirs"]["trim_dir"] + "/{sample}_1P.fastq.gz",
+        trimmed = rules.trimmomatic_PE.output.R1_P,
         LSU_depleted = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_LSU_depleted_1P.fastq",
         SSU_depleted = config["sub_dirs"]["depletion_dir"] + "/rRNA/{sample}_mRNA_1P.fastq",
     output:
@@ -108,7 +108,7 @@ rule summarise_sample_rRNA:
 
 rule summarise_rRNA_mapping:
     input:
-        expand("logs/rRNA_summary/{sample}_rRNA_mapping_summary.tsv", sample=config["samples"])
+        lambda wildcards: expand("logs/rRNA_summary/{sample}_rRNA_mapping_summary.tsv", sample=SAMPLES)
     output:
         "logs/rRNA_mapping_summary.tsv"
     shell:

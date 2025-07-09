@@ -53,7 +53,9 @@ if args.start is None or \
 # apparently json.loads will do the job of converting the str to dict
 # but it needs double quotes rather than single quotes
 
-sample_dict = json.loads(args.config.replace("'", '"'))
+with open(args.config, "r") as f:
+    sample_dict = json.load(f)
+    
 sample_list = [["Sample", "Files"]]
 
 # I'd like to display the files in a sample in multiple rows

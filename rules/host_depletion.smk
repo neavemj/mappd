@@ -144,7 +144,7 @@ rule tally_abundant_subspecies:
         Calculating the most abundant species in the blast results for all samples
         """
     input:
-        expand(config["sub_dirs"]["depletion_dir"] + "/host/{sample}_largest_contigs.blastn.best_hits", sample=config["samples"])
+        expand(config["sub_dirs"]["depletion_dir"] + "/host/{sample}_largest_contigs.blastn.best_hits", sample=SAMPLES)
     output:
         # producing both wide and long format tables here
         # the wide will be used for the report, and the long for plotting in ggplot

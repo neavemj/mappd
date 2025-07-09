@@ -18,7 +18,12 @@ import sys
 sys.path.insert(0, config["program_dir"] + "/scripts") # this allows me to import modules in this folder
 from snakemake.utils import report
 from mappd_report import generate_report
+sys.path.insert(0, config["program_dir"] + "scripts")
 
+import shared_vars
+
+RAW_DIR = config["raw_dir"]
+SAMPLES = shared_vars.get_samples(RAW_DIR, config["illumina_machine"])
 
 rule rmarkdown_report:
     input:
@@ -34,14 +39,17 @@ rule rmarkdown_report:
         abund = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.all",
         # this will make the taxa plotting run, although only graphs
         # for taxa found will be created. I'll check this in rmardown_report.Rmd
-        taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
+        #taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
+        taxa_pngs = rules.aggregated.output,
+        
+        assembled_contigs = expand(config["sub_dirs"]["assembly_dir"] + "/processing/{sample}_assembly/transcripts_subset.fasta", sample=SAMPLES),
         # instead of the below (which passes a variable number of files) could take care of this in the rmd file
         # like the summary graphs, use a eval command in the chunks depending on what is produced?
         rmarkdown = config["program_dir"] + "scripts/rmarkdown_report.Rmd",
         # passing sample_abundances as a arg not an option
         # in R optparse this allows me to pass a variable number of multiple files
         # note there is no flag in the shell directive below
-        sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.rmarkdown", sample=config["samples"]),
+        sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.rmarkdown", sample=SAMPLES),
 
     output:
         report = "mappd_report.html"
@@ -77,7 +85,7 @@ rule old_sphinx_report:
         # this will make the taxa plotting run, although only graphs
         # for taxa found will be created. I'll check this in mapped_report.py
         taxa_pngs = config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
-        sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.ReST", sample=config["samples"]),
+        sample_abundances = expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.ReST", sample=SAMPLES),
         report_css = config["program_dir"] + "config/report.css",
     output:
         "mappd_sphinx_report.html"

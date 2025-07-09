@@ -204,6 +204,12 @@ rule tally_diamond_organisms:
 # making this rule a 'checkpoint'
 # because we don't know if all supertaxa will be detected in every sample
 # this ensures that the DAG is re-evaluated depending on the files produced here
+def get_abundance_files(wildcards):
+    return [
+        f"{config['sub_dirs']['annotation_dir']}/diamond/{sample}_diamond_blastx.abundance"
+        for sample in SAMPLES
+    ]
+
 checkpoint sort_combine_abundances:
     message:
         """
@@ -211,7 +217,7 @@ checkpoint sort_combine_abundances:
         Sorting abundances into supertaxa and combining samples
         """
     input:
-        expand(config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance", sample=config["samples"])
+        get_abundance_files
     output:
         combined = config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance.all",
     params:
@@ -263,17 +269,27 @@ def aggregate_input(wildcards):
 # knows to run plot_abundances on whatever kingdoms are in the wildcard
 
 rule aggregated:
-    input:
-        aggregate_input
     output:
-        # this is really a dummy file to make the rules run
-        # although, maybe I'll check through this file to determine
-        # what png files to include in the report
-        config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt",
-    shell:
-        """
-        echo {input} > {output}
-        """
+        config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt"
+    run:
+        checkpoint_output = checkpoints.sort_combine_abundances.get()
+        # force sample-level dependency here
+        samples = SAMPLES  # or glob if dynamic
+        kingdoms = glob_wildcards(
+            config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_taxa.{kingdom}"
+        ).kingdom
+
+        inputs = expand(
+            config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.rmarkdown",
+            sample=samples
+        ) + expand(
+            config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.{kingdom}.png",
+            kingdom=kingdoms
+        )
+
+        with open(output[0], "w") as f:
+            f.write("\n".join(inputs) + "\n")
+        
 
 rule plot_overall_results:
     input:

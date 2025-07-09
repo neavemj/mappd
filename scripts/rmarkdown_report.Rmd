@@ -228,7 +228,7 @@ The remaining reads were then classified using iterative assemblies, blasts and 
   
   # I'm not using reads if their mate is discarded
   # will combine these results into the 'dropped' category and convert to reads, not pairs
-  trim_df$low_quality <- (trim_df$input_pairs - trim_df$both_surviving) * 2
+  trim_df$low_quality <- pmax(0, (trim_df$input_pairs - trim_df$both_surviving) * 2)
   colnames(trim_df) <- c("Sample", "input_pairs", "both_surviving", "forward_only", "reverse_only", "dropped", "low_quality")
 
   # make long format
@@ -281,7 +281,7 @@ The remaining reads were then classified using iterative assemblies, blasts and 
 
   unannot_df <- merge(trim_df, unannot_df, by="Sample")
 
-  unannot_df$Reads <- (unannot_df$input_pairs * 2) - unannot_df$Total_Annotated
+  unannot_df$Reads <- pmax(0, (unannot_df$input_pairs * 2) - unannot_df$Total_Annotated)
   # if most of the reads have been annotated, this can sometimes be less than 0
   # due to paired end calculations in the bowtie output files
   # could improve this by using a SQL database and tracking individual reads
