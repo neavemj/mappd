@@ -252,15 +252,24 @@ rule plot_abundances:
 # can now use the get method to grab just the files produced
 
 def aggregate_input(wildcards):
-    # I think this just ensures that this function depends on the output of sort_combine_abundances
-    # I don't actually use 'checkpoint_output' in this case
+    # Ensure this rule waits until the checkpoint is complete
     checkpoint_output = checkpoints.sort_combine_abundances.get(**wildcards).output[0]
-    # the wildcard_glob gets wildcards depending on the file names
-    # thus, the 'kingdom' wildcard will only contain kingdoms that were output during
-    # the sort_combine_abundances checkpoint
-    return expand(config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.{kingdom}.png",
-                  kingdom=glob_wildcards(config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_taxa.{kingdom}").kingdom)
 
+    # Dynamically extract the detected kingdom wildcards from files created by the checkpoint
+    kingdoms = glob_wildcards(
+        config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_taxa.{kingdom}"
+    ).kingdom
+
+    # Now expand the inputs based on those kingdoms + all sample rmarkdown files
+    inputs = expand(
+        config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.rmarkdown",
+        sample=SAMPLES
+    ) + expand(
+        config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.{kingdom}.png",
+        kingdom=kingdoms
+    )
+
+    return inputs
 
 # this rule is required to make the whole thing work
 # it takes the aggregate_input function, which expands the files required based
@@ -269,26 +278,13 @@ def aggregate_input(wildcards):
 # knows to run plot_abundances on whatever kingdoms are in the wildcard
 
 rule aggregated:
+    input:
+        aggregate_input
     output:
         config["sub_dirs"]["annotation_dir"] + "/diamond/png_file_names.txt"
     run:
-        checkpoint_output = checkpoints.sort_combine_abundances.get()
-        # force sample-level dependency here
-        samples = SAMPLES  # or glob if dynamic
-        kingdoms = glob_wildcards(
-            config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_taxa.{kingdom}"
-        ).kingdom
-
-        inputs = expand(
-            config["sub_dirs"]["annotation_dir"] + "/diamond/{sample}_diamond_blastx.abundance.rmarkdown",
-            sample=samples
-        ) + expand(
-            config["sub_dirs"]["annotation_dir"] + "/diamond/diamond_blastx_abundance_top10.{kingdom}.png",
-            kingdom=kingdoms
-        )
-
         with open(output[0], "w") as f:
-            f.write("\n".join(inputs) + "\n")
+            f.write("\n".join(snakemake.input) + "\n")
         
 
 rule plot_overall_results:
